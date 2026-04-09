@@ -314,8 +314,15 @@ const Game = (() => {
      GAME FLOW
   ═══════════════════════════════════════════ */
   function startGame() {
-    playerName = document.getElementById('playerName').value.trim();
-    if (!playerName) { document.getElementById('playerName').focus(); return; }
+    const nameInput = document.getElementById('playerName');
+    playerName = nameInput.value.trim();
+    if (!playerName) { nameInput.focus(); return; }
+
+    // Hide mobile keyboard
+    nameInput.blur();
+    if (document.activeElement) document.activeElement.blur();
+    window.scrollTo(0, 0);
+
     ensureAudio();
     resetGameState();
     showScreen('screen-hud');
