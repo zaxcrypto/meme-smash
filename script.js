@@ -291,7 +291,6 @@ const Game = (() => {
     canvas.addEventListener('touchmove',  onTouchMove, { passive: false });
     canvas.addEventListener('touchstart', onTouchStart, { passive: false });
     canvas.addEventListener('touchend',   onPointerUp, { passive: false });
-    document.addEventListener('touchend', e => e.preventDefault(), { passive: false });
 
     showScreen('screen-name');
   }
