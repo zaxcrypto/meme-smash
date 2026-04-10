@@ -1,6 +1,8 @@
 'use strict';
 
 import * as Web3 from './web3.js';
+import { db } from './firebase.js';
+import { doc, getDoc, setDoc, collection, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 
 const Game = (() => {
 
@@ -368,6 +370,44 @@ const Game = (() => {
     }
   }
 
+  let lastSyncedAddress = null;
+  async function syncFromCloud(addr) {
+    if (!addr) return;
+    try {
+      const snap = await getDoc(doc(db, 'users', addr.toLowerCase()));
+      if (snap.exists()) {
+        const data = snap.data();
+        if (data.profile) localStorage.setItem(`meme_smash_profile_${addr.toLowerCase()}`, JSON.stringify(data.profile));
+        if (data.refData) localStorage.setItem(`meme_smash_ref_${addr.toLowerCase()}`, JSON.stringify(data.refData));
+        if (data.binding) localStorage.setItem(`meme_smash_binding_${addr.toLowerCase()}`, JSON.stringify(data.binding));
+        if (data.fees) localStorage.setItem(`meme_smash_fees_${addr.toLowerCase()}`, JSON.stringify(data.fees));
+        if (data.checkin) localStorage.setItem(`meme_smash_checkin_${addr.toLowerCase()}`, JSON.stringify(data.checkin));
+      }
+    } catch(e) {
+      console.warn("Cloud sync error:", e);
+    }
+  }
+
+  function syncToCloud(addr) {
+    if (!addr) return;
+    try {
+      const profileInfo = JSON.parse(localStorage.getItem(`meme_smash_profile_${addr.toLowerCase()}`) || 'null');
+      const refDataInfo = JSON.parse(localStorage.getItem(`meme_smash_ref_${addr.toLowerCase()}`) || 'null');
+      const bindingInfo = JSON.parse(localStorage.getItem(`meme_smash_binding_${addr.toLowerCase()}`) || 'null');
+      const feesInfo = JSON.parse(localStorage.getItem(`meme_smash_fees_${addr.toLowerCase()}`) || 'null');
+      const checkinInfo = JSON.parse(localStorage.getItem(`meme_smash_checkin_${addr.toLowerCase()}`) || 'null');
+      
+      const payload = {};
+      if (profileInfo) payload.profile = profileInfo;
+      if (refDataInfo) payload.refData = refDataInfo;
+      if (bindingInfo) payload.binding = bindingInfo;
+      if (feesInfo) payload.fees = feesInfo;
+      if (checkinInfo) payload.checkin = checkinInfo;
+
+      setDoc(doc(db, 'users', addr.toLowerCase()), payload, { merge: true }).catch(e=>console.warn("Cloud write err:", e));
+    } catch(e){}
+  }
+
   function updatePlayButtonState() {
     const address = Web3.getConnectedAddress();
     const isConnected = !!address;
@@ -377,6 +417,14 @@ const Game = (() => {
     const addrEl = document.getElementById('user-address');
 
     if (isConnected) {
+      // Sync on first connection
+      if (address !== lastSyncedAddress) {
+        lastSyncedAddress = address;
+        syncFromCloud(address).then(() => {
+          refreshProfileUI(address);
+        });
+      }
+
       btnStart.disabled = false;
       btnStart.style.opacity = '1';
       btnStart.style.filter = 'none';
@@ -423,6 +471,7 @@ const Game = (() => {
     if (!address) return;
     const key = `meme_smash_profile_${address.toLowerCase()}`;
     localStorage.setItem(key, JSON.stringify(data));
+    syncToCloud(address);
   }
 
   function refreshProfileUI(address) {
@@ -1419,14 +1468,16 @@ const Game = (() => {
     renderLeaderboard();
   }
 
-  function getLeaderboard() {
-    const board = [];
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && key.startsWith('meme_smash_profile_')) {
-        const addr = key.replace('meme_smash_profile_', '');
-        try {
-          const profile = JSON.parse(localStorage.getItem(key));
+  async function fetchLeaderboardFromCloud() {
+    try {
+      const board = [];
+      const field = lbMode === 'score' ? 'profile.topScore' : 'profile.cumulativeScore';
+      const q = query(collection(db, 'users'), orderBy(field, 'desc'), limit(100));
+      const snap = await getDocs(q);
+      snap.forEach(docSnap => {
+        const addr = docSnap.id;
+        const profile = docSnap.data().profile || {};
+        if (profile.name) {
           board.push({
             address: addr,
             name: profile.name || 'Ninja',
@@ -1434,25 +1485,22 @@ const Game = (() => {
             points: profile.cumulativeScore || 0,
             altAddresses: profile.altAddresses || []
           });
-        } catch(e) {}
-      }
+        }
+      });
+      return board;
+    } catch(e) {
+      console.warn("Cloud leaderboard err:", e);
+      return [];
     }
-    return board;
   }
 
-  function renderLeaderboard() {
-    let board = getLeaderboard();
-    
-    // Sort based on mode
-    if (lbMode === 'score') {
-      board.sort((a,b) => b.topScore - a.topScore);
-    } else {
-      board.sort((a,b) => b.points - a.points);
-    }
-    
-    board = board.slice(0, 100);
-
+  async function renderLeaderboard() {
     const list  = document.getElementById('leaderboard-list');
+    if (!list) return;
+    list.innerHTML = '<li class="lb-empty">Loading Global Scores...</li>';
+
+    let board = await fetchLeaderboardFromCloud();
+
     list.innerHTML = '';
 
     if (board.length === 0) {
@@ -1483,26 +1531,31 @@ const Game = (() => {
     });
   }
 
-  function showPublicProfile(addr) {
-    const board = getLeaderboard();
-    const p = board.find(x => x.address === addr);
-    if (!p) return;
-    document.getElementById('pub-name').textContent = p.name;
-    document.getElementById('pub-score').textContent = p.topScore;
-    document.getElementById('pub-points').textContent = p.points;
-    document.getElementById('pub-primary').textContent = p.address;
-    
-    const altList = document.getElementById('pub-alt-list');
-    altList.innerHTML = '';
-    if (p.altAddresses.length === 0) {
-      altList.innerHTML = '<div style="font-size:12px; opacity:0.5;">No additional addresses.</div>';
-    } else {
-      p.altAddresses.forEach(alt => {
-        altList.innerHTML += `<div style="font-size:11px; font-family:monospace; margin-bottom:4px; padding:5px; background:rgba(0,0,0,0.1); border-radius:4px; border: 1px solid rgba(0,0,0,0.05);"><b>${escHtml(alt.desc)}</b>: <span style="user-select:all;">${escHtml(alt.address)}</span></div>`;
-      });
+  async function showPublicProfile(addr) {
+    try {
+      const snap = await getDoc(doc(db, 'users', addr));
+      if (!snap.exists()) return;
+      const p = snap.data().profile || {};
+      document.getElementById('pub-name').textContent = p.name || 'Unknown';
+      document.getElementById('pub-score').textContent = p.topScore || 0;
+      document.getElementById('pub-points').textContent = p.cumulativeScore || 0;
+      document.getElementById('pub-primary').textContent = addr;
+      
+      const altList = document.getElementById('pub-alt-list');
+      altList.innerHTML = '';
+      const alts = p.altAddresses || [];
+      if (alts.length === 0) {
+        altList.innerHTML = '<div style="font-size:12px; opacity:0.5;">No additional addresses.</div>';
+      } else {
+        alts.forEach(alt => {
+          altList.innerHTML += `<div style="font-size:11px; font-family:monospace; margin-bottom:4px; padding:5px; background:rgba(0,0,0,0.1); border-radius:4px; border: 1px solid rgba(0,0,0,0.05);"><b>${escHtml(alt.desc)}</b>: <span style="user-select:all;">${escHtml(alt.address)}</span></div>`;
+        });
+      }
+      
+      document.getElementById('modal-public-profile').classList.add('active');
+    } catch(e) {
+      console.warn("Error fetching public profile:", e);
     }
-    
-    document.getElementById('modal-public-profile').classList.add('active');
   }
 
   function closePublicProfile() {
@@ -1549,6 +1602,7 @@ const Game = (() => {
     if (!address) return;
     const key = `meme_smash_checkin_${address.toLowerCase()}`;
     localStorage.setItem(key, JSON.stringify(data));
+    syncToCloud(address);
   }
 
   function getCheckinStatus(address) {
@@ -1757,6 +1811,7 @@ const Game = (() => {
   function saveRefData(addr, data) {
     if (!addr) return;
     localStorage.setItem(`meme_smash_ref_${addr.toLowerCase()}`, JSON.stringify(data));
+    syncToCloud(addr);
   }
   function getRefBinding(addr) {
     if (!addr) return null;
@@ -1766,6 +1821,7 @@ const Game = (() => {
   function saveRefBinding(addr, data) {
     if (!addr) return;
     localStorage.setItem(`meme_smash_binding_${addr.toLowerCase()}`, JSON.stringify(data));
+    syncToCloud(addr);
   }
   function getFeeStats(addr) {
     if (!addr) return _emptyFees();
@@ -1778,6 +1834,7 @@ const Game = (() => {
   function saveFeeStats(addr, data) {
     if (!addr) return;
     localStorage.setItem(`meme_smash_fees_${addr.toLowerCase()}`, JSON.stringify(data));
+    syncToCloud(addr);
   }
 
   /* ── Tier Helpers ── */
@@ -1989,6 +2046,7 @@ const Game = (() => {
     saveRefData(addr, rd);
 
     localStorage.setItem(key, JSON.stringify(req));
+    setDoc(doc(db, 'payoutRequests', key), req).catch(e => console.warn(e));
     // Generate shareable URL for cross-device admin import
     const reqUrl = window.location.href.split('?')[0] + '?payreq=' + btoa(JSON.stringify(req));
     alert(`Payout request of $${formatUSD(req.amountUSD)} submitted!\nYour earnings are reset to 0 for the next batch.\n\nShare this link with admin if they are on a different device:\n${reqUrl}\n\n(Link copied to clipboard)`);
@@ -2195,31 +2253,25 @@ const Game = (() => {
     renderAdminPanel();
   }
 
-  function _getAllPayoutReqs() {
-    const out = [];
-    for (let i = 0; i < localStorage.length; i++) {
-      const k = localStorage.key(i);
-      if (k && k.startsWith('meme_smash_payout_req_')) {
-        try { out.push(JSON.parse(localStorage.getItem(k))); } catch(e) {}
-      }
-    }
-    return out.sort((a,b) => b.requestedAt - a.requestedAt);
+  async function _getAllPayoutReqs() {
+    try {
+      const snap = await getDocs(query(collection(db, 'payoutRequests'), orderBy('requestedAt', 'desc')));
+      const out = [];
+      snap.forEach(doc => out.push(doc.data()));
+      return out;
+    } catch(e) { console.warn(e); return []; }
   }
 
-  function _getAllUsers() {
-    const out = [];
-    for (let i = 0; i < localStorage.length; i++) {
-      const k = localStorage.key(i);
-      if (k && k.startsWith('meme_smash_profile_')) {
-        try {
-          const addr = k.replace('meme_smash_profile_', '');
-          out.push({ addr, profile: JSON.parse(localStorage.getItem(k)),
-                     fees: getFeeStats(addr), binding: getRefBinding(addr),
-                     refData: getRefData(addr) });
-        } catch(e) {}
-      }
-    }
-    return out;
+  async function _getAllUsers() {
+    try {
+      const snap = await getDocs(collection(db, 'users'));
+      const out = [];
+      snap.forEach(doc => {
+        const d = doc.data();
+        out.push({ addr: doc.id, profile: d.profile||{}, fees: d.fees||{}, binding: d.binding||null, refData: d.refData||{} });
+      });
+      return out;
+    } catch(e) { console.warn(e); return []; }
   }
 
   async function adminMarkPaid(userAddr, reqTime) {
@@ -2237,9 +2289,11 @@ const Game = (() => {
       // Prompt wallet Tx
       await Web3.payReferralPayout(userAddr, req.amountUSD);
 
-      // Save locally
+      // Save locally & cloud
       req.status = 'paid'; req.paidAt = Date.now();
       localStorage.setItem(key, JSON.stringify(req));
+      setDoc(doc(db, 'payoutRequests', key), req).catch(e=>console.warn(e));
+
       const rd = getRefData(userAddr);
       rd.paidOutUSD = (rd.paidOutUSD || 0) + req.amountUSD;
       rd.payoutHistory.push({ amount: req.amountUSD, paidAt: Date.now() });
@@ -2255,13 +2309,13 @@ const Game = (() => {
     }
   }
 
-  function renderAdminPanel() {
+  async function renderAdminPanel() {
     if (!isAdminWallet(Web3.getConnectedAddress())) return;
 
     /* ----- Payout Queue ----- */
     const qEl = document.getElementById('admin-payout-queue');
     if (qEl) {
-      const all = _getAllPayoutReqs();
+      const all = await _getAllPayoutReqs();
       const pending = all.filter(r => r.status === 'pending');
       const paid    = all.filter(r => r.status === 'paid');
       let html = '';
@@ -2298,7 +2352,7 @@ const Game = (() => {
     /* ----- Users List ----- */
     const uEl = document.getElementById('admin-users-list');
     if (uEl) {
-      const users = _getAllUsers();
+      const users = await _getAllUsers();
       if (!users.length) {
         uEl.innerHTML = '<div class="admin-empty">No user profiles found on this device</div>';
       } else {
