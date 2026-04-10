@@ -1516,6 +1516,193 @@ const Game = (() => {
   }
 
   /* ═══════════════════════════════════════════
+     DAILY CHECK-IN SYSTEM
+  ═══════════════════════════════════════════ */
+
+  // Day resets at 5:30 AM IST = UTC midnight (UTC+5:30 offset)
+  // So we use UTC day number as our "IST day" marker
+  const CHECKIN_REWARDS = [7, 15, 35, 80, 180, 400, 1000]; // Day 1–7
+  const CHECKIN_EMOJIS  = ['🌟','💫','✨','🚀','🔥','💎','👑'];
+  let checkinCountdownTimer = null;
+
+  function getUtcDayNumber() {
+    return Math.floor(Date.now() / (24 * 60 * 60 * 1000));
+  }
+
+  function getCheckinData(address) {
+    if (!address) return { streak: 0, lastDay: -1 };
+    const key = `meme_smash_checkin_${address.toLowerCase()}`;
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : { streak: 0, lastDay: -1 };
+  }
+
+  function saveCheckinData(address, data) {
+    if (!address) return;
+    const key = `meme_smash_checkin_${address.toLowerCase()}`;
+    localStorage.setItem(key, JSON.stringify(data));
+  }
+
+  function getCheckinStatus(address) {
+    const today = getUtcDayNumber();
+    const data  = getCheckinData(address);
+    const alreadyCheckedIn = data.lastDay === today;
+    // Streak continues only if last check-in was YESTERDAY; otherwise broken
+    const streakAlive = data.lastDay === (today - 1);
+    const currentStreak = streakAlive || alreadyCheckedIn ? data.streak : 0;
+    return { today, alreadyCheckedIn, currentStreak, lastDay: data.lastDay };
+  }
+
+  function msUntilNextCheckin() {
+    const now = Date.now();
+    const nextMidnightUTC = (getUtcDayNumber() + 1) * 24 * 60 * 60 * 1000;
+    return Math.max(0, nextMidnightUTC - now);
+  }
+
+  function formatCountdown(ms) {
+    if (ms <= 0) return 'Available now!';
+    const totalSec = Math.floor(ms / 1000);
+    const h = Math.floor(totalSec / 3600);
+    const m = Math.floor((totalSec % 3600) / 60);
+    const s = totalSec % 60;
+    return `${String(h).padStart(2,'0')}h ${String(m).padStart(2,'0')}m ${String(s).padStart(2,'0')}s`;
+  }
+
+  function showCheckinModal() {
+    const addr = Web3.getConnectedAddress();
+    if (!addr) { alert('Connect your wallet first!'); return; }
+    renderCheckinModal(addr);
+    document.getElementById('modal-checkin').classList.add('active');
+    startCheckinCountdown(addr);
+  }
+
+  function closeCheckinModal() {
+    document.getElementById('modal-checkin').classList.remove('active');
+    if (checkinCountdownTimer) { clearInterval(checkinCountdownTimer); checkinCountdownTimer = null; }
+  }
+
+  function startCheckinCountdown(addr) {
+    if (checkinCountdownTimer) clearInterval(checkinCountdownTimer);
+    checkinCountdownTimer = setInterval(() => {
+      renderCheckinModal(addr);
+    }, 1000);
+  }
+
+  function renderCheckinModal(addr) {
+    const { today, alreadyCheckedIn, currentStreak, lastDay } = getCheckinStatus(addr);
+    const nextDayIndex = Math.min(currentStreak, 6); // which reward comes next (0-indexed)
+    const msLeft = msUntilNextCheckin();
+    const canCheckin = !alreadyCheckedIn;
+
+    // Render day tiles
+    const grid = document.getElementById('checkin-day-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    for (let i = 0; i < 7; i++) {
+      const dayNum   = i + 1;
+      const reward   = CHECKIN_REWARDS[i];
+      const emoji    = CHECKIN_EMOJIS[i];
+      const isDone   = i < currentStreak;
+      const isToday  = i === currentStreak && canCheckin;
+      const isFuture = !isDone && !isToday;
+
+      const tile = document.createElement('div');
+      tile.className = 'ci-tile' + (isDone ? ' ci-done' : '') + (isToday ? ' ci-today' : '') + (isFuture ? ' ci-future' : '');
+      tile.innerHTML = `
+        <div class="ci-day">Day ${dayNum}</div>
+        <div class="ci-emoji">${isDone ? '✅' : emoji}</div>
+        <div class="ci-pts">${reward}<span class="ci-mp">MP</span></div>
+      `;
+      grid.appendChild(tile);
+    }
+
+    // Streak label
+    const streakEl = document.getElementById('ci-streak-label');
+    if (streakEl) {
+      if (currentStreak === 0) {
+        streakEl.textContent = 'Start your streak! 🌱';
+      } else if (currentStreak >= 7) {
+        streakEl.textContent = '🏆 7-Day Champion! Streak resets now!';
+      } else {
+        streakEl.textContent = `🔥 ${currentStreak}-Day Streak!`;
+      }
+    }
+
+    // Countdown / CTA
+    const btnEl = document.getElementById('ci-btn');
+    const cdEl  = document.getElementById('ci-countdown');
+    const rewardEl = document.getElementById('ci-next-reward');
+    if (currentStreak >= 7 && !canCheckin) {
+      // Full cycle done, show restart info
+      if (rewardEl) rewardEl.textContent = `Next streak starts tomorrow — Day 1 (7 MP)`;
+      if (cdEl) cdEl.textContent = formatCountdown(msLeft);
+      if (btnEl) { btnEl.disabled = true; btnEl.textContent = '✅ Full Streak Complete!'; }
+    } else if (canCheckin) {
+      const idx = Math.min(currentStreak, 6);
+      if (rewardEl) rewardEl.textContent = `Today's reward: ${CHECKIN_REWARDS[idx]} MP ${CHECKIN_EMOJIS[idx]}`;
+      if (cdEl) cdEl.textContent = '';
+      if (btnEl) { btnEl.disabled = false; btnEl.textContent = `Check In — $0.01 on Base`; }
+    } else {
+      const idx = Math.min(currentStreak, 6);
+      if (rewardEl) rewardEl.textContent = `Next: Day ${currentStreak + 1} — ${CHECKIN_REWARDS[idx]} MP ${CHECKIN_EMOJIS[idx]}`;
+      if (cdEl) cdEl.textContent = `Next check-in in: ${formatCountdown(msLeft)}`;
+      if (btnEl) { btnEl.disabled = true; btnEl.textContent = '✅ Checked In Today!'; }
+    }
+  }
+
+  async function doCheckin() {
+    const addr = Web3.getConnectedAddress();
+    if (!addr) { alert('Connect your wallet first!'); return; }
+
+    const { today, alreadyCheckedIn, currentStreak } = getCheckinStatus(addr);
+    if (alreadyCheckedIn) { alert('Already checked in today! Come back tomorrow.'); return; }
+
+    const btn = document.getElementById('ci-btn');
+    const origText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Processing...';
+
+    try {
+      await Web3.payForDailyCheckin();
+
+      // Determine new streak
+      const data = getCheckinData(addr);
+      const lastDay = data.lastDay;
+      let newStreak;
+      if (lastDay === today - 1) {
+        // Consecutive day
+        newStreak = (data.streak >= 7) ? 1 : data.streak + 1;
+      } else {
+        // Broken or first time
+        newStreak = 1;
+      }
+
+      saveCheckinData(addr, { streak: newStreak, lastDay: today });
+
+      // Award meme points
+      const rewardIdx = newStreak - 1; // 0-indexed
+      const pts = CHECKIN_REWARDS[Math.min(rewardIdx, 6)];
+      const profile = getProfileData(addr);
+      profile.cumulativeScore = (profile.cumulativeScore || 0) + pts;
+      saveProfileData(addr, profile);
+      refreshProfileUI(addr);
+
+      btn.textContent = `🎉 +${pts} Meme Points!`;
+      renderCheckinModal(addr);
+
+      setTimeout(() => {
+        btn.textContent = origText;
+        renderCheckinModal(addr);
+      }, 3000);
+
+    } catch (e) {
+      console.error(e);
+      btn.disabled = false;
+      btn.textContent = 'Payment Failed — Try Again';
+      setTimeout(() => { btn.textContent = origText; btn.disabled = false; }, 2500);
+    }
+  }
+
+  /* ═══════════════════════════════════════════
      EXPORT PUBLIC API
   ═══════════════════════════════════════════ */
   return { 
@@ -1539,7 +1726,10 @@ const Game = (() => {
     copyAddress,
     setLeaderboardMode,
     showPublicProfile,
-    closePublicProfile
+    closePublicProfile,
+    showCheckinModal,
+    closeCheckinModal,
+    doCheckin,
   };
 
 })();

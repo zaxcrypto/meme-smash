@@ -312,3 +312,12 @@ export async function payToSubmitScore() {
   if (!activeProvider || !connectedAddress) throw new Error('Wallet not connected');
   return await sendTx(parseEther('0.000005'));
 }
+
+/**
+ * Pay ~$0.01 ETH for daily check-in.
+ * Builder code bc_sjkexp2o appended to data field.
+ */
+export async function payForDailyCheckin() {
+  if (!activeProvider || !connectedAddress) throw new Error('Wallet not connected');
+  return await sendTx(parseEther('0.000005'));
+}
