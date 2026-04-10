@@ -1825,18 +1825,28 @@ const Game = (() => {
                gamesSubmitted: 0, feesUSD: 0, earnedUSD: 0, boundAt: Date.now() };
       rd.referrals.push(ref);
     }
+    
     ref.feesUSD = (ref.feesUSD || 0) + amountUSD;
     ref.gamesSubmitted = gamesSubmitted;
+    
+    let newlyValid = false;
     // Promote to valid after 10 game submissions
-    if (gamesSubmitted >= 10 && ref.status === 'pending') ref.status = 'valid';
+    if (gamesSubmitted >= 10 && ref.status === 'pending') {
+      ref.status = 'valid';
+      newlyValid = true;
+    }
+    
     // Only earn from valid referrals
     if (ref.status === 'valid') {
       const validCount = rd.referrals.filter(r => r.status === 'valid').length;
       const rate = getRefTier(validCount).rate;
-      const earned = amountUSD * rate;
-      ref.earnedUSD = (ref.earnedUSD || 0) + earned;
-      rd.pendingUSD = (rd.pendingUSD   || 0) + earned;
-      rd.lifetimeUSD = (rd.lifetimeUSD || 0) + earned;
+      
+      // If they just became valid, credit ALL historical fees they spent. Otherwise, just credit the current amount.
+      const amountToCredit = newlyValid ? (ref.feesUSD * rate) : (amountUSD * rate);
+      
+      ref.earnedUSD = (ref.earnedUSD || 0) + amountToCredit;
+      rd.pendingUSD = (rd.pendingUSD   || 0) + amountToCredit;
+      rd.lifetimeUSD = (rd.lifetimeUSD || 0) + amountToCredit;
     }
     saveRefData(referrerAddr, rd);
   }
@@ -2013,6 +2023,23 @@ const Game = (() => {
     const addr = Web3.getConnectedAddress();
     if (!addr) return;
     const rd = getRefData(addr);
+
+    // --- Retroactive Bug Fix for affected $0 earners ---
+    let needsSave = false;
+    const validCountTemp = rd.referrals.filter(r => r.status === 'valid').length;
+    const currentRate = getRefTier(validCountTemp).rate;
+    rd.referrals.forEach(r => {
+       if (r.status === 'valid' && (!r.earnedUSD || r.earnedUSD === 0) && r.feesUSD > 0) {
+           const missedEarnings = r.feesUSD * currentRate;
+           r.earnedUSD = missedEarnings;
+           rd.pendingUSD = (rd.pendingUSD || 0) + missedEarnings;
+           rd.lifetimeUSD = (rd.lifetimeUSD || 0) + missedEarnings;
+           needsSave = true;
+       }
+    });
+    if (needsSave) saveRefData(addr, rd);
+    // ---------------------------------------------------
+
     const binding = getRefBinding(addr);
     const validCount = rd.referrals.filter(r => r.status === 'valid').length;
     const tier = getRefTier(validCount);
