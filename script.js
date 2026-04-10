@@ -125,14 +125,12 @@ const Game = (() => {
 
   function initAudio() {
     ensureAudio();
-    // Use an error-safe constructor
+    // Use import.meta.url so Vite resolves the correct asset URL in both dev and prod
     try {
-      bombAudioEl = new Audio();
-      bombAudioEl.src = "fahhh.mp3";
+      bombAudioEl = new Audio(new URL('./fahhh.mp3', import.meta.url).href);
       bombAudioEl.volume = 1.0;
 
-      weeeAudioEl = new Audio();
-      weeeAudioEl.src = "weee.mp3";
+      weeeAudioEl = new Audio(new URL('./weee.mp3', import.meta.url).href);
       weeeAudioEl.volume = 1.0;
     } catch(e) {
       console.warn("Audio load error:", e);
