@@ -257,7 +257,7 @@ async function sendTx(valueWei) {
  */
 export async function payToRevive() {
   if (!activeProvider || !connectedAddress) throw new Error('Wallet not connected');
-  return await sendTx(parseEther('0.000015'));
+  return await sendTx(parseEther('0.000025'));
 }
 
 /**
@@ -266,5 +266,5 @@ export async function payToRevive() {
  */
 export async function payToSubmitScore() {
   if (!activeProvider || !connectedAddress) throw new Error('Wallet not connected');
-  return await sendTx(parseEther('0.000003'));
+  return await sendTx(parseEther('0.000005'));
 }

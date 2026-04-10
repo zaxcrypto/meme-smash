@@ -395,6 +395,7 @@ const Game = (() => {
       await Web3.payToRevive();
       btn.textContent = 'Success!';
       setTimeout(() => {
+        btn.textContent = originalText;
         resetForRevive();
         showScreen('screen-hud');
         isPlaying = true;
