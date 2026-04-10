@@ -2148,7 +2148,7 @@ const Game = (() => {
             </div>
             <div class="ref-item-right">
               <span class="ref-item-status ${r.status}">${r.status === 'valid' ? 'Valid' : `Pending (${r.gamesSubmitted}/10)`}</span>
-              <span class="ref-item-fees">$${formatUSD(r.feesUSD)} spent</span>
+              ${isAdminWallet(addr) ? `<span class="ref-item-fees">$${formatUSD(r.feesUSD)} spent</span>` : ''}
               <span class="ref-item-earned">+$${formatUSD(r.earnedUSD)}</span>
             </div>
           </div>`).join('');
