@@ -2,57 +2,75 @@
  * web3.js — Meme Smash Web3 Layer
  *
  * Pure EIP-6963 + viem approach — NO AppKit, NO WagmiAdapter, NO Coinbase SDK.
- * All game payments use USDC (ERC-20 stablecoin on Base) for fixed USD pricing.
+ * All game payments are in ETH (for Base rewards) but priced in USD.
+ * ETH amount is calculated dynamically using real-time price from CoinGecko.
  */
 
-import { createWalletClient, custom, encodeFunctionData } from 'viem';
+import { createWalletClient, custom, parseEther } from 'viem';
 import { base } from 'viem/chains';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const RECEIVER_ADDRESS = '0x3b305a5c77d0274BCDDD9013C80113Ea1D698061';
+const BUILDER_CODE     = 'bc_sjkexp2o';
 
-// USDC on Base (6 decimals — $1.00 = 1_000_000 units)
-const USDC_CONTRACT = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
+// ─── ETH Price Oracle ─────────────────────────────────────────────────────────
+let _cachedEthPrice = null;
+let _cachedAt       = 0;
+const CACHE_MS      = 60_000; // re-fetch every 60 seconds max
 
-// ERC-20 transfer ABI (only what we need)
-const ERC20_TRANSFER_ABI = [{
-  name: 'transfer',
-  type: 'function',
-  inputs: [
-    { name: 'to',    type: 'address' },
-    { name: 'value', type: 'uint256' },
-  ],
-  outputs: [{ type: 'bool' }],
-}];
+async function getEthUsdPrice() {
+  const now = Date.now();
+  if (_cachedEthPrice && now - _cachedAt < CACHE_MS) return _cachedEthPrice;
 
-/**
- * Convert a USD dollar amount to USDC token units (6 decimals).
- * $0.05 → 50_000 | $0.01 → 10_000 | $5.00 → 5_000_000
- */
-function usdToUSDC(usdAmount) {
-  return BigInt(Math.round(usdAmount * 1_000_000));
+  try {
+    const res = await fetch(
+      'https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd',
+      { cache: 'no-store' }
+    );
+    const json = await res.json();
+    _cachedEthPrice = json.ethereum.usd;
+    _cachedAt = now;
+    return _cachedEthPrice;
+  } catch (e) {
+    console.warn('[web3] ETH price fetch failed, using fallback $2000:', e);
+    return _cachedEthPrice || 2000; // fallback if no cache
+  }
 }
 
 /**
- * Send an ERC-20 USDC transfer to a target address.
- * Value is always exact USD — immune to ETH price swings.
+ * Converts a USD amount to ETH string using current live price.
+ * e.g. $0.05 at $2500/ETH → "0.00002" ETH
  */
-async function sendUSDC(toAddress, usdAmount) {
+async function usdToEthStr(usdAmount) {
+  const price = await getEthUsdPrice();
+  const eth = usdAmount / price;
+  // Format to 18 significant decimals, strip trailing zeros
+  const str = eth.toFixed(18).replace(/0+$/, '').replace(/\.$/, '');
+  return str || '0';
+}
+
+/**
+ * Send ETH to a target address with the exact USD-equivalent value.
+ * Amount is always correct regardless of ETH price volatility.
+ */
+async function sendETH(toAddress, usdAmount) {
   if (!activeProvider || !connectedAddress) throw new Error('Wallet not connected');
 
-  const data = encodeFunctionData({
-    abi: ERC20_TRANSFER_ABI,
-    functionName: 'transfer',
-    args: [toAddress, usdToUSDC(usdAmount)],
-  });
+  const ethStr  = await usdToEthStr(usdAmount);
+  const weiVal  = parseEther(ethStr);
+  const hexVal  = '0x' + weiVal.toString(16);
+
+  // Builder code attribution in data field
+  const dataHex = '0x' + Array.from(new TextEncoder().encode(BUILDER_CODE))
+    .map(b => b.toString(16).padStart(2, '0')).join('');
 
   return await activeProvider.request({
     method: 'eth_sendTransaction',
     params: [{
       from:  connectedAddress,
-      to:    USDC_CONTRACT,
-      value: '0x0',
-      data,
+      to:    toAddress,
+      value: hexVal,
+      data:  dataHex,
     }],
   });
 }
@@ -229,21 +247,21 @@ export async function autoConnectWallet() {
   return null;
 }
 
-// ─── Game Payment Functions (all use USDC stablecoin — always exact USD) ─────
+// ─── Game Payment Functions (all priced in USD, sent as ETH at live rate) ─────
 
-/** Pay exactly $0.05 USDC to revive. */
+/** Pay $0.05 worth of ETH to revive (ETH amount fetched from live price). */
 export async function payToRevive() {
-  return await sendUSDC(RECEIVER_ADDRESS, 0.05);
+  return await sendETH(RECEIVER_ADDRESS, 0.05);
 }
 
-/** Pay exactly $0.01 USDC to submit score to leaderboard. */
+/** Pay $0.01 worth of ETH to submit score to leaderboard. */
 export async function payToSubmitScore() {
-  return await sendUSDC(RECEIVER_ADDRESS, 0.01);
+  return await sendETH(RECEIVER_ADDRESS, 0.01);
 }
 
-/** Pay exactly $0.01 USDC for daily check-in. */
+/** Pay $0.01 worth of ETH for daily check-in. */
 export async function payForDailyCheckin() {
-  return await sendUSDC(RECEIVER_ADDRESS, 0.01);
+  return await sendETH(RECEIVER_ADDRESS, 0.01);
 }
 
 /**
@@ -261,9 +279,9 @@ export async function bindReferralOnchain(referrerAddress) {
 }
 
 /**
- * Pay referral reward to a user via USDC (Admin ONLY).
- * amountUSD is sent as exact USDC — no ETH conversion or rate risk.
+ * Pay referral reward to a user via ETH at live USD rate (Admin ONLY).
+ * e.g. $5.00 at $2500/ETH → sends 0.002 ETH exactly.
  */
 export async function payReferralPayout(targetAddress, amountUSD) {
-  return await sendUSDC(targetAddress, amountUSD);
+  return await sendETH(targetAddress, amountUSD);
 }
