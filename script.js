@@ -142,8 +142,9 @@ const Game = (() => {
   function sfxBomb() {
     if (isMuted) return;
     if (bombAudioEl) {
-      bombAudioEl.currentTime = 0;
-      bombAudioEl.play().catch(e => synthFahhhh());
+      const clone = bombAudioEl.cloneNode();
+      clone.volume = 1.0;
+      clone.play().catch(e => synthFahhhh());
     } else {
       synthFahhhh();
     }
