@@ -127,12 +127,15 @@ function openModal() {
               transport: custom(provider),
             });
 
-            // Switch to Base network if needed
+            // Check and switch to Base network if needed
             try {
-              await provider.request({
-                method: 'wallet_switchEthereumChain',
-                params: [{ chainId: '0x2105' }],  // Base mainnet = 8453
-              });
+              const currentChainId = await provider.request({ method: 'eth_chainId' });
+              if (currentChainId !== '0x2105' && currentChainId !== '8453') {
+                await provider.request({
+                  method: 'wallet_switchEthereumChain',
+                  params: [{ chainId: '0x2105' }],  // Base mainnet = 8453
+                });
+              }
             } catch (switchErr) {
               if (switchErr.code === 4902) {
                 await provider.request({
@@ -213,6 +216,8 @@ export function getConnectedAddress() {
 export async function payToRevive() {
   if (!walletClient || !connectedAddress) throw new Error('Wallet not connected');
   return await walletClient.sendTransaction({
+    account: connectedAddress,
+    chain:   base,
     to:    RECEIVER_ADDRESS,
     value: parseEther('0.000015'),
     data:  DATA_SUFFIX,
@@ -226,6 +231,8 @@ export async function payToRevive() {
 export async function payToSubmitScore() {
   if (!walletClient || !connectedAddress) throw new Error('Wallet not connected');
   return await walletClient.sendTransaction({
+    account: connectedAddress,
+    chain:   base,
     to:    RECEIVER_ADDRESS,
     value: parseEther('0.000003'),
     data:  DATA_SUFFIX,
