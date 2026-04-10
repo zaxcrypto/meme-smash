@@ -327,7 +327,12 @@ const Game = (() => {
     if (!addr) return;
 
     const profile = getProfileData(addr);
-    playerName = profile.name || 'Ninja';
+    if (!profile.name || profile.name.trim() === '') {
+      alert('Please set and save your Ninja Name in your Profile first!');
+      showProfile();
+      return;
+    }
+    playerName = profile.name;
 
     window.scrollTo(0, 0);
 
@@ -384,8 +389,6 @@ const Game = (() => {
       btnConnect.textContent = 'Disconnect Wallet';
       addrEl.textContent = `Connected: ${address.slice(0,6)}...${address.slice(-4)}`;
       addrEl.style.display = 'block';
-
-      refreshProfileUI(address);
     } else {
       btnStart.disabled = true;
       btnStart.style.opacity = '0.5';
@@ -463,7 +466,7 @@ const Game = (() => {
     const address = Web3.getConnectedAddress();
     if (!address) return;
     const altAddr = document.getElementById('alt-address-input').value.trim();
-    const altDesc = document.getElementById('alt-desc-input').value.trim() || 'Wallet';
+    const altDesc = document.getElementById('alt-desc-input').value.trim() || 'Additional';
     
     if (!/^0x[a-fA-F0-9]{40}$/.test(altAddr)) {
       alert("Invalid EVM Address");
