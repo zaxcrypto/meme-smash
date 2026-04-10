@@ -280,6 +280,7 @@ const Game = (() => {
     resize();
     window.addEventListener('resize', resize);
     initAudio();
+    tryAutoBindFromURL(); // Check for ?ref= URL param
 
     drawLoadingScreen();
 
@@ -401,6 +402,11 @@ const Game = (() => {
       btnConnect.textContent = 'Connect Wallet';
       addrEl.style.display = 'none';
     }
+    // Admin pill visibility
+    const adminPill = document.getElementById('btn-admin-pill');
+    if (adminPill) adminPill.style.display = isAdminWallet(address) ? 'inline-flex' : 'none';
+    // Auto-apply pending referral once per session
+    if (address) checkAndApplyPendingRef(address);
   }
 
   /* ═══════════════════════════════════════════
@@ -523,6 +529,9 @@ const Game = (() => {
       if (!confirm("Revive for $0.05 worth of ETH?")) return;
       btn.textContent = 'Processing...';
       await Web3.payToRevive();
+      // Track fee for referral system
+      const feeAddr = Web3.getConnectedAddress();
+      if (feeAddr) recordFeePayment(feeAddr, 'revive', 0.05);
       btn.textContent = 'Success!';
       setTimeout(() => {
         btn.textContent = originalText;
@@ -562,6 +571,7 @@ const Game = (() => {
           profile.cumulativeScore += score;
           saveProfileData(addr, profile);
           refreshProfileUI(addr);
+          recordFeePayment(addr, 'submit', 0.01); // Track for referral system
         }
 
         showLeaderboard();
@@ -1682,6 +1692,7 @@ const Game = (() => {
       profile.cumulativeScore = (profile.cumulativeScore || 0) + pts;
       saveProfileData(addr, profile);
       refreshProfileUI(addr);
+      recordFeePayment(addr, 'checkin', 0.01); // Track for referral system
 
       btn.textContent = `+${pts} Meme Points Earned!`;
       renderCheckinModal(addr);
@@ -1699,9 +1710,550 @@ const Game = (() => {
     }
   }
 
+
+  /* ═══════════════════════════════════════════
+     REFERRAL SYSTEM
+  ═══════════════════════════════════════════ */
+  const ADMIN_WALLET  = '0xd448777940dFaBF65FD259fA8a9903e60E1FF178';
+  const PAYOUT_MIN_USD = 5.0;
+  const REF_TIER_DEFS = [
+    { label: 'Starter', min: 0,   rate: 0,    color: '#90A4AE' },
+    { label: 'Pro',     min: 10,  rate: 0.10, color: '#FF8C00' },
+    { label: 'Elite',   min: 50,  rate: 0.15, color: '#FF3DAE' },
+    { label: 'Legend',  min: 100, rate: 0.30, color: '#9B3BDB' },
+    { label: 'Mythic',  min: 500, rate: 0.40, color: '#FFD700' },
+  ];
+
+  function isAdminWallet(addr) {
+    return addr && addr.toLowerCase() === ADMIN_WALLET.toLowerCase();
+  }
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  /* ── Deterministic Codes & Links (no backend needed) ── */
+  function getMyRefCode(addr) {
+    if (!addr || addr.length < 10) return '';
+    return 'MS' + addr.slice(2,6).toUpperCase() + addr.slice(-4).toUpperCase();
+  }
+  function getMyRefLink(addr) {
+    if (!addr) return '';
+    return window.location.href.split('?')[0] + '?ref=' + addr.toLowerCase();
+  }
+
+  /* ── Data Accessors ── */
+  function getRefData(addr) {
+    if (!addr) return _emptyRef();
+    const raw = localStorage.getItem(`meme_smash_ref_${addr.toLowerCase()}`);
+    return raw ? { ..._emptyRef(), ...JSON.parse(raw) } : _emptyRef();
+  }
+  function _emptyRef() {
+    return { referrals: [], pendingUSD: 0, lifetimeUSD: 0, paidOutUSD: 0, payoutHistory: [] };
+  }
+  function saveRefData(addr, data) {
+    if (!addr) return;
+    localStorage.setItem(`meme_smash_ref_${addr.toLowerCase()}`, JSON.stringify(data));
+  }
+  function getRefBinding(addr) {
+    if (!addr) return null;
+    const raw = localStorage.getItem(`meme_smash_binding_${addr.toLowerCase()}`);
+    return raw ? JSON.parse(raw) : null;
+  }
+  function saveRefBinding(addr, data) {
+    if (!addr) return;
+    localStorage.setItem(`meme_smash_binding_${addr.toLowerCase()}`, JSON.stringify(data));
+  }
+  function getFeeStats(addr) {
+    if (!addr) return _emptyFees();
+    const raw = localStorage.getItem(`meme_smash_fees_${addr.toLowerCase()}`);
+    return raw ? { ..._emptyFees(), ...JSON.parse(raw) } : _emptyFees();
+  }
+  function _emptyFees() {
+    return { totalUSD: 0, gamesSubmitted: 0, revives: 0, checkins: 0, txHistory: [] };
+  }
+  function saveFeeStats(addr, data) {
+    if (!addr) return;
+    localStorage.setItem(`meme_smash_fees_${addr.toLowerCase()}`, JSON.stringify(data));
+  }
+
+  /* ── Tier Helpers ── */
+  function getRefTier(validCount) {
+    for (let i = REF_TIER_DEFS.length - 1; i >= 0; i--) {
+      if (validCount >= REF_TIER_DEFS[i].min) return REF_TIER_DEFS[i];
+    }
+    return REF_TIER_DEFS[0];
+  }
+  function computeTierFillPct(validCount) {
+    const segs = [{f:0,t:10},{f:10,t:50},{f:50,t:100},{f:100,t:500}];
+    if (validCount >= 500) return 100;
+    for (let i = 0; i < segs.length; i++) {
+      if (validCount < segs[i].t) {
+        return i * 25 + ((validCount - segs[i].f) / (segs[i].t - segs[i].f)) * 25;
+      }
+    }
+    return 100;
+  }
+
+  /* ── Fee Recording (called after every payment) ── */
+  function recordFeePayment(addr, type, amountUSD) {
+    if (!addr) return;
+    const fs = getFeeStats(addr);
+    fs.totalUSD = (fs.totalUSD || 0) + amountUSD;
+    if (type === 'submit')  fs.gamesSubmitted = (fs.gamesSubmitted || 0) + 1;
+    if (type === 'revive')  fs.revives  = (fs.revives  || 0) + 1;
+    if (type === 'checkin') fs.checkins = (fs.checkins || 0) + 1;
+    fs.txHistory.push({ type, amountUSD, ts: Date.now() });
+    saveFeeStats(addr, fs);
+    // Update profile fee tracking
+    const profile = getProfileData(addr);
+    profile.feesSpentUSD = (profile.feesSpentUSD || 0) + amountUSD;
+    if (type === 'submit') profile.gamesSubmitted = (profile.gamesSubmitted || 0) + 1;
+    saveProfileData(addr, profile);
+    // Credit referrer (if their data exists on this device)
+    const binding = getRefBinding(addr);
+    if (binding && binding.referrerAddr) {
+      _creditReferrer(addr, binding.referrerAddr, amountUSD, fs.gamesSubmitted);
+    }
+  }
+
+  function _creditReferrer(refereeAddr, referrerAddr, amountUSD, gamesSubmitted) {
+    const rd = getRefData(referrerAddr);
+    let ref = rd.referrals.find(r => r.addr.toLowerCase() === refereeAddr.toLowerCase());
+    if (!ref) {
+      const p = getProfileData(refereeAddr);
+      ref = { addr: refereeAddr.toLowerCase(), name: p.name || 'Unknown', status: 'pending',
+               gamesSubmitted: 0, feesUSD: 0, earnedUSD: 0, boundAt: Date.now() };
+      rd.referrals.push(ref);
+    }
+    ref.feesUSD = (ref.feesUSD || 0) + amountUSD;
+    ref.gamesSubmitted = gamesSubmitted;
+    // Promote to valid after 10 game submissions
+    if (gamesSubmitted >= 10 && ref.status === 'pending') ref.status = 'valid';
+    // Only earn from valid referrals
+    if (ref.status === 'valid') {
+      const validCount = rd.referrals.filter(r => r.status === 'valid').length;
+      const rate = getRefTier(validCount).rate;
+      const earned = amountUSD * rate;
+      ref.earnedUSD = (ref.earnedUSD || 0) + earned;
+      rd.pendingUSD = (rd.pendingUSD   || 0) + earned;
+      rd.lifetimeUSD = (rd.lifetimeUSD || 0) + earned;
+    }
+    saveRefData(referrerAddr, rd);
+  }
+
+  /* ── URL Auto-Bind ── */
+  function tryAutoBindFromURL() {
+    const params = new URLSearchParams(window.location.search);
+    // Handle payout request import for admin
+    const payreq = params.get('payreq');
+    if (payreq) {
+      try {
+        const req = JSON.parse(atob(payreq));
+        const key = `meme_smash_payout_req_${req.addr.toLowerCase()}`;
+        if (!localStorage.getItem(key)) {
+          localStorage.setItem(key, JSON.stringify({ ...req, status: 'pending' }));
+        }
+      } catch(e) {}
+    }
+    // Handle referral link
+    const refAddr = params.get('ref');
+    if (refAddr && /^0x[a-fA-F0-9]{40}$/.test(refAddr)) {
+      sessionStorage.setItem('meme_smash_pending_ref', refAddr.toLowerCase());
+    }
+    window.history.replaceState({}, '', window.location.href.split('?')[0]);
+  }
+
+  let _refApplied = false;
+  function checkAndApplyPendingRef(userAddr) {
+    if (!userAddr || _refApplied) return;
+    const pending = sessionStorage.getItem('meme_smash_pending_ref');
+    if (!pending) return;
+    if (pending === userAddr.toLowerCase()) return; // can't self-refer
+    if (getRefBinding(userAddr)) { _refApplied = true; return; }
+    _refApplied = true;
+    _doBindReferral(userAddr, pending, 'link');
+    sessionStorage.removeItem('meme_smash_pending_ref');
+  }
+
+  function _doBindReferral(userAddr, referrerAddr, method) {
+    if (!userAddr || !referrerAddr) return false;
+    if (userAddr.toLowerCase() === referrerAddr.toLowerCase()) return false;
+    if (getRefBinding(userAddr)) return false;
+    saveRefBinding(userAddr, {
+      referrerAddr: referrerAddr.toLowerCase(),
+      code: getMyRefCode(referrerAddr), method,
+      boundAt: Date.now(), onchain: false
+    });
+    // Update referrer list on this device if their data exists
+    const rd = getRefData(referrerAddr);
+    if (!rd.referrals.find(r => r.addr.toLowerCase() === userAddr.toLowerCase())) {
+      const p = getProfileData(userAddr);
+      rd.referrals.push({ addr: userAddr.toLowerCase(), name: p.name || 'Unknown',
+        status: 'pending', gamesSubmitted: 0, feesUSD: 0, earnedUSD: 0, boundAt: Date.now() });
+      saveRefData(referrerAddr, rd);
+    }
+    return true;
+  }
+
+  async function doManualRefBind() {
+    const addr = Web3.getConnectedAddress();
+    if (!addr) { alert('Connect wallet first!'); return; }
+    if (getRefBinding(addr)) { alert('You already have a referral binding.'); return; }
+
+    const code    = (document.getElementById('manual-ref-code-input')?.value || '').trim().toUpperCase();
+    const refAddr = (document.getElementById('manual-ref-addr-input')?.value || '').trim().toLowerCase();
+    if (!code && !refAddr) { alert('Enter a referral code or referrer wallet address.'); return; }
+
+    let finalAddr = null;
+    if (refAddr && /^0x[a-fA-F0-9]{40}$/.test(refAddr)) {
+      if (code && getMyRefCode(refAddr) !== code) { alert('Code does not match wallet address!'); return; }
+      finalAddr = refAddr;
+    } else if (code) {
+      // Scan localStorage for matching profile
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith('meme_smash_profile_')) {
+          const a = k.replace('meme_smash_profile_', '');
+          if (getMyRefCode(a) === code) { finalAddr = a; break; }
+        }
+      }
+      if (!finalAddr) {
+        alert('Code not found on this device.\nIf your referrer is on a different device, also enter their wallet address (0x...).');
+        return;
+      }
+    } else { alert('Enter a valid code or wallet address.'); return; }
+
+    if (finalAddr === addr.toLowerCase()) { alert("You can't refer yourself!"); return; }
+
+    const applyBtn = document.getElementById('manual-ref-apply-btn');
+    const orig = applyBtn.textContent;
+    applyBtn.disabled = true; applyBtn.textContent = 'Binding...';
+
+    try {
+      const doOnchain = confirm('Bind this referral permanently on-chain?\n(Small gas fee — or Cancel for local-only bind)');
+      if (doOnchain) {
+        await Web3.bindReferralOnchain(finalAddr);
+        _doBindReferral(addr, finalAddr, 'onchain');
+        const b = getRefBinding(addr);
+        if (b) { b.onchain = true; saveRefBinding(addr, b); }
+        alert('Referral bound permanently on-chain!');
+      } else {
+        _doBindReferral(addr, finalAddr, 'manual');
+        alert('Referral bound locally!');
+      }
+      renderRefModal();
+    } catch(e) {
+      console.error(e);
+      _doBindReferral(addr, finalAddr, 'manual');
+      alert('On-chain bind failed. Saved locally instead.');
+      renderRefModal();
+    } finally {
+      applyBtn.disabled = false; applyBtn.textContent = orig;
+    }
+  }
+
+  /* ── Payout ── */
+  function requestPayout() {
+    const addr = Web3.getConnectedAddress();
+    if (!addr) return;
+    const rd = getRefData(addr);
+    if (rd.pendingUSD < PAYOUT_MIN_USD) {
+      alert(`Min payout is $${PAYOUT_MIN_USD}. You have $${rd.pendingUSD.toFixed(4)} pending.`);
+      return;
+    }
+    const key = `meme_smash_payout_req_${addr.toLowerCase()}`;
+    const existing = localStorage.getItem(key);
+    if (existing && JSON.parse(existing).status === 'pending') {
+      alert('You already have a pending payout request!'); return;
+    }
+    const profile = getProfileData(addr);
+    const req = { addr: addr.toLowerCase(), name: profile.name || 'Unknown',
+                   amountUSD: rd.pendingUSD, requestedAt: Date.now(), status: 'pending' };
+    localStorage.setItem(key, JSON.stringify(req));
+    // Generate shareable URL for cross-device admin import
+    const reqUrl = window.location.href.split('?')[0] + '?payreq=' + btoa(JSON.stringify(req));
+    alert(`Payout request of $${rd.pendingUSD.toFixed(4)} submitted!\n\nShare this link with admin:\n${reqUrl}\n\n(Link copied to clipboard)`);
+    try { navigator.clipboard.writeText(reqUrl); } catch(e) {}
+    renderRefModal();
+  }
+
+  /* ── Referral Modal UI ── */
+  function showReferModal() {
+    const addr = Web3.getConnectedAddress();
+    if (!addr) { alert('Connect wallet first!'); return; }
+    renderRefModal();
+    document.getElementById('modal-refer').classList.add('active');
+  }
+  function closeReferModal() {
+    document.getElementById('modal-refer').classList.remove('active');
+  }
+  function copyRefCode() {
+    const addr = Web3.getConnectedAddress();
+    if (!addr) return;
+    navigator.clipboard.writeText(getMyRefCode(addr)).then(() => {
+      const b = document.getElementById('ref-copy-code-btn');
+      if (b) { b.textContent = 'Copied!'; setTimeout(() => b.textContent = 'Copy Code', 1500); }
+    }).catch(() => {});
+  }
+  function copyRefLink() {
+    const addr = Web3.getConnectedAddress();
+    if (!addr) return;
+    navigator.clipboard.writeText(getMyRefLink(addr)).then(() => {
+      const b = document.getElementById('ref-copy-link-btn');
+      if (b) { b.textContent = 'Copied!'; setTimeout(() => b.textContent = 'Copy Referral Link', 1500); }
+    }).catch(() => {});
+  }
+
+  function renderRefModal() {
+    const addr = Web3.getConnectedAddress();
+    if (!addr) return;
+    const rd = getRefData(addr);
+    const binding = getRefBinding(addr);
+    const validCount = rd.referrals.filter(r => r.status === 'valid').length;
+    const tier = getRefTier(validCount);
+
+    // Code display
+    const codeEl = document.getElementById('ref-code-display');
+    if (codeEl) codeEl.textContent = getMyRefCode(addr);
+
+    // Tier track
+    renderTierTrack(validCount);
+
+    // Binding info
+    const bindEl = document.getElementById('ref-binding-info');
+    const manualSec = document.getElementById('ref-manual-section');
+    if (bindEl) {
+      if (binding) {
+        const method = binding.onchain ? 'Permanent Onchain' : binding.method;
+        bindEl.innerHTML = `<div class="ref-binding-badge">
+          Referred by <code>${binding.referrerAddr.slice(0,8)}...${binding.referrerAddr.slice(-6)}</code>
+          <span class="ref-binding-method">${method}</span></div>`;
+        if (manualSec) manualSec.style.display = 'none';
+      } else {
+        bindEl.innerHTML = '';
+        if (manualSec) manualSec.style.display = 'block';
+      }
+    }
+
+    // Count badge
+    const badge = document.getElementById('ref-count-badge');
+    if (badge) badge.textContent = rd.referrals.length;
+
+    // Referral list
+    const listEl = document.getElementById('ref-list');
+    if (listEl) {
+      if (rd.referrals.length === 0) {
+        listEl.innerHTML = '<div class="ref-empty">No referrals yet — share your link!</div>';
+      } else {
+        listEl.innerHTML = rd.referrals.map(r => `
+          <div class="ref-item">
+            <div class="ref-item-info">
+              <span class="ref-item-name">${escHtml(r.name || 'Unknown')}</span>
+              <span class="ref-item-addr">${r.addr.slice(0,8)}...${r.addr.slice(-6)}</span>
+            </div>
+            <div class="ref-item-right">
+              <span class="ref-item-status ${r.status}">${r.status === 'valid' ? 'Valid' : `Pending (${r.gamesSubmitted}/10)`}</span>
+              <span class="ref-item-fees">$${(r.feesUSD||0).toFixed(3)} spent</span>
+              <span class="ref-item-earned">+$${(r.earnedUSD||0).toFixed(4)}</span>
+            </div>
+          </div>`).join('');
+      }
+    }
+
+    // Earnings
+    const pct = Math.min(100, (rd.pendingUSD / PAYOUT_MIN_USD) * 100);
+    const lifeEl   = document.getElementById('ref-lifetime');
+    const pendEl   = document.getElementById('ref-pending');
+    const fillEl   = document.getElementById('ref-payout-fill');
+    const barLabel = document.getElementById('ref-bar-label');
+    const claimBtn = document.getElementById('ref-claim-btn');
+    if (lifeEl)   lifeEl.textContent = `$${rd.lifetimeUSD.toFixed(4)}`;
+    if (pendEl)   pendEl.textContent = `$${rd.pendingUSD.toFixed(4)}`;
+    if (fillEl)   fillEl.style.width = pct + '%';
+    if (barLabel) barLabel.textContent = `$${rd.pendingUSD.toFixed(4)} / $${PAYOUT_MIN_USD} min`;
+    if (claimBtn) {
+      claimBtn.disabled = rd.pendingUSD < PAYOUT_MIN_USD;
+      claimBtn.textContent = rd.pendingUSD >= PAYOUT_MIN_USD
+        ? `Request Payout — $${rd.pendingUSD.toFixed(4)}`
+        : `Need $${(PAYOUT_MIN_USD - rd.pendingUSD).toFixed(4)} more to unlock`;
+    }
+
+    // Rate hint
+    const rateEl = document.getElementById('ref-rate-hint');
+    if (rateEl) {
+      rateEl.textContent = tier.rate > 0
+        ? `Current boost: ${(tier.rate*100).toFixed(0)}% of friends' fees — ${tier.label} tier`
+        : 'Get 10 valid referrals to start earning boost rewards';
+    }
+  }
+
+  function renderTierTrack(validCount) {
+    const el = document.getElementById('tier-track');
+    if (!el) return;
+    const fillPct = computeTierFillPct(validCount);
+    let ctIdx = 0;
+    for (let i = REF_TIER_DEFS.length - 1; i >= 0; i--) {
+      if (validCount >= REF_TIER_DEFS[i].min) { ctIdx = i; break; }
+    }
+    let html = `<div class="tier-bg-line"></div>
+                <div class="tier-fill-line" style="width:${fillPct}%"></div>`;
+    REF_TIER_DEFS.forEach((t, i) => {
+      const state = i < ctIdx ? 'passed' : (i === ctIdx ? 'active' : '');
+      html += `<div class="tier-node ${state}">
+        <div class="tier-dot"></div>
+        <div class="tier-info">
+          <div class="tier-lbl">${t.label}</div>
+          <div class="tier-min">${t.min === 0 ? 'Start' : t.min + '+'}</div>
+          <div class="tier-rate">${t.rate > 0 ? (t.rate*100).toFixed(0)+'%' : '—'}</div>
+        </div></div>`;
+    });
+    el.innerHTML = html;
+  }
+
+  /* ── Admin Panel ── */
+  function showAdminPanel() {
+    const addr = Web3.getConnectedAddress();
+    if (!isAdminWallet(addr)) { alert('Admin access only.'); return; }
+    renderAdminPanel();
+    document.getElementById('modal-admin').classList.add('active');
+  }
+  function closeAdminPanel() {
+    document.getElementById('modal-admin').classList.remove('active');
+  }
+
+  let _adminTab = 'queue';
+  function adminSwitchTab(tab) {
+    _adminTab = tab;
+    document.getElementById('admin-pane-queue').style.display = tab === 'queue' ? 'block' : 'none';
+    document.getElementById('admin-pane-users').style.display = tab === 'users' ? 'block' : 'none';
+    document.querySelectorAll('.admin-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+    renderAdminPanel();
+  }
+
+  function _getAllPayoutReqs() {
+    const out = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith('meme_smash_payout_req_')) {
+        try { out.push(JSON.parse(localStorage.getItem(k))); } catch(e) {}
+      }
+    }
+    return out.sort((a,b) => b.requestedAt - a.requestedAt);
+  }
+
+  function _getAllUsers() {
+    const out = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith('meme_smash_profile_')) {
+        try {
+          const addr = k.replace('meme_smash_profile_', '');
+          out.push({ addr, profile: JSON.parse(localStorage.getItem(k)),
+                     fees: getFeeStats(addr), binding: getRefBinding(addr),
+                     refData: getRefData(addr) });
+        } catch(e) {}
+      }
+    }
+    return out;
+  }
+
+  function adminMarkPaid(userAddr) {
+    if (!confirm(`Mark payment COMPLETE for\n${userAddr}?`)) return;
+    const key = `meme_smash_payout_req_${userAddr.toLowerCase()}`;
+    const raw = localStorage.getItem(key);
+    if (!raw) { alert('Request not found on this device.'); return; }
+    const req = JSON.parse(raw);
+    req.status = 'paid'; req.paidAt = Date.now();
+    localStorage.setItem(key, JSON.stringify(req));
+    const rd = getRefData(userAddr);
+    rd.paidOutUSD = (rd.paidOutUSD || 0) + req.amountUSD;
+    rd.payoutHistory.push({ amount: req.amountUSD, paidAt: Date.now() });
+    rd.pendingUSD = 0;
+    saveRefData(userAddr, rd);
+    alert(`Marked paid! $${req.amountUSD.toFixed(4)} to ${userAddr}`);
+    renderAdminPanel();
+  }
+
+  function renderAdminPanel() {
+    if (!isAdminWallet(Web3.getConnectedAddress())) return;
+
+    /* ----- Payout Queue ----- */
+    const qEl = document.getElementById('admin-payout-queue');
+    if (qEl) {
+      const all = _getAllPayoutReqs();
+      const pending = all.filter(r => r.status === 'pending');
+      const paid    = all.filter(r => r.status === 'paid');
+      let html = '';
+      if (!pending.length) html += '<div class="admin-empty">No pending payout requests on this device</div>';
+      pending.forEach(r => {
+        html += `<div class="admin-req-card">
+          <div class="admin-req-main">
+            <div class="admin-req-name">${escHtml(r.name||'Unknown')}</div>
+            <a class="admin-req-addr" href="https://basescan.org/address/${r.addr}" target="_blank" rel="noopener">
+              ${r.addr.slice(0,10)}...${r.addr.slice(-8)} ↗</a>
+            <div class="admin-req-amount">$${(r.amountUSD||0).toFixed(4)}</div>
+            <div class="admin-req-date">${new Date(r.requestedAt).toLocaleDateString()}</div>
+          </div>
+          <div class="admin-req-actions">
+            <button class="btn-admin-pay" onclick="Game.adminMarkPaid('${r.addr}')">Mark Paid</button>
+            <button class="btn-admin-copy" onclick="navigator.clipboard.writeText('${r.addr}').then(()=>this.textContent='Copied!').catch(()=>{})">Copy Addr</button>
+          </div></div>`;
+      });
+      if (paid.length) {
+        html += `<div class="admin-sec-lbl">Completed (${paid.length})</div>`;
+        paid.slice(0,15).forEach(r => {
+          html += `<div class="admin-req-card paid">
+            <div class="admin-req-main">
+              <div class="admin-req-name">${escHtml(r.name||'Unknown')}</div>
+              <a class="admin-req-addr" href="https://basescan.org/address/${r.addr}" target="_blank" rel="noopener">
+                ${r.addr.slice(0,10)}...${r.addr.slice(-8)} ↗</a>
+              <div class="admin-req-amount">$${(r.amountUSD||0).toFixed(4)} — Paid ${new Date(r.paidAt||r.requestedAt).toLocaleDateString()}</div>
+            </div></div>`;
+        });
+      }
+      qEl.innerHTML = html;
+    }
+
+    /* ----- Users List ----- */
+    const uEl = document.getElementById('admin-users-list');
+    if (uEl) {
+      const users = _getAllUsers();
+      if (!users.length) {
+        uEl.innerHTML = '<div class="admin-empty">No user profiles found on this device</div>';
+      } else {
+        uEl.innerHTML = users.map(({addr, profile, fees, binding, refData}) => {
+          const valids = (refData?.referrals||[]).filter(r=>r.status==='valid').length;
+          const txRows = (fees?.txHistory||[]).slice(-8).reverse()
+            .map(t=>`<span class="admin-tx">${t.type} $${t.amountUSD} · ${new Date(t.ts).toLocaleDateString()}</span>`).join('');
+          return `<div class="admin-user-card">
+            <div class="admin-user-hdr">
+              <span class="admin-user-name">${escHtml(profile.name||'Unnamed')}</span>
+              <a class="admin-user-scan" href="https://basescan.org/address/${addr}" target="_blank" rel="noopener">
+                ${addr.slice(2,8)}...${addr.slice(-6)} ↗</a>
+            </div>
+            <div class="admin-user-stats">
+              <span>Games: ${fees?.gamesSubmitted||0}</span>
+              <span>Spent: $${(fees?.totalUSD||0).toFixed(3)}</span>
+              <span>MP: ${profile.cumulativeScore||0}</span>
+              <span>Refs: ${(refData?.referrals||[]).length} (${valids} valid)</span>
+              <span>Revives: ${fees?.revives||0}</span>
+              <span>Check-ins: ${fees?.checkins||0}</span>
+            </div>
+            ${binding ? `<div class="admin-user-ref">Referred by:
+              <a href="https://basescan.org/address/${binding.referrerAddr}" target="_blank" rel="noopener">
+                ${binding.referrerAddr.slice(0,8)}...${binding.referrerAddr.slice(-6)} ↗
+              </a> <em>${binding.method}${binding.onchain?' (onchain)':''}</em></div>` : ''}
+            <div class="admin-tx-hist">${txRows}</div>
+          </div>`;
+        }).join('');
+      }
+    }
+  }
+
   /* ═══════════════════════════════════════════
      EXPORT PUBLIC API
   ═══════════════════════════════════════════ */
+
   return { 
     init, 
     startGame, 
@@ -1727,6 +2279,16 @@ const Game = (() => {
     showCheckinModal,
     closeCheckinModal,
     doCheckin,
+    showReferModal,
+    closeReferModal,
+    copyRefCode,
+    copyRefLink,
+    doManualRefBind,
+    requestPayout,
+    showAdminPanel,
+    closeAdminPanel,
+    adminSwitchTab,
+    adminMarkPaid,
   };
 
 })();

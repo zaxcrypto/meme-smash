@@ -321,3 +321,20 @@ export async function payForDailyCheckin() {
   if (!activeProvider || !connectedAddress) throw new Error('Wallet not connected');
   return await sendTx(parseEther('0.000005'));
 }
+
+/**
+ * Bind referral permanently onchain.
+ * Sends 0-value tx with "REFBIND:" + referrerAddress encoded in calldata.
+ * Creates immutable on-chain record of referral relationship.
+ */
+export async function bindReferralOnchain(referrerAddress) {
+  if (!activeProvider || !connectedAddress) throw new Error('Wallet not connected');
+  // Encode "REFBIND:" + referrer address as hex data
+  const prefix = '5245464249 4e443a'.replace(/\s/g,''); // "REFBIND:" in hex
+  const addrHex = referrerAddress.slice(2).toLowerCase();
+  const data = '0x' + prefix + addrHex;
+  return await activeProvider.request({
+    method: 'eth_sendTransaction',
+    params: [{ from: connectedAddress, to: RECEIVER_ADDRESS, value: '0x0', data }]
+  });
+}

@@ -350,10 +350,12 @@
   <div id="screen-home" class="screen active">
     <div class="screen-card" style="position:relative;">
 
-      <!-- Small Daily Check-in pill — top right corner -->
-      <button class="btn-checkin-pill" onclick="Game.showCheckinModal()" title="Daily Check-In">
-        📅 Check-In
-      </button>
+      <!-- Action Pills Row (top-right) -->
+      <div class="home-pill-row">
+        <button class="btn-checkin-pill" onclick="Game.showCheckinModal()" title="Daily Check-In">📅 Check-In</button>
+        <button class="btn-refer-pill" onclick="Game.showReferModal()" title="Refer &amp; Earn">★ Refer</button>
+        <button class="btn-admin-pill" id="btn-admin-pill" onclick="Game.showAdminPanel()" title="Admin Panel" style="display:none;">⚙ Admin</button>
+      </div>
 
       <div class="hero-logo-wrap">
         <div class="beam beam-tl"></div>
@@ -555,6 +557,94 @@
       <div class="ci-reset-note">Resets daily at 5:30 AM IST ·  Miss a day = streak resets</div>
 
       <button onclick="Game.closeCheckinModal()" class="btn btn-secondary" style="margin-top:8px; margin-bottom:0;">Close</button>
+    </div>
+  </div>
+
+  <!-- ═══ REFERRAL MODAL ═══ -->
+  <div id="modal-refer" class="screen" style="z-index:200;">
+    <div class="screen-card ref-modal-card">
+      <button onclick="Game.closeReferModal()" class="ci-close-btn" aria-label="Close">✕</button>
+
+      <!-- Header -->
+      <div class="ref-header">
+        <h2 class="ref-title">Refer &amp; Earn</h2>
+        <p class="ref-sub">Invite friends. Earn from their play forever.</p>
+      </div>
+
+      <!-- Code + Link -->
+      <div class="ref-code-wrap">
+        <div class="ref-code-inner">
+          <div class="ref-code-label">Your Code</div>
+          <div id="ref-code-display" class="ref-code-val">—</div>
+        </div>
+        <button id="ref-copy-code-btn" class="ref-action-btn" onclick="Game.copyRefCode()">Copy Code</button>
+      </div>
+      <button id="ref-copy-link-btn" class="ref-link-btn" onclick="Game.copyRefLink()">Copy Referral Link</button>
+
+      <!-- Tier Milestone Track -->
+      <div class="ref-section-label">Boost Tier <span id="ref-count-badge" class="ref-badge">0</span> valid</div>
+      <div class="tier-track-wrap">
+        <div class="tier-track" id="tier-track"></div>
+      </div>
+      <div id="ref-rate-hint" class="ref-rate-hint">Get 10 valid referrals to start earning</div>
+
+      <!-- Was referred by -->
+      <div id="ref-binding-info"></div>
+
+      <!-- Referrals List -->
+      <div class="ref-section-label" style="margin-top:10px;">Your Referrals</div>
+      <div id="ref-list" class="ref-list"></div>
+
+      <!-- Earnings Card -->
+      <div class="ref-earnings-card">
+        <div class="ref-earn-row">
+          <span>Lifetime Earned</span>
+          <span id="ref-lifetime" class="ref-earn-val">$0.0000</span>
+        </div>
+        <div class="ref-earn-row">
+          <span>Pending Payout</span>
+          <span id="ref-pending" class="ref-earn-val highlight">$0.0000</span>
+        </div>
+        <div class="ref-payout-bar">
+          <div class="ref-payout-fill" id="ref-payout-fill" style="width:0%"></div>
+          <span class="ref-payout-bar-label" id="ref-bar-label">$0.00 / $5.00</span>
+        </div>
+        <button class="btn btn-primary" id="ref-claim-btn" onclick="Game.requestPayout()" disabled
+          style="margin-bottom:0; margin-top:10px; font-size:14px;">Need $5.00 to unlock payout</button>
+      </div>
+
+      <!-- Manual Bind Section -->
+      <div id="ref-manual-section" class="ref-manual-wrap">
+        <div class="ref-section-label">Have a Referral Code?</div>
+        <input id="manual-ref-code-input" class="name-input" style="font-size:13px;padding:10px 14px;margin-bottom:7px;" placeholder="Code (e.g. MSDXX...)" autocomplete="off" />
+        <input id="manual-ref-addr-input" class="name-input" style="font-size:13px;padding:10px 14px;margin-bottom:9px;" placeholder="Referrer 0x address (if different device)" autocomplete="off" />
+        <button id="manual-ref-apply-btn" class="btn btn-secondary" onclick="Game.doManualRefBind()" style="margin-bottom:0;">Apply Code</button>
+      </div>
+
+      <button onclick="Game.closeReferModal()" class="btn btn-secondary" style="margin-top:10px; margin-bottom:0;">Close</button>
+    </div>
+  </div>
+
+  <!-- ═══ ADMIN MODAL ═══ -->
+  <div id="modal-admin" class="screen" style="z-index:200;">
+    <div class="screen-card admin-modal-card">
+      <button onclick="Game.closeAdminPanel()" class="ci-close-btn" aria-label="Close">✕</button>
+      <h2 class="ref-title" style="margin-bottom:3px;">Admin Panel</h2>
+      <p style="font-size:10px;color:var(--text-mid);margin-bottom:12px;font-family:monospace;">0xd448...F178</p>
+
+      <div class="admin-tabs">
+        <button class="admin-tab active" data-tab="queue" onclick="Game.adminSwitchTab('queue')">Payout Queue</button>
+        <button class="admin-tab" data-tab="users" onclick="Game.adminSwitchTab('users')">All Users</button>
+      </div>
+
+      <div id="admin-pane-queue">
+        <div id="admin-payout-queue"></div>
+      </div>
+      <div id="admin-pane-users" style="display:none;">
+        <div id="admin-users-list"></div>
+      </div>
+
+      <button onclick="Game.closeAdminPanel()" class="btn btn-secondary" style="margin-top:10px;margin-bottom:0;">Close</button>
     </div>
   </div>
 
