@@ -1730,6 +1730,10 @@ const Game = (() => {
   function escHtml(s) {
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
+  function formatUSD(val) {
+    if (!val || isNaN(val)) return '0.00';
+    return Number(val.toFixed(4)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+  }
 
   /* ── Deterministic Codes & Links (no backend needed) ── */
   function getMyRefCode(addr) {
@@ -1987,7 +1991,7 @@ const Game = (() => {
     localStorage.setItem(key, JSON.stringify(req));
     // Generate shareable URL for cross-device admin import
     const reqUrl = window.location.href.split('?')[0] + '?payreq=' + btoa(JSON.stringify(req));
-    alert(`Payout request of $${req.amountUSD.toFixed(4)} submitted!\nYour earnings are reset to 0 for the next batch.\n\nShare this link with admin if they are on a different device:\n${reqUrl}\n\n(Link copied to clipboard)`);
+    alert(`Payout request of $${formatUSD(req.amountUSD)} submitted!\nYour earnings are reset to 0 for the next batch.\n\nShare this link with admin if they are on a different device:\n${reqUrl}\n\n(Link copied to clipboard)`);
     try { navigator.clipboard.writeText(reqUrl); } catch(e) {}
     renderRefModal();
   }
@@ -2086,8 +2090,8 @@ const Game = (() => {
             </div>
             <div class="ref-item-right">
               <span class="ref-item-status ${r.status}">${r.status === 'valid' ? 'Valid' : `Pending (${r.gamesSubmitted}/10)`}</span>
-              <span class="ref-item-fees">$${(r.feesUSD||0).toFixed(3)} spent</span>
-              <span class="ref-item-earned">+$${(r.earnedUSD||0).toFixed(4)}</span>
+              <span class="ref-item-fees">$${formatUSD(r.feesUSD)} spent</span>
+              <span class="ref-item-earned">+$${formatUSD(r.earnedUSD)}</span>
             </div>
           </div>`).join('');
       }
@@ -2100,15 +2104,15 @@ const Game = (() => {
     const fillEl   = document.getElementById('ref-payout-fill');
     const barLabel = document.getElementById('ref-bar-label');
     const claimBtn = document.getElementById('ref-claim-btn');
-    if (lifeEl)   lifeEl.textContent = `$${rd.lifetimeUSD.toFixed(4)}`;
-    if (pendEl)   pendEl.textContent = `$${rd.pendingUSD.toFixed(4)}`;
+    if (lifeEl)   lifeEl.textContent = `$${formatUSD(rd.lifetimeUSD)}`;
+    if (pendEl)   pendEl.textContent = `$${formatUSD(rd.pendingUSD)}`;
     if (fillEl)   fillEl.style.width = pct + '%';
-    if (barLabel) barLabel.textContent = `$${rd.pendingUSD.toFixed(4)} / $${PAYOUT_MIN_USD} min`;
+    if (barLabel) barLabel.textContent = `$${formatUSD(rd.pendingUSD)} / $${formatUSD(PAYOUT_MIN_USD)} min`;
     if (claimBtn) {
       claimBtn.disabled = rd.pendingUSD < PAYOUT_MIN_USD;
       claimBtn.textContent = rd.pendingUSD >= PAYOUT_MIN_USD
-        ? `Request Payout — $${rd.pendingUSD.toFixed(4)}`
-        : `Need $${(PAYOUT_MIN_USD - rd.pendingUSD).toFixed(4)} more to unlock`;
+        ? `Request Payout — $${formatUSD(rd.pendingUSD)}`
+        : `Need $${formatUSD(PAYOUT_MIN_USD - rd.pendingUSD)} more to unlock`;
     }
 
     // Rate hint
@@ -2137,7 +2141,7 @@ const Game = (() => {
           myReqs.map(r => `
             <div class="ref-item" style="border:1.5px dashed rgba(155,59,219,0.22); margin-bottom:5px;">
               <div class="ref-item-info">
-                <span class="ref-item-name">$${r.amountUSD.toFixed(4)} <span style="font-size:10px;font-style:italic;color:var(--text-mid);font-weight:700;">— ${new Date(r.requestedAt).toLocaleDateString()}</span></span>
+                <span class="ref-item-name">$${formatUSD(r.amountUSD)} <span style="font-size:10px;font-style:italic;color:var(--text-mid);font-weight:700;">— ${new Date(r.requestedAt).toLocaleDateString()}</span></span>
               </div>
               <div class="ref-item-right">
                  <span class="ref-item-status ${r.status==='paid'?'valid':'pending'}">${r.status.charAt(0).toUpperCase() + r.status.slice(1)}</span>
@@ -2241,7 +2245,7 @@ const Game = (() => {
       rd.payoutHistory.push({ amount: req.amountUSD, paidAt: Date.now() });
       saveRefData(userAddr, rd);
       
-      alert(`Marked paid! $${req.amountUSD.toFixed(4)} sent to ${userAddr}`);
+      alert(`Marked paid! $${formatUSD(req.amountUSD)} sent to ${userAddr}`);
     } catch(e) {
       console.error(e);
       alert('Wallet payment failed or was rejected. Keeping as Pending.');
@@ -2268,7 +2272,7 @@ const Game = (() => {
             <div class="admin-req-name">${escHtml(r.name||'Unknown')}</div>
             <a class="admin-req-addr" href="https://basescan.org/address/${r.addr}" target="_blank" rel="noopener">
               ${r.addr.slice(0,10)}...${r.addr.slice(-8)} ↗</a>
-            <div class="admin-req-amount">$${(r.amountUSD||0).toFixed(4)}</div>
+            <div class="admin-req-amount">$${formatUSD(r.amountUSD)}</div>
             <div class="admin-req-date">${new Date(r.requestedAt).toLocaleDateString()}</div>
           </div>
           <div class="admin-req-actions">
@@ -2284,7 +2288,7 @@ const Game = (() => {
               <div class="admin-req-name">${escHtml(r.name||'Unknown')}</div>
               <a class="admin-req-addr" href="https://basescan.org/address/${r.addr}" target="_blank" rel="noopener">
                 ${r.addr.slice(0,10)}...${r.addr.slice(-8)} ↗</a>
-              <div class="admin-req-amount">$${(r.amountUSD||0).toFixed(4)} — Paid ${new Date(r.paidAt||r.requestedAt).toLocaleDateString()}</div>
+              <div class="admin-req-amount">$${formatUSD(r.amountUSD)} — Paid ${new Date(r.paidAt||r.requestedAt).toLocaleDateString()}</div>
             </div></div>`;
         });
       }
@@ -2301,7 +2305,7 @@ const Game = (() => {
         uEl.innerHTML = users.map(({addr, profile, fees, binding, refData}) => {
           const valids = (refData?.referrals||[]).filter(r=>r.status==='valid').length;
           const txRows = (fees?.txHistory||[]).slice(-8).reverse()
-            .map(t=>`<span class="admin-tx">${t.type} $${t.amountUSD} · ${new Date(t.ts).toLocaleDateString()}</span>`).join('');
+            .map(t=>`<span class="admin-tx">${t.type} $${formatUSD(t.amountUSD)} · ${new Date(t.ts).toLocaleDateString()}</span>`).join('');
           return `<div class="admin-user-card">
             <div class="admin-user-hdr">
               <span class="admin-user-name">${escHtml(profile.name||'Unnamed')}</span>
