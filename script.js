@@ -422,7 +422,18 @@ const Game = (() => {
 
   function refreshProfileUI(address) {
     const profile = getProfileData(address);
-    document.getElementById('profile-connected-address').textContent = address || 'Not Connected';
+    const addrEl = document.getElementById('profile-connected-address');
+    
+    if (address && address.length >= 42) {
+      addrEl.textContent = `${address.slice(0, 10)}...${address.slice(-8)}`;
+      addrEl.dataset.full = address;
+      document.getElementById('btn-copy-primary').style.display = 'block';
+    } else {
+      addrEl.textContent = 'Not Connected';
+      addrEl.dataset.full = '';
+      document.getElementById('btn-copy-primary').style.display = 'none';
+    }
+    
     document.getElementById('profile-cumulative-score').textContent = profile.cumulativeScore;
     document.getElementById('playerName').value = profile.name;
     document.getElementById('hud-career-score').textContent = profile.cumulativeScore;
