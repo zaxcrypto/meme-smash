@@ -482,8 +482,12 @@
   <!-- ═══════════════ LEADERBOARD ═══════════════ -->
   <div id="screen-leaderboard" class="screen">
     <div class="screen-card leaderboard-card">
-      <div class="lb-title-row">
-        <h2 class="lb-title">TOP NINJAS</h2>
+      <div class="lb-title-row" style="margin-bottom: 10px;">
+        <h2 class="lb-title">RANKINGS</h2>
+      </div>
+      <div style="display:flex; justify-content:center; gap:10px; margin-bottom: 15px;">
+        <button id="btn-lb-score" class="btn btn-secondary" style="margin-bottom:0; padding:8px 15px; font-size:14px; background:var(--hot-pink);" onclick="Game.setLeaderboardMode('score')">Top Score</button>
+        <button id="btn-lb-points" class="btn btn-secondary" style="margin-bottom:0; padding:8px 15px; font-size:14px;" onclick="Game.setLeaderboardMode('points')">Top Points</button>
       </div>
       <ol id="leaderboard-list" class="lb-list"></ol>
       <div class="lb-buttons">
@@ -514,6 +518,35 @@
 
   <!-- Flash overlay -->
   <div id="bomb-flash" class="bomb-flash"></div>
+
+  <!-- Public Profile Modal -->
+  <div id="modal-public-profile" class="screen" style="z-index: 200;">
+    <div class="screen-card" style="position:relative; width: 95%;">
+      <button onclick="Game.closePublicProfile()" style="position:absolute; top:20px; right:20px; background:none; border:none; font-size:20px; font-weight:bold; color:var(--text-dark); cursor:pointer;">✕</button>
+      <h2 class="lb-title" id="pub-name" style="margin-bottom:5px; font-size: 24px;">Ninja</h2>
+      
+      <div style="display:flex; justify-content:center; gap:20px; margin-bottom: 20px;">
+        <div style="background: rgba(0,0,0,0.05); padding: 10px 15px; border-radius: 12px;">
+          <div style="font-size:10px; font-weight:800; color:#7040B0;">TOP SCORE</div>
+          <div id="pub-score" style="font-size:22px; font-weight:900; color:#FF8C00;">0</div>
+        </div>
+        <div style="background: rgba(0,0,0,0.05); padding: 10px 15px; border-radius: 12px;">
+          <div style="font-size:10px; font-weight:800; color:#7040B0;">TOTAL POINTS</div>
+          <div id="pub-points" style="font-size:22px; font-weight:900; color:#FF8C00;">0</div>
+        </div>
+      </div>
+      
+      <div style="text-align: left; background: rgba(0,0,0,0.05); padding: 15px; border-radius: 12px; margin-bottom: 15px;">
+        <div style="font-size:12px; font-weight:bold; color:var(--text-dark);">PRIMARY WALLET</div>
+        <div id="pub-primary" style="font-family:monospace; font-size:12px; color:#4CAF50; word-break:break-all; margin-bottom:10px;">0x...</div>
+        
+        <div style="font-size:12px; font-weight:bold; color:var(--text-dark);">ADDITIONAL ADDRESSES</div>
+        <div id="pub-alt-list" style="max-height: 120px; overflow-y: auto; display:flex; flex-direction:column; gap:5px; margin-top:5px;">
+          <!-- Items injected here -->
+        </div>
+      </div>
+    </div>
+  </div>
 
   <script type="module" src="script.js?v=5"></script>
 </body>

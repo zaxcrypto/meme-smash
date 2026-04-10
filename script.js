@@ -441,7 +441,10 @@ const Game = (() => {
             <span class="alt-wallet-desc">${alt.desc}</span>
             <span class="alt-wallet-addr">${alt.address.slice(0,10)}...${alt.address.slice(-8)}</span>
           </div>
-          <button class="alt-wallet-copy-btn" onclick="Game.copyAddress('${alt.address}', this)">Copy</button>
+          <div style="display:flex; gap: 5px;">
+            <button class="alt-wallet-copy-btn" onclick="Game.copyAddress('${alt.address}', this)">Copy</button>
+            <button class="alt-wallet-del-btn" onclick="Game.removeAlternativeAddress(${i})">✕</button>
+          </div>
         `;
         list.appendChild(item);
       });
@@ -479,6 +482,16 @@ const Game = (() => {
     refreshProfileUI(address);
     document.getElementById('alt-address-input').value = '';
     document.getElementById('alt-desc-input').value = '';
+  }
+
+  function removeAlternativeAddress(index) {
+    const address = Web3.getConnectedAddress();
+    if (!address) return;
+    if (!confirm("Are you sure you want to remove this address?")) return;
+    const profile = getProfileData(address);
+    profile.altAddresses.splice(index, 1);
+    saveProfileData(address, profile);
+    refreshProfileUI(address);
   }
 
   function copyAddress(addr, btnEl) {
@@ -589,7 +602,16 @@ const Game = (() => {
     sfxBomb();
     triggerBombFlash();
     triggerShake(18, 22);
-    saveScore(playerName, score);
+    
+    const addr = Web3.getConnectedAddress();
+    if (addr) {
+      const profile = getProfileData(addr);
+      if (score > (profile.topScore || 0)) {
+        profile.topScore = score;
+        saveProfileData(addr, profile);
+      }
+    }
+
     setTimeout(() => {
       document.getElementById('gameover-name').textContent = playerName;
       document.getElementById('final-score').textContent   = score;
@@ -1366,37 +1388,55 @@ const Game = (() => {
   }
 
   /* ═══════════════════════════════════════════
-     LEADERBOARD
+     DUAL LEADERBOARD & PUBLIC PROFILE
   ═══════════════════════════════════════════ */
-  const LB_KEY = 'memeCutterLeaderboard_v1';
+  let lbMode = 'score'; // 'score' or 'points'
 
-  function saveScore(name, pts) {
-    let board = getLeaderboard();
-    const existingIndex = board.findIndex(entry => entry.name === name);
-    if (existingIndex !== -1) {
-      if (pts > board[existingIndex].score) {
-        board[existingIndex].score = pts;
-      }
-    } else {
-      board.push({ name, score: pts });
-    }
-    board.sort((a,b) => b.score - a.score);
-    board = board.slice(0, 10);
-    try { localStorage.setItem(LB_KEY, JSON.stringify(board)); } catch(e){}
+  function setLeaderboardMode(mode) {
+    lbMode = mode;
+    document.getElementById('btn-lb-score').style.background = mode === 'score' ? 'var(--hot-pink)' : '';
+    document.getElementById('btn-lb-points').style.background = mode === 'points' ? 'var(--hot-pink)' : '';
+    renderLeaderboard();
   }
 
   function getLeaderboard() {
-    try { return JSON.parse(localStorage.getItem(LB_KEY)) || []; }
-    catch { return []; }
+    const board = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('meme_smash_profile_')) {
+        const addr = key.replace('meme_smash_profile_', '');
+        try {
+          const profile = JSON.parse(localStorage.getItem(key));
+          board.push({
+            address: addr,
+            name: profile.name || 'Ninja',
+            topScore: profile.topScore || 0,
+            points: profile.cumulativeScore || 0,
+            altAddresses: profile.altAddresses || []
+          });
+        } catch(e) {}
+      }
+    }
+    return board;
   }
 
   function renderLeaderboard() {
-    const board = getLeaderboard();
+    let board = getLeaderboard();
+    
+    // Sort based on mode
+    if (lbMode === 'score') {
+      board.sort((a,b) => b.topScore - a.topScore);
+    } else {
+      board.sort((a,b) => b.points - a.points);
+    }
+    
+    board = board.slice(0, 100);
+
     const list  = document.getElementById('leaderboard-list');
     list.innerHTML = '';
 
     if (board.length === 0) {
-      list.innerHTML = '<li class="lb-empty">No scores yet. Be the first ninja!</li>';
+      list.innerHTML = '<li class="lb-empty">No scores yet!</li>';
       return;
     }
 
@@ -1408,14 +1448,45 @@ const Game = (() => {
     board.forEach((entry, i) => {
       const li = document.createElement('li');
       li.className = i < 3 ? `rank-${i+1}` : '';
+      li.style.cursor = 'pointer';
+      li.onclick = () => showPublicProfile(entry.address);
+      
+      const val = lbMode === 'score' ? entry.topScore : entry.points;
+      
       li.innerHTML = `
         <span class="lb-rank">${i+1}</span>
         <span class="lb-name">${escHtml(entry.name)}</span>
-        <span class="lb-score">${entry.score}</span>
+        <span class="lb-score">${val}</span>
         <span class="lb-medal">${medals[i] || ''}</span>
       `;
       list.appendChild(li);
     });
+  }
+
+  function showPublicProfile(addr) {
+    const board = getLeaderboard();
+    const p = board.find(x => x.address === addr);
+    if (!p) return;
+    document.getElementById('pub-name').textContent = p.name;
+    document.getElementById('pub-score').textContent = p.topScore;
+    document.getElementById('pub-points').textContent = p.points;
+    document.getElementById('pub-primary').textContent = p.address;
+    
+    const altList = document.getElementById('pub-alt-list');
+    altList.innerHTML = '';
+    if (p.altAddresses.length === 0) {
+      altList.innerHTML = '<div style="font-size:12px; opacity:0.5;">No additional addresses.</div>';
+    } else {
+      p.altAddresses.forEach(alt => {
+        altList.innerHTML += `<div style="font-size:11px; font-family:monospace; margin-bottom:4px; padding:5px; background:rgba(0,0,0,0.1); border-radius:4px; border: 1px solid rgba(0,0,0,0.05);"><b>${escHtml(alt.desc)}</b>: <span style="user-select:all;">${escHtml(alt.address)}</span></div>`;
+      });
+    }
+    
+    document.getElementById('modal-public-profile').classList.add('active');
+  }
+
+  function closePublicProfile() {
+    document.getElementById('modal-public-profile').classList.remove('active');
   }
 
   /* ═══════════════════════════════════════════
@@ -1454,7 +1525,11 @@ const Game = (() => {
     showProfile,
     saveProfileName,
     addAlternativeAddress,
-    copyAddress
+    removeAlternativeAddress,
+    copyAddress,
+    setLeaderboardMode,
+    showPublicProfile,
+    closePublicProfile
   };
 
 })();

@@ -631,6 +631,22 @@ body::after {
   box-shadow: none;
 }
 
+.alt-wallet-del-btn {
+  background: transparent;
+  color: #ff4444;
+  border: 2px solid rgba(255, 68, 68, 0.4);
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.1s;
+}
+.alt-wallet-del-btn:active {
+  background: #ff4444;
+  color: white;
+}
+
 /* ══════════════════════════════════════
    ULTRA PREMIUM BUTTONS
 ══════════════════════════════════════ */
