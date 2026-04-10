@@ -2253,7 +2253,7 @@ const Game = (() => {
           </div>`;
         }
         html += `<div style="text-align:center; padding-top:6px; font-size:10px; color:var(--text-mid); opacity:0.6;">
-          Leaderboard and earnings update daily at 5 AM IST
+          Leaderboard and earnings update daily at 11:30 PM UTC
         </div>`;
         
         listEl.innerHTML = html;
