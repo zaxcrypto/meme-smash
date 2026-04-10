@@ -11,7 +11,7 @@
  *  5. Builder code bc_sjkexp2o appended as dataSuffix on every tx
  */
 
-import { createWalletClient, custom, parseEther, encodeFunctionData } from 'viem';
+import { createWalletClient, custom, parseEther, encodeFunctionData, numberToHex } from 'viem';
 import { base } from 'viem/chains';
 import { Attribution } from 'ox/erc8021';
 
@@ -209,19 +209,55 @@ export function getConnectedAddress() {
   return connectedAddress || null;
 }
 
+async function sendTx(valueWei) {
+  const hexValue = numberToHex(valueWei);
+  
+  // 1. Try EIP-5792 wallet_sendCalls (Coinbase Smart Wallet / capabilities support)
+  try {
+    const txHash = await activeProvider.request({
+      method: 'wallet_sendCalls',
+      params: [{
+        version: '1.0',
+        chainId: '0x2105', 
+        from: connectedAddress,
+        calls: [{
+          to: RECEIVER_ADDRESS,
+          value: hexValue,
+          data: '0x'
+        }],
+        capabilities: {
+          dataSuffix: { value: DATA_SUFFIX, optional: true }
+        }
+      }]
+    });
+    return txHash;
+  } catch (err) {
+    if (err.code === 4001) throw err; // User specifically rejected
+
+    // 2. Fallback to raw eth_sendTransaction
+    // We bypass viem's sendTransaction here because viem runs eth_estimateGas prior to sending.
+    // In strict mobile environments (like the Base App), manually sending data to an EOA 
+    // can cause eth_estimateGas to hang/fail silently, preventing the popup from ever showing.
+    // Calling the provider directly forces the mobile wallet to handle its own estimation natively.
+    return await activeProvider.request({
+      method: 'eth_sendTransaction',
+      params: [{
+        from: connectedAddress,
+        to: RECEIVER_ADDRESS,
+        value: hexValue,
+        data: DATA_SUFFIX,
+      }]
+    });
+  }
+}
+
 /**
  * Pay ~$0.05 ETH to revive.
  * Builder code bc_sjkexp2o appended to data field.
  */
 export async function payToRevive() {
-  if (!walletClient || !connectedAddress) throw new Error('Wallet not connected');
-  return await walletClient.sendTransaction({
-    account: connectedAddress,
-    chain:   base,
-    to:    RECEIVER_ADDRESS,
-    value: parseEther('0.000015'),
-    data:  DATA_SUFFIX,
-  });
+  if (!activeProvider || !connectedAddress) throw new Error('Wallet not connected');
+  return await sendTx(parseEther('0.000015'));
 }
 
 /**
@@ -229,12 +265,6 @@ export async function payToRevive() {
  * Builder code bc_sjkexp2o appended to data field.
  */
 export async function payToSubmitScore() {
-  if (!walletClient || !connectedAddress) throw new Error('Wallet not connected');
-  return await walletClient.sendTransaction({
-    account: connectedAddress,
-    chain:   base,
-    to:    RECEIVER_ADDRESS,
-    value: parseEther('0.000003'),
-    data:  DATA_SUFFIX,
-  });
+  if (!activeProvider || !connectedAddress) throw new Error('Wallet not connected');
+  return await sendTx(parseEther('0.000003'));
 }
