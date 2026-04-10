@@ -1976,30 +1976,37 @@ const Game = (() => {
     if (!code && !refAddr) { alert('Enter a referral code or referrer wallet address.'); return; }
 
     let finalAddr = null;
-    if (refAddr && /^0x[a-fA-F0-9]{40}$/.test(refAddr)) {
-      if (code && getMyRefCode(refAddr) !== code) { alert('Code does not match wallet address!'); return; }
-      finalAddr = refAddr;
-    } else if (code) {
-      // Scan localStorage for matching profile
-      for (let i = 0; i < localStorage.length; i++) {
-        const k = localStorage.key(i);
-        if (k && k.startsWith('meme_smash_profile_')) {
-          const a = k.replace('meme_smash_profile_', '');
-          if (getMyRefCode(a) === code) { finalAddr = a; break; }
+    const applyBtn = document.getElementById('manual-ref-apply-btn');
+    const orig = applyBtn.textContent;
+    applyBtn.disabled = true; applyBtn.textContent = 'Searching...';
+
+    try {
+      if (refAddr && /^0x[a-fA-F0-9]{40}$/.test(refAddr)) {
+        if (code && getMyRefCode(refAddr) !== code) { alert('Code does not match wallet address!'); return; }
+        finalAddr = refAddr;
+      } else if (code) {
+        // Query global database for user with matching generated referral code
+        const allUsers = await _getAllUsers();
+        for (const u of allUsers) {
+          if (getMyRefCode(u.addr) === code) { finalAddr = u.addr.toLowerCase(); break; }
         }
-      }
-      if (!finalAddr) {
-        alert('Code not found on this device.\nIf your referrer is on a different device, also enter their wallet address (0x...).');
-        return;
-      }
-    } else { alert('Enter a valid code or wallet address.'); return; }
+        
+        if (!finalAddr) {
+          alert('Referral Code not found globally!\nPlease double check the code or use their 0x wallet address instead.');
+          return;
+        }
+      } else { alert('Enter a valid code or wallet address.'); return; }
+    } catch(e) {
+      console.error("DB Query error:", e);
+      alert('Network error while searching for code.');
+      return;
+    } finally {
+      applyBtn.disabled = false; applyBtn.textContent = orig;
+    }
 
     if (finalAddr === addr.toLowerCase()) { alert("You can't refer yourself!"); return; }
 
-    const applyBtn = document.getElementById('manual-ref-apply-btn');
-    const orig = applyBtn.textContent;
     applyBtn.disabled = true; applyBtn.textContent = 'Binding...';
-
     try {
       const doOnchain = confirm('Bind this referral permanently on-chain?\n(Small gas fee — or Cancel for local-only bind)');
       if (doOnchain) {
