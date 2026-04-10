@@ -2005,3 +2005,12 @@ body::after {
   letter-spacing: 0.2px;
   margin-bottom: 8px;
 }
+
+/* ══════════════════════════════════════
+   DESKTOP AUTO-ZOOM
+══════════════════════════════════════ */
+@media screen and (min-width: 600px) {
+  body {
+    zoom: 1.25;
+  }
+}

@@ -617,13 +617,31 @@
       <div id="ref-manual-section" class="ref-manual-wrap">
         <div class="ref-section-label">Have a Referral Code?</div>
         <input id="manual-ref-code-input" class="name-input" style="font-size:13px;padding:10px 14px;margin-bottom:7px;" placeholder="Code (e.g. MSDXX...)" autocomplete="off" />
-        <input id="manual-ref-addr-input" class="name-input" style="font-size:13px;padding:10px 14px;margin-bottom:9px;" placeholder="Referrer 0x address (if different device)" autocomplete="off" />
-        <button id="manual-ref-apply-btn" class="btn btn-secondary" onclick="Game.doManualRefBind()" style="margin-bottom:0;">Apply Code</button>
+        <button id="manual-ref-apply-btn" class="btn btn-secondary" onclick="Game.doManualRefBind()" style="margin-bottom:10px;">Apply Code</button>
+        
+        <div id="ref-onchain-toggle" style="text-align:center; margin-bottom:10px;">
+          <a href="#" onclick="Game.showOnchainBind(); return false;" style="font-size:12px; color:var(--text-mid); text-decoration:underline;">Enter wallet address instead</a>
+        </div>
+
+        <div id="ref-onchain-ui" style="display:none;">
+          <input id="manual-ref-addr-input" class="name-input" style="font-size:13px;padding:10px 14px;margin-bottom:9px;" placeholder="Referrer 0x address (Permanent onchain bind)" autocomplete="off" />
+          <button class="btn btn-primary" onclick="Game.doOnchainRefBind()" style="margin-bottom:0; background:linear-gradient(180deg, #ff007f 0%, #d40066 100%);">Bind Onchain</button>
+        </div>
       </div>
 
       <div id="ref-orders-list"></div>
 
       <button onclick="Game.closeReferModal()" class="btn btn-secondary" style="margin-top:10px; margin-bottom:0;">Close</button>
+    </div>
+  </div>
+
+  <!-- ═══ FULL REFERRALS MODAL ═══ -->
+  <div id="modal-full-refs" class="screen" style="z-index:210;">
+    <div class="screen-card">
+      <button onclick="Game.closeFullRefsModal()" class="ci-close-btn" aria-label="Close">✕</button>
+      <h2 class="ref-title" style="margin-bottom:15px;">All Referrals</h2>
+      <div id="full-ref-list" class="ref-list" style="max-height: 400px; overflow-y:auto;"></div>
+      <button onclick="Game.closeFullRefsModal()" class="btn btn-secondary" style="margin-top:15px; margin-bottom:0;">Close</button>
     </div>
   </div>
 

@@ -2023,6 +2023,36 @@ const Game = (() => {
     }
   }
 
+  function showOnchainBind() {
+    const toggle = document.getElementById('ref-onchain-toggle');
+    const ui = document.getElementById('ref-onchain-ui');
+    if (toggle) toggle.style.display = 'none';
+    if (ui) ui.style.display = 'block';
+  }
+
+  async function doOnchainRefBind() {
+    const addr = Web3.getConnectedAddress();
+    if (!addr) { alert('Connect wallet first!'); return; }
+    if (getRefBinding(addr)) { alert('You already have a referral binding.'); return; }
+
+    const refAddr = (document.getElementById('manual-ref-addr-input')?.value || '').trim().toLowerCase();
+    if (!refAddr || !/^0x[a-fA-F0-9]{40}$/.test(refAddr)) { alert('Enter a valid 0x wallet address.'); return; }
+    if (refAddr === addr.toLowerCase()) { alert("You can't refer yourself!"); return; }
+
+    try {
+      if (!confirm('This will send a gasless/low-cost transaction to bind this referrer permanently on the Base blockchain. Proceed?')) return;
+      await Web3.bindReferralOnchain(refAddr);
+      _doBindReferral(addr, refAddr, 'onchain');
+      const b = getRefBinding(addr);
+      if (b) { b.onchain = true; saveRefBinding(addr, b); }
+      alert('Referral bound permanently on-chain!');
+      renderRefModal();
+    } catch(e) {
+      console.error(e);
+      alert('On-chain bind failed or was rejected. ' + e.message);
+    }
+  }
+
   /* ── Payout ── */
   function requestPayout() {
     const addr = Web3.getConnectedAddress();
@@ -2079,6 +2109,40 @@ const Game = (() => {
       const b = document.getElementById('ref-copy-link-btn');
       if (b) { b.textContent = 'Copied!'; setTimeout(() => b.textContent = 'Copy Referral Link', 1500); }
     }).catch(() => {});
+  }
+
+  function showFullRefsModal() {
+    const addr = Web3.getConnectedAddress();
+    if (!addr) return;
+    const rd = getRefData(addr);
+    
+    // Sync names & Sort
+    rd.referrals.forEach(r => {
+      const p = getProfileData(r.addr);
+      if (p && p.name) r.name = p.name;
+    });
+    const sortedRefs = [...rd.referrals].sort((a,b) => (b.earnedUSD || 0) - (a.earnedUSD || 0));
+
+    const listEl = document.getElementById('full-ref-list');
+    if (listEl) {
+      listEl.innerHTML = sortedRefs.map((r, index) => `
+        <div class="ref-item">
+          <div class="ref-item-info">
+            <span class="ref-item-name" style="cursor:pointer; text-decoration:underline;" onclick="Game.showPublicProfile('${r.addr}')">${index+1}. ${escHtml(r.name || 'Unknown')}</span>
+            <span class="ref-item-addr">${r.addr.slice(0,8)}...${r.addr.slice(-6)}</span>
+          </div>
+          <div class="ref-item-right">
+            <span class="ref-item-status ${r.status}">${r.status === 'valid' ? 'Valid' : `Pending (${r.gamesSubmitted}/10)`}</span>
+            ${isAdminWallet(addr) ? `<span class="ref-item-fees">$${formatUSD(r.feesUSD)} spent</span>` : ''}
+            <span class="ref-item-earned">+$${formatUSD(r.earnedUSD)}</span>
+          </div>
+        </div>`).join('');
+    }
+    document.getElementById('modal-full-refs').classList.add('active');
+  }
+
+  function closeFullRefsModal() {
+    document.getElementById('modal-full-refs').classList.remove('active');
   }
 
   function renderRefModal() {
@@ -2140,7 +2204,14 @@ const Game = (() => {
       if (rd.referrals.length === 0) {
         listEl.innerHTML = '<div class="ref-empty">No referrals yet — share your link!</div>';
       } else {
-        listEl.innerHTML = rd.referrals.map(r => `
+        // Sync names & Sort by earnings descending
+        rd.referrals.forEach(r => {
+          const p = getProfileData(r.addr);
+          if (p && p.name) r.name = p.name;
+        });
+        const sortedRefs = [...rd.referrals].sort((a,b) => (b.earnedUSD || 0) - (a.earnedUSD || 0));
+        
+        let html = sortedRefs.slice(0, 5).map(r => `
           <div class="ref-item">
             <div class="ref-item-info">
               <span class="ref-item-name">${escHtml(r.name || 'Unknown')}</span>
@@ -2152,6 +2223,13 @@ const Game = (() => {
               <span class="ref-item-earned">+$${formatUSD(r.earnedUSD)}</span>
             </div>
           </div>`).join('');
+
+        if (sortedRefs.length > 5) {
+          html += `<div style="text-align:center; padding-top:8px;">
+            <a href="#" onclick="Game.showFullRefsModal(); return false;" style="font-size:12px; color:var(--text-mid); text-decoration:underline;">See full referrals (${sortedRefs.length})</a>
+          </div>`;
+        }
+        listEl.innerHTML = html;
       }
     }
 
@@ -2419,6 +2497,10 @@ const Game = (() => {
     copyRefCode,
     copyRefLink,
     doManualRefBind,
+    showOnchainBind,
+    doOnchainRefBind,
+    showFullRefsModal,
+    closeFullRefsModal,
     requestPayout,
     showAdminPanel,
     closeAdminPanel,
