@@ -2007,10 +2007,12 @@ body::after {
 }
 
 /* ══════════════════════════════════════
-   DESKTOP AUTO-ZOOM
+   DESKTOP AUTO-ZOOM (MODALS ONLY)
 ══════════════════════════════════════ */
 @media screen and (min-width: 600px) {
-  body {
+  #modal-refer .ref-modal-card,
+  #modal-full-refs .screen-card,
+  #modal-admin .admin-modal-card {
     zoom: 1.25;
   }
 }
