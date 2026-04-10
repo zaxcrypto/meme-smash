@@ -2014,5 +2014,6 @@ body::after {
   #modal-full-refs .screen-card,
   #modal-admin .admin-modal-card {
     zoom: 1.25;
+    max-height: calc((100vh - 80px) / 1.25);
   }
 }
