@@ -2118,34 +2118,51 @@ const Game = (() => {
     }).catch(() => {});
   }
 
-  function showFullRefsModal() {
+  function showFullRefsModal(filterType = 'all') {
     const addr = Web3.getConnectedAddress();
     if (!addr) return;
     const rd = getRefData(addr);
     
-    // Sync names & Sort
+    // Sync names & Filter & Sort
     rd.referrals.forEach(r => {
       const p = getProfileData(r.addr);
       if (p && p.name) r.name = p.name;
     });
-    const sortedRefs = [...rd.referrals].sort((a,b) => (b.earnedUSD || 0) - (a.earnedUSD || 0));
+
+    let filteredRefs = [...rd.referrals];
+    if (filterType === 'valid') filteredRefs = filteredRefs.filter(r => r.status === 'valid');
+    if (filterType === 'pending') filteredRefs = filteredRefs.filter(r => r.status !== 'valid');
+
+    const sortedRefs = filteredRefs.sort((a,b) => (b.earnedUSD || 0) - (a.earnedUSD || 0));
+
+    // Update active tab UI
+    document.querySelectorAll('#modal-full-refs .admin-tab').forEach(b => {
+      b.classList.toggle('active', b.dataset.reftab === filterType);
+    });
 
     const listEl = document.getElementById('full-ref-list');
     if (listEl) {
-      listEl.innerHTML = sortedRefs.map((r, index) => `
-        <div class="ref-item">
-          <div class="ref-item-info">
-            <span class="ref-item-name" style="cursor:pointer; text-decoration:underline;" onclick="Game.showPublicProfile('${r.addr}')">${index+1}. ${escHtml(r.name || 'Unknown')}</span>
-            <span class="ref-item-addr">${r.addr.slice(0,8)}...${r.addr.slice(-6)}</span>
-          </div>
-          <div class="ref-item-right">
-            <span class="ref-item-status ${r.status}">${r.status === 'valid' ? 'Valid' : `Pending (${r.gamesSubmitted}/10)`}</span>
-            ${isAdminWallet(addr) ? `<span class="ref-item-fees">$${formatUSD(r.feesUSD)} spent</span>` : ''}
-            <span class="ref-item-earned">+$${formatUSD(r.earnedUSD)}</span>
-          </div>
-        </div>`).join('');
+      if (sortedRefs.length === 0) {
+        listEl.innerHTML = `<div class="ref-empty">No ${filterType !== 'all' ? filterType : ''} referrals found.</div>`;
+      } else {
+        listEl.innerHTML = sortedRefs.map((r, index) => `
+          <div class="ref-item">
+            <div class="ref-item-info">
+              <span class="ref-item-name" style="cursor:pointer; text-decoration:underline;" title="View Profile" onclick="Game.showPublicProfile('${r.addr}')">${index+1}. ${escHtml(r.name || 'Unknown')}</span>
+            </div>
+            <div class="ref-item-right">
+              <span class="ref-item-status ${r.status}">${r.status === 'valid' ? 'Valid' : `Pending (${r.gamesSubmitted}/10)`}</span>
+              ${isAdminWallet(addr) ? `<span class="ref-item-fees">$${formatUSD(r.feesUSD)} spent</span>` : ''}
+              <span class="ref-item-earned">+$${formatUSD(r.earnedUSD)}</span>
+            </div>
+          </div>`).join('');
+      }
     }
     document.getElementById('modal-full-refs').classList.add('active');
+  }
+
+  function filterFullRefs(tab) {
+    showFullRefsModal(tab);
   }
 
   function closeFullRefsModal() {
@@ -2218,11 +2235,10 @@ const Game = (() => {
         });
         const sortedRefs = [...rd.referrals].sort((a,b) => (b.earnedUSD || 0) - (a.earnedUSD || 0));
         
-        let html = sortedRefs.slice(0, 5).map(r => `
+        let html = sortedRefs.slice(0, 3).map((r, index) => `
           <div class="ref-item">
             <div class="ref-item-info">
-              <span class="ref-item-name" style="cursor:pointer; text-decoration:underline;" title="View Profile" onclick="Game.showPublicProfile('${r.addr}')">${escHtml(r.name || 'Unknown')}</span>
-              <span class="ref-item-addr">${r.addr.slice(0,8)}...${r.addr.slice(-6)}</span>
+              <span class="ref-item-name" style="cursor:pointer; text-decoration:underline;" title="View Profile" onclick="Game.showPublicProfile('${r.addr}')">${index + 1}. ${escHtml(r.name || 'Unknown')}</span>
             </div>
             <div class="ref-item-right">
               <span class="ref-item-status ${r.status}">${r.status === 'valid' ? 'Valid' : `Pending (${r.gamesSubmitted}/10)`}</span>
@@ -2231,11 +2247,15 @@ const Game = (() => {
             </div>
           </div>`).join('');
 
-        if (sortedRefs.length > 5) {
+        if (sortedRefs.length > 3) {
           html += `<div style="text-align:center; padding-top:8px;">
-            <a href="#" onclick="Game.showFullRefsModal(); return false;" style="font-size:12px; color:var(--text-mid); text-decoration:underline;">See full referrals (${sortedRefs.length})</a>
+            <a href="#" onclick="Game.showFullRefsModal(); return false;" style="font-size:12px; color:var(--text-mid); text-decoration:underline;">View full referrals (${sortedRefs.length})</a>
           </div>`;
         }
+        html += `<div style="text-align:center; padding-top:6px; font-size:10px; color:var(--text-mid); opacity:0.6;">
+          Leaderboard and earnings update daily at 5 AM IST
+        </div>`;
+        
         listEl.innerHTML = html;
       }
     }
@@ -2507,6 +2527,7 @@ const Game = (() => {
     showOnchainBind,
     doOnchainRefBind,
     showFullRefsModal,
+    filterFullRefs,
     closeFullRefsModal,
     requestPayout,
     showAdminPanel,

@@ -639,9 +639,14 @@
   <div id="modal-full-refs" class="screen" style="z-index:210;">
     <div class="screen-card">
       <button onclick="Game.closeFullRefsModal()" class="ci-close-btn" aria-label="Close">✕</button>
-      <h2 class="ref-title" style="margin-bottom:15px;">All Referrals</h2>
-      <div id="full-ref-list" class="ref-list" style="max-height: 400px; overflow-y:auto;"></div>
-      <button onclick="Game.closeFullRefsModal()" class="btn btn-secondary" style="margin-top:15px; margin-bottom:0;">Close</button>
+      <h2 class="ref-title" style="margin-bottom:10px;">All Referrals</h2>
+      <div class="admin-tabs" style="margin-bottom:12px;">
+        <button class="admin-tab active" data-reftab="all" onclick="Game.filterFullRefs('all')">Top Earnings</button>
+        <button class="admin-tab" data-reftab="valid" onclick="Game.filterFullRefs('valid')">Valid</button>
+        <button class="admin-tab" data-reftab="pending" onclick="Game.filterFullRefs('pending')">Pending</button>
+      </div>
+      <div id="full-ref-list" class="ref-list" style="max-height: 400px; overflow-y:auto; padding-bottom:10px;"></div>
+      <button onclick="Game.closeFullRefsModal()" class="btn btn-secondary" style="margin-top:5px; margin-bottom:0;">Close</button>
     </div>
   </div>
 
