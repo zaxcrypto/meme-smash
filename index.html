@@ -346,8 +346,8 @@
   <!-- ══════════════════ CANVAS ══════════════════ -->
   <canvas id="gameCanvas"></canvas>
 
-  <!-- ═══════════════ NAME SCREEN ═══════════════ -->
-  <div id="screen-name" class="screen active">
+  <!-- ═══════════════ HOME SCREEN ═══════════════ -->
+  <div id="screen-home" class="screen active">
     <div class="screen-card">
 
       <div class="hero-logo-wrap">
@@ -375,14 +375,48 @@
         <div id="user-address" class="subtitle" style="display:none; margin-top: 10px; font-size: 12px; opacity: 0.8;"></div>
       </div>
 
-      <div class="input-wrap">
-        <input id="playerName" class="name-input" type="text" placeholder="Enter your name…" maxlength="16"
-          autocomplete="off" spellcheck="false" />
+      <button id="btn-start" class="btn btn-primary" onclick="Game.startGame()" disabled style="opacity: 0.5; filter: grayscale(1);">Play Now (Connect Wallet First)</button>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <button id="btn-profile" class="btn btn-secondary" onclick="Game.showProfile()" disabled style="opacity: 0.5; filter: grayscale(1); padding: 12px;">Profile</button>
+        <button class="btn btn-secondary" style="padding: 12px;" onclick="Game.showLeaderboard()">Rankings</button>
       </div>
 
-      <button id="btn-start" class="btn btn-primary" onclick="Game.startGame()" disabled style="opacity: 0.5; filter: grayscale(1);">Play Now (Connect Wallet First)</button>
-      <button class="btn btn-secondary" onclick="Game.showLeaderboard()">Leaderboard</button>
+    </div>
+  </div>
 
+  <!-- ═══════════════ PROFILE SCREEN ═══════════════ -->
+  <div id="screen-profile" class="screen">
+    <div class="screen-card">
+      <div class="lb-title-row">
+        <h2 class="lb-title">YOUR PROFILE</h2>
+      </div>
+
+      <div style="margin-bottom: 20px; text-align: left; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
+        <div style="font-size: 12px; opacity: 0.7; margin-bottom: 4px;">CONNECTED WALLET</div>
+        <div id="profile-connected-address" style="font-family: monospace; font-size: 14px; word-break: break-all; color: #4CAF50;">Not Connected</div>
+        
+        <div style="font-size: 12px; opacity: 0.7; margin-top: 15px; margin-bottom: 4px;">CAREER SCORE</div>
+        <div id="profile-cumulative-score" style="font-size: 24px; font-weight: bold; color: #FFD700;">0</div>
+      </div>
+
+      <div class="input-wrap">
+        <input id="playerName" class="name-input" type="text" placeholder="Ninja Name" maxlength="16" autocomplete="off" spellcheck="false" />
+      </div>
+      <button class="btn btn-primary" onclick="Game.saveProfileName()" style="margin-bottom: 25px;">Save Name</button>
+
+      <!-- Advanced Wallet Manager -->
+      <div style="text-align: left;">
+        <div style="font-size: 14px; font-weight: bold; margin-bottom: 10px; color: #90CAF9;">SAVED ADDRESSES (ADVANCED)</div>
+        <div id="saved-addresses-list" style="margin-bottom: 15px; max-height: 120px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
+          <!-- dynamically populated -->
+        </div>
+
+        <input id="alt-address-input" class="name-input" type="text" placeholder="0x..." style="font-size: 14px; margin-bottom: 8px;" autocomplete="off" spellcheck="false" />
+        <input id="alt-desc-input" class="name-input" type="text" placeholder="Description (e.g. Vault)" style="font-size: 14px; margin-bottom: 12px;" autocomplete="off" spellcheck="false" />
+        <button class="btn btn-secondary" onclick="Game.addAlternativeAddress()">Add Address</button>
+      </div>
+
+      <button class="btn btn-secondary" style="margin-top: 10px;" onclick="Game.goHome()">Back to Home</button>
     </div>
   </div>
 
@@ -390,8 +424,12 @@
   <div id="screen-hud" class="screen">
     <div class="hud-top">
       <div class="hud-left">
+        <div class="hud-score-wrap" style="margin-bottom:8px;">
+          <div class="hud-label">CAREER</div>
+          <div id="hud-career-score" class="hud-score" style="color:#FFD700; font-size:18px;">0</div>
+        </div>
         <div class="hud-score-wrap">
-          <div class="hud-label">SCORE</div>
+          <div class="hud-label">RUN SCORE</div>
           <div id="hud-score" class="hud-score">0</div>
         </div>
         <div class="hud-level-wrap" style="margin-top:8px;">

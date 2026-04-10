@@ -580,6 +580,57 @@ body::after {
   transform: translateY(-1px);
 }
 
+/* Secondary Alt-Wallet Cards */
+.alt-wallet-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255,255,255,0.9);
+  border-radius: 12px;
+  padding: 10px 14px;
+  border: 2px solid rgba(200, 160, 255, 0.3);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.alt-wallet-info {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  margin-right: 10px;
+}
+
+.alt-wallet-desc {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-dark);
+}
+
+.alt-wallet-addr {
+  font-family: monospace;
+  font-size: 11px;
+  color: #7040B0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.alt-wallet-copy-btn {
+  background: var(--hot-pink);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 2px 0 #920E58;
+  transition: transform 0.1s;
+}
+.alt-wallet-copy-btn:active {
+  transform: translateY(2px);
+  box-shadow: none;
+}
+
 /* ══════════════════════════════════════
    ULTRA PREMIUM BUTTONS
 ══════════════════════════════════════ */

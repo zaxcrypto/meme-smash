@@ -209,6 +209,50 @@ export function getConnectedAddress() {
   return connectedAddress || null;
 }
 
+export async function autoConnectWallet() {
+  // Wait a tiny bit for providers to announce themselves
+  await new Promise(r => setTimeout(r, 200));
+  
+  const wallets = [...discoveredWallets.values()];
+  for (const { provider, info } of wallets) {
+    try {
+      // eth_accounts asks if already connected without prompting a popup!
+      const accounts = await provider.request({ method: 'eth_accounts' });
+      if (accounts && accounts.length > 0) {
+        connectedAddress = accounts[0];
+        activeProvider   = provider;
+        walletClient     = createWalletClient({
+          account: connectedAddress,
+          chain:   base,
+          transport: custom(provider),
+        });
+
+        // Setup listeners
+        provider.on?.('accountsChanged', (accs) => {
+          connectedAddress = accs[0] || null;
+          if (!connectedAddress) {
+            walletClient = null;
+            activeProvider = null;
+          }
+          window.dispatchEvent(new CustomEvent('walletAccountChanged', { detail: { address: connectedAddress } }));
+        });
+
+        provider.on?.('disconnect', () => {
+          connectedAddress = null;
+          walletClient = null;
+          activeProvider = null;
+          window.dispatchEvent(new CustomEvent('walletAccountChanged', { detail: { address: null } }));
+        });
+
+        return connectedAddress;
+      }
+    } catch(e) {
+      // ignore and try next
+    }
+  }
+  return null;
+}
+
 async function sendTx(valueWei) {
   const hexValue = numberToHex(valueWei);
   

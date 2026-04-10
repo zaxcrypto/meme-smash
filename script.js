@@ -297,7 +297,12 @@ const Game = (() => {
     canvas.addEventListener('touchstart', onTouchStart, { passive: false });
     canvas.addEventListener('touchend',   onPointerUp, { passive: false });
 
-    showScreen('screen-name');
+    showScreen('screen-home');
+    
+    // Auto-Connect previously approved wallets
+    Web3.autoConnectWallet().then(addr => {
+      if (addr) updatePlayButtonState();
+    });
   }
 
   function resize() {
@@ -318,13 +323,12 @@ const Game = (() => {
      GAME FLOW
   ═══════════════════════════════════════════ */
   function startGame() {
-    const nameInput = document.getElementById('playerName');
-    playerName = nameInput.value.trim();
-    if (!playerName) { nameInput.focus(); return; }
+    const addr = Web3.getConnectedAddress();
+    if (!addr) return;
 
-    // Hide mobile keyboard
-    nameInput.blur();
-    if (document.activeElement) document.activeElement.blur();
+    const profile = getProfileData(addr);
+    playerName = profile.name || 'Ninja';
+
     window.scrollTo(0, 0);
 
     ensureAudio();
@@ -364,6 +368,7 @@ const Game = (() => {
     const isConnected = !!address;
     const btnStart = document.getElementById('btn-start');
     const btnConnect = document.getElementById('btn-connect');
+    const btnProfile = document.getElementById('btn-profile');
     const addrEl = document.getElementById('user-address');
 
     if (isConnected) {
@@ -372,18 +377,117 @@ const Game = (() => {
       btnStart.style.filter = 'none';
       btnStart.textContent = 'Play Now';
       
+      btnProfile.disabled = false;
+      btnProfile.style.opacity = '1';
+      btnProfile.style.filter = 'none';
+
       btnConnect.textContent = 'Disconnect Wallet';
       addrEl.textContent = `Connected: ${address.slice(0,6)}...${address.slice(-4)}`;
       addrEl.style.display = 'block';
+
+      refreshProfileUI(address);
     } else {
       btnStart.disabled = true;
       btnStart.style.opacity = '0.5';
       btnStart.style.filter = 'grayscale(1)';
       btnStart.textContent = 'Play Now (Connect Wallet First)';
+
+      btnProfile.disabled = true;
+      btnProfile.style.opacity = '0.5';
+      btnProfile.style.filter = 'grayscale(1)';
       
       btnConnect.textContent = 'Connect Wallet';
       addrEl.style.display = 'none';
     }
+  }
+
+  /* ═══════════════════════════════════════════
+     PROFILE & LOCAL DATA
+  ═══════════════════════════════════════════ */
+  function getProfileData(address) {
+    if (!address) return { name: '', cumulativeScore: 0, altAddresses: [] };
+    const key = `meme_smash_profile_${address.toLowerCase()}`;
+    const data = localStorage.getItem(key);
+    return data ? JSON.parse(data) : { name: '', cumulativeScore: 0, altAddresses: [] };
+  }
+
+  function saveProfileData(address, data) {
+    if (!address) return;
+    const key = `meme_smash_profile_${address.toLowerCase()}`;
+    localStorage.setItem(key, JSON.stringify(data));
+  }
+
+  function refreshProfileUI(address) {
+    const profile = getProfileData(address);
+    document.getElementById('profile-connected-address').textContent = address || 'Not Connected';
+    document.getElementById('profile-cumulative-score').textContent = profile.cumulativeScore;
+    document.getElementById('playerName').value = profile.name;
+    document.getElementById('hud-career-score').textContent = profile.cumulativeScore;
+    
+    const list = document.getElementById('saved-addresses-list');
+    list.innerHTML = '';
+    
+    if (profile.altAddresses.length === 0) {
+      list.innerHTML = '<div style="font-size:12px; color:rgba(255,255,255,0.5);">No secondary addresses saved yet.</div>';
+    } else {
+      profile.altAddresses.forEach((alt, i) => {
+        const item = document.createElement('div');
+        item.className = 'alt-wallet-card';
+        item.innerHTML = `
+          <div class="alt-wallet-info">
+            <span class="alt-wallet-desc">${alt.desc}</span>
+            <span class="alt-wallet-addr">${alt.address.slice(0,10)}...${alt.address.slice(-8)}</span>
+          </div>
+          <button class="alt-wallet-copy-btn" onclick="Game.copyAddress('${alt.address}', this)">Copy</button>
+        `;
+        list.appendChild(item);
+      });
+    }
+  }
+
+  function showProfile() {
+    refreshProfileUI(Web3.getConnectedAddress());
+    showScreen('screen-profile');
+  }
+
+  function saveProfileName() {
+    const address = Web3.getConnectedAddress();
+    if (!address) return;
+    const profile = getProfileData(address);
+    profile.name = document.getElementById('playerName').value.trim();
+    saveProfileData(address, profile);
+    alert('Ninja Name Saved!');
+  }
+
+  function addAlternativeAddress() {
+    const address = Web3.getConnectedAddress();
+    if (!address) return;
+    const altAddr = document.getElementById('alt-address-input').value.trim();
+    const altDesc = document.getElementById('alt-desc-input').value.trim() || 'Wallet';
+    
+    if (!/^0x[a-fA-F0-9]{40}$/.test(altAddr)) {
+      alert("Invalid EVM Address");
+      return;
+    }
+
+    const profile = getProfileData(address);
+    profile.altAddresses.push({ address: altAddr, desc: altDesc });
+    saveProfileData(address, profile);
+    refreshProfileUI(address);
+    document.getElementById('alt-address-input').value = '';
+    document.getElementById('alt-desc-input').value = '';
+  }
+
+  function copyAddress(addr, btnEl) {
+    navigator.clipboard.writeText(addr).then(() => {
+      const old = btnEl.textContent;
+      btnEl.textContent = 'Copied!';
+      btnEl.style.background = '#4CAF50';
+      setTimeout(() => {
+        btnEl.textContent = old;
+        btnEl.style.background = '';
+      }, 1500);
+    }).catch(e => console.error(e));
   }
 
   async function reviveMenu() {
@@ -424,6 +528,16 @@ const Game = (() => {
       if (confirm(`Submit your score of ${score} to leaderboard for $0.01 worth of ETH?`)) {
         await Web3.payToSubmitScore();
         alert('Payment successful! Score submitted.');
+        
+        // Add to Career Score
+        const addr = Web3.getConnectedAddress();
+        if (addr) {
+          const profile = getProfileData(addr);
+          profile.cumulativeScore += score;
+          saveProfileData(addr, profile);
+          refreshProfileUI(addr);
+        }
+
         showLeaderboard();
       }
     } catch (e) {
@@ -491,7 +605,7 @@ const Game = (() => {
     isGameOver = false;
     isPaused = false;
     objects.length = 0; halves.length = 0; particles.length = 0; trail.length = 0;
-    showScreen('screen-name');
+    showScreen('screen-home');
   }
 
   function toggleSettings() {
@@ -1333,7 +1447,11 @@ const Game = (() => {
     handleWalletAction,
     updatePlayButtonState,
     reviveMenu,
-    submitScoreMenu
+    submitScoreMenu,
+    showProfile,
+    saveProfileName,
+    addAlternativeAddress,
+    copyAddress
   };
 
 })();
