@@ -2221,7 +2221,7 @@ const Game = (() => {
         let html = sortedRefs.slice(0, 5).map(r => `
           <div class="ref-item">
             <div class="ref-item-info">
-              <span class="ref-item-name">${escHtml(r.name || 'Unknown')}</span>
+              <span class="ref-item-name" style="cursor:pointer; text-decoration:underline;" title="View Profile" onclick="Game.showPublicProfile('${r.addr}')">${escHtml(r.name || 'Unknown')}</span>
               <span class="ref-item-addr">${r.addr.slice(0,8)}...${r.addr.slice(-6)}</span>
             </div>
             <div class="ref-item-right">
