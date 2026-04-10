@@ -224,18 +224,22 @@ body::after {
 .screen {
   position: fixed;
   inset: 0;
-  display: flex;
+  display: none; /* Hide by default */
   align-items: center;
   justify-content: center;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.38s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 10;
+  /* Use a background to block interaction with layers below */
+  background: rgba(0,0,0,0.4); 
 }
 
 .screen.active {
+  display: flex;
   opacity: 1;
   pointer-events: all;
+  z-index: 100;
+  transition: opacity 0.3s ease;
 }
 
 /* ══════════════════════════════════════
@@ -1187,4 +1191,245 @@ body::after {
   50% {
     transform: translateY(-12px) rotate(4deg);
   }
+}
+
+/* ══════════════════════════════════════
+   EIP-6963 WALLET PICKER MODAL
+   Premium dark modal — shows ALL browser
+   installed EVM wallets automatically
+══════════════════════════════════════ */
+#wm-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(10, 6, 30, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  align-items: center;
+  justify-content: center;
+  animation: wm-fade-in 0.22s ease both;
+}
+
+@keyframes wm-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+#wm-modal {
+  background: linear-gradient(160deg, #1a0a3e 0%, #0d0625 100%);
+  border: 1px solid rgba(160, 100, 255, 0.30);
+  border-radius: 28px;
+  padding: 28px 24px 22px;
+  width: min(420px, 94vw);
+  max-height: 88vh;
+  overflow-y: auto;
+  box-shadow:
+    0 0 0 1px rgba(200, 150, 255, 0.10) inset,
+    0 32px 80px rgba(80, 0, 160, 0.55),
+    0 8px 24px rgba(0, 0, 0, 0.45);
+  animation: wm-slide-up 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  position: relative;
+}
+
+@keyframes wm-slide-up {
+  from { transform: translateY(32px) scale(0.95); opacity: 0; }
+  to   { transform: translateY(0) scale(1);       opacity: 1; }
+}
+
+/* Subtle top shimmer */
+#wm-modal::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 10%; right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(200, 150, 255, 0.55), transparent);
+  border-radius: 50%;
+}
+
+#wm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+#wm-title {
+  font-family: 'Nunito', sans-serif;
+  font-size: 20px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: 0.3px;
+}
+
+#wm-close {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.18s, color 0.18s, transform 0.15s;
+  flex-shrink: 0;
+}
+
+#wm-close:hover {
+  background: rgba(255, 80, 120, 0.25);
+  color: #fff;
+  transform: rotate(90deg) scale(1.1);
+}
+
+#wm-subtitle {
+  font-family: 'Nunito', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(200, 170, 255, 0.65);
+  margin-bottom: 18px;
+}
+
+#wm-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.wm-wallet-btn {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(160, 100, 255, 0.18);
+  border-radius: 16px;
+  cursor: pointer;
+  transition: background 0.18s, border-color 0.18s, transform 0.15s, box-shadow 0.18s;
+  text-align: left;
+  position: relative;
+  overflow: hidden;
+}
+
+.wm-wallet-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(180, 120, 255, 0.06) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+
+.wm-wallet-btn:hover {
+  background: rgba(160, 100, 255, 0.14);
+  border-color: rgba(160, 100, 255, 0.45);
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 6px 20px rgba(120, 60, 220, 0.25);
+}
+
+.wm-wallet-btn:hover::before {
+  opacity: 1;
+}
+
+.wm-wallet-btn:active {
+  transform: translateY(1px) scale(0.99);
+  box-shadow: none;
+}
+
+.wm-wallet-btn.wm-connecting {
+  opacity: 0.75;
+  pointer-events: none;
+  animation: wm-pulse 0.9s ease-in-out infinite alternate;
+}
+
+@keyframes wm-pulse {
+  from { opacity: 0.55; }
+  to   { opacity: 0.85; }
+}
+
+.wm-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  object-fit: contain;
+  flex-shrink: 0;
+  background: rgba(255,255,255,0.08);
+  padding: 2px;
+}
+
+.wm-icon-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  background: rgba(160, 100, 255, 0.15);
+}
+
+.wm-name {
+  flex: 1;
+  font-family: 'Nunito', sans-serif;
+  font-size: 16px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 0.2px;
+}
+
+.wm-arrow {
+  font-size: 22px;
+  color: rgba(180, 140, 255, 0.6);
+  font-weight: 300;
+  transition: transform 0.18s, color 0.18s;
+  flex-shrink: 0;
+}
+
+.wm-wallet-btn:hover .wm-arrow {
+  transform: translateX(3px);
+  color: rgba(220, 180, 255, 0.9);
+}
+
+.wm-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 24px 16px;
+  text-align: center;
+}
+
+.wm-empty span {
+  font-family: 'Nunito', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: rgba(200, 170, 255, 0.7);
+}
+
+.wm-empty a {
+  font-family: 'Nunito', sans-serif;
+  font-size: 15px;
+  font-weight: 900;
+  color: #c07aff;
+  text-decoration: none;
+  padding: 10px 22px;
+  border: 1px solid rgba(160, 100, 255, 0.4);
+  border-radius: 50px;
+  transition: background 0.18s, color 0.18s;
+}
+
+.wm-empty a:hover {
+  background: rgba(160, 100, 255, 0.2);
+  color: #fff;
+}
+
+#wm-footer {
+  font-family: 'Nunito', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(160, 130, 210, 0.40);
+  text-align: center;
+  margin-top: 18px;
+  letter-spacing: 0.3px;
 }

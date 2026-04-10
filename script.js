@@ -1,9 +1,6 @@
-/*!
- * MEME COIN NINJA
- * ─────────────────────────────────────────────
- * HTML5 Canvas game – Vanilla JS, no frameworks
- */
 'use strict';
+
+import * as Web3 from './web3.js';
 
 const Game = (() => {
 
@@ -262,9 +259,17 @@ const Game = (() => {
      SCREEN MANAGER
   ═══════════════════════════════════════════ */
   function showScreen(id) {
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    // 1. Mark all NOT active
+    const screens = document.querySelectorAll('.screen');
+    screens.forEach(s => {
+      s.classList.remove('active');
+    });
+    
+    // 2. Mark target active
     const el = document.getElementById(id);
-    if (el) requestAnimationFrame(() => el.classList.add('active'));
+    if (el) {
+      el.classList.add('active');
+    }
   }
 
   /* ═══════════════════════════════════════════
@@ -329,6 +334,101 @@ const Game = (() => {
     lastTime  = performance.now();
     if (rafId) cancelAnimationFrame(rafId);
     rafId = requestAnimationFrame(gameLoop);
+  }
+
+  async function handleWalletAction() {
+    const btn = document.getElementById('btn-connect');
+    
+    if (Web3.getConnectedAddress()) {
+      await Web3.disconnectWallet();
+      updatePlayButtonState();
+      return;
+    }
+
+    // Open modal — don't block the button; let watchAccount handle state update
+    try {
+      Web3.connectWallet().then(() => {
+        updatePlayButtonState();
+      }).catch((err) => {
+        console.error('Wallet connection error:', err);
+        updatePlayButtonState();
+      });
+    } catch (err) {
+      console.error('Wallet action error:', err);
+      updatePlayButtonState();
+    }
+  }
+
+  function updatePlayButtonState() {
+    const address = Web3.getConnectedAddress();
+    const isConnected = !!address;
+    const btnStart = document.getElementById('btn-start');
+    const btnConnect = document.getElementById('btn-connect');
+    const addrEl = document.getElementById('user-address');
+
+    if (isConnected) {
+      btnStart.disabled = false;
+      btnStart.style.opacity = '1';
+      btnStart.style.filter = 'none';
+      btnStart.textContent = 'Play Now';
+      
+      btnConnect.textContent = 'Disconnect Wallet';
+      addrEl.textContent = `Connected: ${address.slice(0,6)}...${address.slice(-4)}`;
+      addrEl.style.display = 'block';
+    } else {
+      btnStart.disabled = true;
+      btnStart.style.opacity = '0.5';
+      btnStart.style.filter = 'grayscale(1)';
+      btnStart.textContent = 'Play Now (Connect Wallet First)';
+      
+      btnConnect.textContent = 'Connect Wallet';
+      addrEl.style.display = 'none';
+    }
+  }
+
+  async function reviveMenu() {
+    const btn = document.getElementById('btn-revive');
+    const originalText = btn.textContent;
+    try {
+      if (!confirm("Revive for $0.05 worth of ETH?")) return;
+      btn.textContent = 'Processing...';
+      await Web3.payToRevive();
+      btn.textContent = 'Success!';
+      setTimeout(() => {
+        resetForRevive();
+        showScreen('screen-hud');
+        isPlaying = true;
+        lastTime = performance.now();
+        rafId = requestAnimationFrame(gameLoop);
+      }, 1000);
+    } catch (e) {
+      console.error(e);
+      btn.textContent = 'Payment Failed';
+      setTimeout(() => btn.textContent = originalText, 2000);
+    }
+  }
+
+  function resetForRevive() {
+    // Keep score and level, but clear objects and reset health
+    objects.length = 0;
+    missedCoins = 0;
+    bombStrikes = 0;
+    isPlaying = true;
+    isGameOver = false;
+    updateHUD();
+  }
+
+  async function submitScoreMenu() {
+    try {
+      if (confirm(`Submit your score of ${score} to leaderboard for $0.01 worth of ETH?`)) {
+        await Web3.payToSubmitScore();
+        alert('Payment successful! Score submitted.');
+        showLeaderboard();
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Payment failed or cancelled.');
+    }
   }
 
   function restartGame() {
@@ -1219,13 +1319,27 @@ const Game = (() => {
   /* ═══════════════════════════════════════════
      EXPORT PUBLIC API
   ═══════════════════════════════════════════ */
-  // Start init on DOMContentLoaded
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
-
-  return { startGame, restartGame, showLeaderboard, goHome, toggleSettings, resumeGame, toggleMute, goHomeFromPause };
+  return { 
+    init, 
+    startGame, 
+    restartGame, 
+    showLeaderboard, 
+    goHome, 
+    toggleSettings, 
+    resumeGame, 
+    toggleMute, 
+    goHomeFromPause,
+    handleWalletAction,
+    updatePlayButtonState,
+    reviveMenu,
+    submitScoreMenu
+  };
 
 })();
+
+window.Game = Game;
+window.addEventListener('DOMContentLoaded', () => {
+  Game.init();
+  // Periodically check wallet state as a fallback
+  setInterval(Game.updatePlayButtonState, 2000);
+});

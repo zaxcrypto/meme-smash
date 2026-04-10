@@ -370,12 +370,17 @@
 
       <p class="subtitle">Slice the memes. Dodge the bombs.</p>
 
+      <div id="wallet-section" style="margin-bottom: 20px;">
+        <button id="btn-connect" class="btn btn-secondary" onclick="Game.handleWalletAction()">Connect Wallet</button>
+        <div id="user-address" class="subtitle" style="display:none; margin-top: 10px; font-size: 12px; opacity: 0.8;"></div>
+      </div>
+
       <div class="input-wrap">
         <input id="playerName" class="name-input" type="text" placeholder="Enter your name…" maxlength="16"
           autocomplete="off" spellcheck="false" />
       </div>
 
-      <button id="btn-start" class="btn btn-primary" onclick="Game.startGame()">Play Now</button>
+      <button id="btn-start" class="btn btn-primary" onclick="Game.startGame()" disabled style="opacity: 0.5; filter: grayscale(1);">Play Now (Connect Wallet First)</button>
       <button class="btn btn-secondary" onclick="Game.showLeaderboard()">Leaderboard</button>
 
     </div>
@@ -424,9 +429,14 @@
         <div class="score-label">FINAL SCORE</div>
         <div id="final-score" class="score-value">0</div>
       </div>
-      <div class="gameover-buttons">
-        <button class="btn btn-primary" onclick="Game.restartGame()">Play Again</button>
-        <button class="btn btn-secondary" onclick="Game.showLeaderboard()">Leaderboard</button>
+      <div class="gameover-buttons" style="display: grid; grid-template-columns: 1fr; gap: 10px;">
+        <button id="btn-revive" class="btn btn-primary" style="background: linear-gradient(180deg, #7FE82A 0%, #4CAF50 100%); border-bottom: 3px solid #1B5E20; margin-bottom: 0;" onclick="Game.reviveMenu()">Revive ($0.05 ETH)</button>
+        <button class="btn btn-primary" style="background: linear-gradient(180deg, #FFD700 0%, #FFA500 100%); color: #2D1060; border-bottom: 3px solid #B8860B; margin-bottom: 0;" onclick="Game.submitScoreMenu()">Submit Score ($0.01 ETH)</button>
+        <button class="btn btn-secondary" style="margin-bottom: 0;" onclick="Game.restartGame()">Play Again</button>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <button class="btn btn-secondary" style="margin-bottom: 0; padding: 12px;" onclick="Game.goHome()">Home</button>
+          <button class="btn btn-secondary" style="margin-bottom: 0; padding: 12px;" onclick="Game.showLeaderboard()">Rankings</button>
+        </div>
       </div>
     </div>
   </div>
@@ -467,7 +477,7 @@
   <!-- Flash overlay -->
   <div id="bomb-flash" class="bomb-flash"></div>
 
-  <script src="script.js?v=4"></script>
+  <script type="module" src="script.js?v=5"></script>
 </body>
 
 </html>
