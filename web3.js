@@ -336,13 +336,6 @@ export async function payReferralPayout(targetAddress, amountUSD) {
 }
 
 
-// ─── Constants ────────────────────────────────────────────────────────────────
-const BUILDER_CODE     = 'bc_sjkexp2o';
-const RECEIVER_ADDRESS = '0x3b305a5c77d0274BCDDD9013C80113Ea1D698061';
-
-// Base builder-code data suffix — appended to every transaction
-const DATA_SUFFIX = Attribution.toDataSuffix({ codes: [BUILDER_CODE] });
-
 // ─── State ────────────────────────────────────────────────────────────────────
 const discoveredWallets = new Map();   // rdns → { info, provider }
 let connectedAddress = null;
