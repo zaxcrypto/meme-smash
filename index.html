@@ -348,7 +348,12 @@
 
   <!-- ═══════════════ HOME SCREEN ═══════════════ -->
   <div id="screen-home" class="screen active">
-    <div class="screen-card">
+    <div class="screen-card" style="position:relative;">
+
+      <!-- Small Daily Check-in pill — top right corner -->
+      <button class="btn-checkin-pill" onclick="Game.showCheckinModal()" title="Daily Check-In">
+        📅 Check-In
+      </button>
 
       <div class="hero-logo-wrap">
         <div class="beam beam-tl"></div>
@@ -370,13 +375,6 @@
 
       <p class="subtitle">Slice the memes. Dodge the bombs.</p>
 
-      <!-- Daily Check-in Button -->
-      <button class="btn-checkin-home" onclick="Game.showCheckinModal()" title="Daily Check-In">
-        <span class="ci-cal-icon">📅</span>
-        <span class="ci-home-label">Daily Check&#8209;In</span>
-        <span class="ci-home-badge" id="ci-home-badge">🔥</span>
-      </button>
-
       <div id="wallet-section" style="margin-bottom: 20px;">
         <button id="btn-connect" class="btn btn-secondary" onclick="Game.handleWalletAction()">Connect Wallet</button>
         <div id="user-address" class="subtitle" style="display:none; margin-top: 10px; font-size: 12px; opacity: 0.8;"></div>
@@ -392,6 +390,7 @@
   </div>
 
   <!-- ═══════════════ PROFILE SCREEN ═══════════════ -->
+
   <div id="screen-profile" class="screen">
     <div class="screen-card">
       <div class="lb-title-row">
@@ -536,9 +535,8 @@
 
       <!-- Header -->
       <div class="ci-header">
-        <div class="ci-header-icon">📅</div>
-        <h2 class="ci-title">Daily Check&#8209;In</h2>
-        <div id="ci-streak-label" class="ci-streak">Start your streak! 🌱</div>
+        <h2 class="ci-title">Daily Check-In</h2>
+        <div id="ci-streak-label" class="ci-streak">Start your streak!</div>
       </div>
 
       <!-- 7-Day Grid -->
@@ -551,7 +549,7 @@
       <div id="ci-countdown" class="ci-countdown"></div>
 
       <!-- CTA Button -->
-      <button id="ci-btn" class="btn btn-primary ci-cta-btn" onclick="Game.doCheckin()">Check In — $0.01 on Base</button>
+      <button id="ci-btn" class="btn btn-primary ci-cta-btn" onclick="Game.doCheckin()">Click to Check-In</button>
 
       <!-- Reset note -->
       <div class="ci-reset-note">Resets daily at 5:30 AM IST ·  Miss a day = streak resets</div>

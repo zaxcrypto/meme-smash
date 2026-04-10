@@ -1503,70 +1503,53 @@ body::after {
 }
 
 /* ══════════════════════════════════════
-   DAILY CHECK-IN — HOME BUTTON
+   DAILY CHECK-IN — SMALL HOME PILL
 ══════════════════════════════════════ */
-.btn-checkin-home {
-  display: flex;
+.btn-checkin-pill {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  z-index: 20;
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  padding: 12px 20px;
+  gap: 5px;
+  padding: 7px 14px;
   border: none;
   border-radius: 50px;
   font-family: 'Nunito', sans-serif;
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 900;
   cursor: pointer;
-  margin-bottom: 14px;
-  letter-spacing: 0.4px;
-  background: linear-gradient(135deg, #FFD700 0%, #FF8C00 50%, #FF5F00 100%);
+  letter-spacing: 0.3px;
+  background: linear-gradient(135deg, #FFD700 0%, #FF8C00 100%);
   color: #fff;
-  text-shadow: 0 1px 4px rgba(0,0,0,0.25);
+  text-shadow: 0 1px 3px rgba(0,0,0,0.20);
   box-shadow:
-    0 6px 0 #B85000,
-    0 10px 28px rgba(255, 140, 0, 0.45),
-    inset 0 1px 0 rgba(255,255,255,0.45);
-  position: relative;
-  overflow: hidden;
+    0 3px 0 #A05000,
+    0 6px 16px rgba(255,140,0,0.38),
+    inset 0 1px 0 rgba(255,255,255,0.40);
   transition: transform 0.13s, box-shadow 0.13s, filter 0.13s;
-  animation: ci-home-pulse 3s ease-in-out infinite;
+  white-space: nowrap;
 }
-
-@keyframes ci-home-pulse {
-  0%, 100% { box-shadow: 0 6px 0 #B85000, 0 10px 28px rgba(255,140,0,0.45), inset 0 1px 0 rgba(255,255,255,0.45); }
-  50%       { box-shadow: 0 6px 0 #B85000, 0 14px 40px rgba(255,140,0,0.75), inset 0 1px 0 rgba(255,255,255,0.45); }
-}
-
-.btn-checkin-home::before {
-  content: '';
-  position: absolute;
-  top: 0; left: -100%;
-  width: 60%; height: 100%;
-  background: linear-gradient(105deg, transparent 20%, rgba(255,255,255,0.40) 50%, transparent 80%);
-  transform: skewX(-20deg);
-  transition: left 0.55s ease;
-}
-.btn-checkin-home:hover::before { left: 160%; }
-.btn-checkin-home:hover {
+.btn-checkin-pill:hover {
   filter: brightness(1.08);
-  transform: translateY(-3px);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 0 #A05000, 0 10px 22px rgba(255,140,0,0.55), inset 0 1px 0 rgba(255,255,255,0.40);
 }
-.btn-checkin-home:active {
-  transform: translateY(4px);
-  box-shadow: 0 2px 0 #B85000, 0 4px 12px rgba(255,140,0,0.3);
+.btn-checkin-pill:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #A05000, 0 3px 8px rgba(255,140,0,0.3);
 }
 
-.ci-cal-icon { font-size: 20px; line-height: 1; }
-.ci-home-label { flex: 1; text-align: center; }
-.ci-home-badge {
-  font-size: 18px;
-  animation: badge-bounce 1.4s ease-in-out infinite;
+/* Tile checkmark for done days */
+.ci-check {
+  font-size: 15px;
+  font-weight: 900;
+  color: #2E7D32;
+  line-height: 1;
 }
-@keyframes badge-bounce {
-  0%,100% { transform: translateY(0) scale(1); }
-  50%      { transform: translateY(-4px) scale(1.2); }
-}
+
+
 
 /* ══════════════════════════════════════
    DAILY CHECK-IN MODAL CARD

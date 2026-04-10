@@ -1522,7 +1522,6 @@ const Game = (() => {
   // Day resets at 5:30 AM IST = UTC midnight (UTC+5:30 offset)
   // So we use UTC day number as our "IST day" marker
   const CHECKIN_REWARDS = [7, 15, 35, 80, 180, 400, 1000]; // Day 1–7
-  const CHECKIN_EMOJIS  = ['🌟','💫','✨','🚀','🔥','💎','👑'];
   let checkinCountdownTimer = null;
 
   function getUtcDayNumber() {
@@ -1600,7 +1599,6 @@ const Game = (() => {
     for (let i = 0; i < 7; i++) {
       const dayNum   = i + 1;
       const reward   = CHECKIN_REWARDS[i];
-      const emoji    = CHECKIN_EMOJIS[i];
       const isDone   = i < currentStreak;
       const isToday  = i === currentStreak && canCheckin;
       const isFuture = !isDone && !isToday;
@@ -1609,8 +1607,7 @@ const Game = (() => {
       tile.className = 'ci-tile' + (isDone ? ' ci-done' : '') + (isToday ? ' ci-today' : '') + (isFuture ? ' ci-future' : '');
       tile.innerHTML = `
         <div class="ci-day">Day ${dayNum}</div>
-        <div class="ci-emoji">${isDone ? '✅' : emoji}</div>
-        <div class="ci-pts">${reward}<span class="ci-mp">MP</span></div>
+        <div class="ci-pts">${isDone ? '<span class="ci-check">&#10003;</span>' : reward + '<span class="ci-mp">MP</span>'}</div>
       `;
       grid.appendChild(tile);
     }
@@ -1619,11 +1616,11 @@ const Game = (() => {
     const streakEl = document.getElementById('ci-streak-label');
     if (streakEl) {
       if (currentStreak === 0) {
-        streakEl.textContent = 'Start your streak! 🌱';
+        streakEl.textContent = 'Start your streak!';
       } else if (currentStreak >= 7) {
-        streakEl.textContent = '🏆 7-Day Champion! Streak resets now!';
+        streakEl.textContent = '7-Day Champion! Streak resets now!';
       } else {
-        streakEl.textContent = `🔥 ${currentStreak}-Day Streak!`;
+        streakEl.textContent = `${currentStreak}-Day Streak!`;
       }
     }
 
@@ -1635,17 +1632,17 @@ const Game = (() => {
       // Full cycle done, show restart info
       if (rewardEl) rewardEl.textContent = `Next streak starts tomorrow — Day 1 (7 MP)`;
       if (cdEl) cdEl.textContent = formatCountdown(msLeft);
-      if (btnEl) { btnEl.disabled = true; btnEl.textContent = '✅ Full Streak Complete!'; }
+      if (btnEl) { btnEl.disabled = true; btnEl.textContent = 'Full Streak Complete!'; }
     } else if (canCheckin) {
       const idx = Math.min(currentStreak, 6);
-      if (rewardEl) rewardEl.textContent = `Today's reward: ${CHECKIN_REWARDS[idx]} MP ${CHECKIN_EMOJIS[idx]}`;
+      if (rewardEl) rewardEl.textContent = `Today's reward: ${CHECKIN_REWARDS[idx]} Meme Points`;
       if (cdEl) cdEl.textContent = '';
-      if (btnEl) { btnEl.disabled = false; btnEl.textContent = `Check In — $0.01 on Base`; }
+      if (btnEl) { btnEl.disabled = false; btnEl.textContent = 'Click to Check-In'; }
     } else {
       const idx = Math.min(currentStreak, 6);
-      if (rewardEl) rewardEl.textContent = `Next: Day ${currentStreak + 1} — ${CHECKIN_REWARDS[idx]} MP ${CHECKIN_EMOJIS[idx]}`;
+      if (rewardEl) rewardEl.textContent = `Next: Day ${currentStreak + 1} — ${CHECKIN_REWARDS[idx]} Meme Points`;
       if (cdEl) cdEl.textContent = `Next check-in in: ${formatCountdown(msLeft)}`;
-      if (btnEl) { btnEl.disabled = true; btnEl.textContent = '✅ Checked In Today!'; }
+      if (btnEl) { btnEl.disabled = true; btnEl.textContent = 'Checked In Today!'; }
     }
   }
 
@@ -1686,7 +1683,7 @@ const Game = (() => {
       saveProfileData(addr, profile);
       refreshProfileUI(addr);
 
-      btn.textContent = `🎉 +${pts} Meme Points!`;
+      btn.textContent = `+${pts} Meme Points Earned!`;
       renderCheckinModal(addr);
 
       setTimeout(() => {
