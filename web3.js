@@ -338,3 +338,32 @@ export async function bindReferralOnchain(referrerAddress) {
     params: [{ from: connectedAddress, to: RECEIVER_ADDRESS, value: '0x0', data }]
   });
 }
+
+/**
+ * Pay referral reward to user via Web3 wallet (Admin ONLY feature).
+ * amountUSD is converted roughly at a fixed rate (1 ETH = $3000) for demo arcades.
+ */
+export async function payReferralPayout(targetAddress, amountUSD) {
+  if (!activeProvider || !connectedAddress) throw new Error('Wallet not connected');
+  
+  // Calculate ETH equivalent (e.g. $5 USD / 3000 = 0.001666... ETH)
+  const ethNeeded = amountUSD / 3000;
+  
+  // Format precisely to avoid JS floating point exponent issues (e.g. 1e-7)
+  let ethStr = ethNeeded.toFixed(18);
+  ethStr = ethStr.replace(/\.?0+$/, ''); // Remove trailing zeros
+  if (ethStr === '') ethStr = '0';
+  
+  // Create transaction config. parseEther converts the string to Wei.
+  const weiValue = parseEther(ethStr);
+  const valueHex = "0x" + weiValue.toString(16);
+  
+  return await activeProvider.request({
+    method: 'eth_sendTransaction',
+    params: [{
+      from: connectedAddress,
+      to: targetAddress,
+      value: valueHex
+    }]
+  });
+}

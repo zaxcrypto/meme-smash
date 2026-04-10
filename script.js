@@ -1717,11 +1717,11 @@ const Game = (() => {
   const ADMIN_WALLET  = '0xd448777940dFaBF65FD259fA8a9903e60E1FF178';
   const PAYOUT_MIN_USD = 5.0;
   const REF_TIER_DEFS = [
-    { label: 'Starter', min: 0,   rate: 0,    color: '#90A4AE' },
-    { label: 'Pro',     min: 10,  rate: 0.10, color: '#FF8C00' },
-    { label: 'Elite',   min: 50,  rate: 0.15, color: '#FF3DAE' },
-    { label: 'Legend',  min: 100, rate: 0.30, color: '#9B3BDB' },
-    { label: 'Mythic',  min: 500, rate: 0.40, color: '#FFD700' },
+    { label: 'Active',  min: 0,   rate: 0.10, color: '#4CAF50' },
+    { label: 'Pro',     min: 10,  rate: 0.15, color: '#FF8C00' },
+    { label: 'Elite',   min: 50,  rate: 0.30, color: '#FF3DAE' },
+    { label: 'Legend',  min: 100, rate: 0.40, color: '#9B3BDB' },
+    { label: 'Mythic',  min: 500, rate: 0.50, color: '#FFD700' },
   ];
 
   function isAdminWallet(addr) {
@@ -1849,7 +1849,7 @@ const Game = (() => {
     if (payreq) {
       try {
         const req = JSON.parse(atob(payreq));
-        const key = `meme_smash_payout_req_${req.addr.toLowerCase()}`;
+        const key = `meme_smash_payout_req_${req.addr.toLowerCase()}_${req.requestedAt}`;
         if (!localStorage.getItem(key)) {
           localStorage.setItem(key, JSON.stringify({ ...req, status: 'pending' }));
         }
@@ -1961,18 +1961,23 @@ const Game = (() => {
       alert(`Min payout is $${PAYOUT_MIN_USD}. You have $${rd.pendingUSD.toFixed(4)} pending.`);
       return;
     }
-    const key = `meme_smash_payout_req_${addr.toLowerCase()}`;
+    const reqId = Date.now();
+    const key = `meme_smash_payout_req_${addr.toLowerCase()}_${reqId}`;
     const existing = localStorage.getItem(key);
     if (existing && JSON.parse(existing).status === 'pending') {
-      alert('You already have a pending payout request!'); return;
+      alert('Error creating request.'); return;
     }
     const profile = getProfileData(addr);
     const req = { addr: addr.toLowerCase(), name: profile.name || 'Unknown',
-                   amountUSD: rd.pendingUSD, requestedAt: Date.now(), status: 'pending' };
+                   amountUSD: rd.pendingUSD, requestedAt: reqId, status: 'pending' };
+    
+    rd.pendingUSD = 0; // Reset active queue so new batch starts
+    saveRefData(addr, rd);
+
     localStorage.setItem(key, JSON.stringify(req));
     // Generate shareable URL for cross-device admin import
     const reqUrl = window.location.href.split('?')[0] + '?payreq=' + btoa(JSON.stringify(req));
-    alert(`Payout request of $${rd.pendingUSD.toFixed(4)} submitted!\n\nShare this link with admin:\n${reqUrl}\n\n(Link copied to clipboard)`);
+    alert(`Payout request of $${req.amountUSD.toFixed(4)} submitted!\nYour earnings are reset to 0 for the next batch.\n\nShare this link with admin if they are on a different device:\n${reqUrl}\n\n(Link copied to clipboard)`);
     try { navigator.clipboard.writeText(reqUrl); } catch(e) {}
     renderRefModal();
   }
@@ -2085,6 +2090,34 @@ const Game = (() => {
         ? `Current boost: ${(tier.rate*100).toFixed(0)}% of friends' fees — ${tier.label} tier`
         : 'Get 10 valid referrals to start earning boost rewards';
     }
+
+    // Orders queue visually
+    const orderList = document.getElementById('ref-orders-list');
+    if (orderList) {
+      const myReqs = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith(`meme_smash_payout_req_${addr.toLowerCase()}_`)) {
+          try { myReqs.push(JSON.parse(localStorage.getItem(k))); } catch(e) {}
+        }
+      }
+      myReqs.sort((a,b) => b.requestedAt - a.requestedAt);
+      if (myReqs.length === 0) {
+        orderList.innerHTML = '';
+      } else {
+        orderList.innerHTML = `<div class="ref-section-label" style="margin-top:10px;">Your Payout Orders</div>` + 
+          myReqs.map(r => `
+            <div class="ref-item" style="border:1.5px dashed rgba(155,59,219,0.22); margin-bottom:5px;">
+              <div class="ref-item-info">
+                <span class="ref-item-name">$${r.amountUSD.toFixed(4)} <span style="font-size:10px;font-style:italic;color:var(--text-mid);font-weight:700;">— ${new Date(r.requestedAt).toLocaleDateString()}</span></span>
+              </div>
+              <div class="ref-item-right">
+                 <span class="ref-item-status ${r.status==='paid'?'valid':'pending'}">${r.status.charAt(0).toUpperCase() + r.status.slice(1)}</span>
+              </div>
+            </div>
+          `).join('');
+      }
+    }
   }
 
   function renderTierTrack(validCount) {
@@ -2157,21 +2190,37 @@ const Game = (() => {
     return out;
   }
 
-  function adminMarkPaid(userAddr) {
-    if (!confirm(`Mark payment COMPLETE for\n${userAddr}?`)) return;
-    const key = `meme_smash_payout_req_${userAddr.toLowerCase()}`;
+  async function adminMarkPaid(userAddr, reqTime) {
+    if (!confirm(`Are you sure you want to Pay ${userAddr} via wallet?`)) return;
+    const key = `meme_smash_payout_req_${userAddr.toLowerCase()}_${reqTime}`;
     const raw = localStorage.getItem(key);
     if (!raw) { alert('Request not found on this device.'); return; }
     const req = JSON.parse(raw);
-    req.status = 'paid'; req.paidAt = Date.now();
-    localStorage.setItem(key, JSON.stringify(req));
-    const rd = getRefData(userAddr);
-    rd.paidOutUSD = (rd.paidOutUSD || 0) + req.amountUSD;
-    rd.payoutHistory.push({ amount: req.amountUSD, paidAt: Date.now() });
-    rd.pendingUSD = 0;
-    saveRefData(userAddr, rd);
-    alert(`Marked paid! $${req.amountUSD.toFixed(4)} to ${userAddr}`);
-    renderAdminPanel();
+
+    const btn = document.getElementById(`btn-pay-${reqTime}`);
+    const origText = btn ? btn.textContent : 'Mark Paid';
+    if (btn) { btn.disabled = true; btn.textContent = 'Trxf...'; }
+
+    try {
+      // Prompt wallet Tx
+      await Web3.payReferralPayout(userAddr, req.amountUSD);
+
+      // Save locally
+      req.status = 'paid'; req.paidAt = Date.now();
+      localStorage.setItem(key, JSON.stringify(req));
+      const rd = getRefData(userAddr);
+      rd.paidOutUSD = (rd.paidOutUSD || 0) + req.amountUSD;
+      rd.payoutHistory.push({ amount: req.amountUSD, paidAt: Date.now() });
+      saveRefData(userAddr, rd);
+      
+      alert(`Marked paid! $${req.amountUSD.toFixed(4)} sent to ${userAddr}`);
+    } catch(e) {
+      console.error(e);
+      alert('Wallet payment failed or was rejected. Keeping as Pending.');
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = origText; }
+      renderAdminPanel();
+    }
   }
 
   function renderAdminPanel() {
@@ -2195,7 +2244,7 @@ const Game = (() => {
             <div class="admin-req-date">${new Date(r.requestedAt).toLocaleDateString()}</div>
           </div>
           <div class="admin-req-actions">
-            <button class="btn-admin-pay" onclick="Game.adminMarkPaid('${r.addr}')">Mark Paid</button>
+            <button class="btn-admin-pay" id="btn-pay-${r.requestedAt}" onclick="Game.adminMarkPaid('${r.addr}', ${r.requestedAt})">Pay Now</button>
             <button class="btn-admin-copy" onclick="navigator.clipboard.writeText('${r.addr}').then(()=>this.textContent='Copied!').catch(()=>{})">Copy Addr</button>
           </div></div>`;
       });
