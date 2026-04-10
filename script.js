@@ -2027,9 +2027,10 @@ const Game = (() => {
     // --- Retroactive Bug Fix for affected $0 earners ---
     let needsSave = false;
     const validCountTemp = rd.referrals.filter(r => r.status === 'valid').length;
-    const currentRate = getRefTier(validCountTemp).rate;
+    const currentRate = getRefTier(validCountTemp).rate > 0 ? getRefTier(validCountTemp).rate : 0.10;
+    
     rd.referrals.forEach(r => {
-       if (r.status === 'valid' && (!r.earnedUSD || r.earnedUSD === 0) && r.feesUSD > 0) {
+       if (r.status === 'valid' && r.feesUSD > 0 && (r.earnedUSD === undefined || r.earnedUSD < 0.0001)) {
            const missedEarnings = r.feesUSD * currentRate;
            r.earnedUSD = missedEarnings;
            rd.pendingUSD = (rd.pendingUSD || 0) + missedEarnings;
