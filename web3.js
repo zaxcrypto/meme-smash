@@ -88,7 +88,32 @@ window.addEventListener('eip6963:announceProvider', (event) => {
     discoveredWallets.set(info.rdns, { info, provider });
   }
 });
+
 window.dispatchEvent(new Event('eip6963:requestProvider'));
+
+// ─── Legacy/Base App Discovery Fallback ──────────────────────────────────────
+function probeLegacyProviders() {
+  if (typeof window === 'undefined') return;
+  const legacy = window.ethereum;
+  if (legacy) {
+    // If it hasn't announced itself via EIP-6963 yet, we add it as a fallback
+    const isAlreadyDiscovered = [...discoveredWallets.values()].some(w => w.provider === legacy);
+    if (!isAlreadyDiscovered) {
+      const isCB = legacy.isCoinbaseBrowser || legacy.isCoinbaseWallet || window.coinbaseWalletExtension;
+      const info = {
+        uuid: 'legacy-injected',
+        name: isCB ? 'Coinbase / Base App' : 'Browser Wallet',
+        rdns: 'injected.ethereum',
+        icon: isCB ? 'https://docs.cloud.coinbase.com/static/logo.png' : null
+      };
+      discoveredWallets.set(info.rdns, { info, provider: legacy });
+    }
+  }
+}
+// Initial probe + periodic check (mobile providers can be injected late)
+probeLegacyProviders();
+setTimeout(probeLegacyProviders, 500);
+setTimeout(probeLegacyProviders, 1500);
 
 // ─── Custom Wallet Picker Modal ───────────────────────────────────────────────
 function buildModal() {
@@ -133,7 +158,7 @@ function openModal() {
         return;
       }
 
-      const PRIORITY = ['io.rabby', 'io.metamask', 'com.trustwallet.app', 'com.brave.wallet'];
+      const PRIORITY = ['io.rabby', 'io.metamask', 'com.trustwallet.app', 'com.brave.wallet', 'injected.ethereum'];
       wallets.sort((a, b) => {
         const ai = PRIORITY.indexOf(a.info.rdns);
         const bi = PRIORITY.indexOf(b.info.rdns);
@@ -244,6 +269,19 @@ export async function autoConnectWallet() {
       }
     } catch(e) { /* try next */ }
   }
+  // Fallback for Mobile In-App Browsers (Base App / Coinbase Wallet)
+  if (typeof window !== 'undefined' && window.ethereum) {
+    try {
+      const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+      if (accounts && accounts.length > 0) {
+        connectedAddress = accounts[0];
+        activeProvider   = window.ethereum;
+        walletClient = createWalletClient({ account: connectedAddress, chain: base, transport: custom(activeProvider) });
+        return connectedAddress;
+      }
+    } catch(e) {}
+  }
+
   return null;
 }
 
