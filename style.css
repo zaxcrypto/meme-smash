@@ -268,18 +268,7 @@ body::after {
 }
 
 /* Inner top shine */
-.screen-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 10%;
-  right: 10%;
-  height: 46%;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.50) 0%, rgba(255, 255, 255, 0) 100%);
-  border-radius: 0 0 50% 50%;
-  pointer-events: none;
-  z-index: 0;
-}
+
 
 
 
