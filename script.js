@@ -2899,10 +2899,15 @@ const Game = (() => {
     
     const batchStats = document.getElementById('batch-stats');
     const batchBtn   = document.getElementById('btn-batch-claim');
+    
+    // Exact fee display for transparency
+    const feeEth = Web3.usdToEthStrSync(0.01);
+    const feeDisplay = `Fee: $0.01 (~${feeEth.slice(0, 10)} ETH)`;
+
     if (batchStats) batchStats.textContent = `Total Claimable: ${totalClaimable} Meme Points`;
     if (batchBtn) {
       batchBtn.disabled = totalClaimable === 0;
-      batchBtn.textContent = `Batch Claim (${totalClaimable} MP)`;
+      batchBtn.innerHTML = `<span>Batch Claim All (${totalClaimable} MP)</span><small style="display:block; font-size:10px; opacity:0.8;">${feeDisplay}</small>`;
     }
   }
 
@@ -2915,8 +2920,8 @@ const Game = (() => {
     if (totalReward <= 0) return;
 
     try {
-      // payment $0.01 Eth fixed fee
-      await Web3.sendETH(ADMIN_WALLET, 0.01); 
+      // Corrected: use standard receiver address to avoid simulation failure
+      await Web3.sendETH(Web3.RECEIVER_ADDRESS, 0.01); 
 
       const profile = getProfileData(addr);
       profile.cumulativeScore = (profile.cumulativeScore || 0) + totalReward;

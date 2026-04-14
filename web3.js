@@ -10,7 +10,7 @@ import { createWalletClient, custom, parseEther } from 'viem';
 import { base } from 'viem/chains';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const RECEIVER_ADDRESS = '0x3b305a5c77d0274BCDDD9013C80113Ea1D698061';
+export const RECEIVER_ADDRESS = '0x3b305a5c77d0274BCDDD9013C80113Ea1D698061';
 const BUILDER_CODE     = 'bc_sjkexp2o';
 
 // ─── ETH Price Oracle ─────────────────────────────────────────────────────────
@@ -45,7 +45,7 @@ setInterval(getEthUsdPrice, 30000);
  * Converts a USD amount to ETH string using current live price.
  * Non-async fallback to ensure user gesture is preserved.
  */
-function usdToEthStrSync(usdAmount) {
+export function usdToEthStrSync(usdAmount) {
   const price = _cachedEthPrice || 2500;
   const eth = usdAmount / price;
   const str = eth.toFixed(18).replace(/0+$/, '').replace(/\.$/, '');
