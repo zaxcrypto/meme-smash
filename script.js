@@ -234,13 +234,16 @@ const Game = (() => {
   /* ═══════════════════════════════════════════
      ASSET LOADER
   ═══════════════════════════════════════════ */
-  function loadImages(coins) {
     return Promise.all(coins.map(coin => new Promise(resolve => {
       if (imgCache[coin.id]) { resolve(); return; }
       const img = new Image();
-      img.crossOrigin = 'anonymous';
+      // img.crossOrigin = 'anonymous'; // Removed for local assets to prevent load failures
       img.onload  = () => { imgCache[coin.id] = img; resolve(); };
-      img.onerror = () => { imgCache[coin.id] = null; resolve(); }; // null = use fallback circle
+      img.onerror = () => { 
+        console.error("Failed to load image:", coin.img);
+        imgCache[coin.id] = null; 
+        resolve(); 
+      };
       img.src = coin.img;
     })));
   }
@@ -801,7 +804,7 @@ const Game = (() => {
         if (!o.sliced && o.type === 'coin') {
           missedCoins++;
           updateHUD();
-          if (missedCoins >= 50) gameOver();
+          // Removed: missedCoins limit no longer ends the game
         }
         objects.splice(i, 1);
       }
@@ -1038,7 +1041,7 @@ const Game = (() => {
   function updateHUD() {
     document.getElementById('hud-score').textContent = score;
     document.getElementById('hud-level').textContent = diffLevel;
-    document.getElementById('hud-missed').textContent = `${missedCoins}/50`;
+    // document.getElementById('hud-missed').textContent = `${missedCoins}/50`; // Hidden
     
     // Timer display
     const mins = Math.floor(timeLeft / 60);
