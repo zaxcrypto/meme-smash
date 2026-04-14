@@ -1401,6 +1401,16 @@ const Game = (() => {
     ctx.globalAlpha = 1;
   }
 
+  function toggleRefInfo() {
+    const box = document.getElementById('ref-info-box');
+    const trigger = document.getElementById('ref-info-trigger');
+    if (!box || !trigger) return;
+    const isHidden = box.style.display === 'none';
+    box.style.display = isHidden ? 'block' : 'none';
+    trigger.textContent = isHidden ? 'Close Info' : 'How it works?';
+  }
+
+  /* ── Cloud Sync ── */
   /* ── Slice Trail ── */
   function drawTrail(now) {
     if (trail.length < 2) return;
@@ -2599,6 +2609,7 @@ const Game = (() => {
     confirmLeave,
     cancelLeave,
     leaveAndSubmit,
+    toggleRefInfo,
   };
 
 })();
