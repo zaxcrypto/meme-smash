@@ -2,7 +2,7 @@
 
 import * as Web3 from './web3.js';
 import { db } from './firebase.js';
-import { doc, getDoc, setDoc, collection, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+import { doc, getDoc, setDoc, collection, getDocs, query, orderBy, limit, where } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 
 const Game = (() => {
 
@@ -43,7 +43,7 @@ const Game = (() => {
     'numaa.jpg', 'prakash.jpg', 'prashant.jpg', 'prateek.jpg', 'prithboy.jpg', 'prity.jpg', 'rahul.jpg', 
     'reeb.jpg', 'rio.jpg', 'riyaz.jpg', 'rjjax.jpg', 'rosaa.jpg', 'sakuna.jpg', 'shux.jpg', 'siluu.jpg', 'somrat.jpg', 
     'starfish.jpg', 'sukanto.jpg', 'suraj.jpg', 'susmita.jpg', 'timister.jpg', 'toji.jpg', 'trung.jpg', 'virus.jpg', 'yakson.jpg',
-    'comrade.jpg', 'fluxio.jpg'
+    'comrade.jpg', 'fluxio.jpg', '0x_art.jpg', 'hash.jpg', 'maddy.jpg', 'raj.jpg'
   ];
 
   const FALLBACK_COINS = PROFILE_IMAGES.map(name => ({
@@ -1871,6 +1871,54 @@ const Game = (() => {
     }
   }
 
+  async function adminSearchUser() {
+    const viewerAddr = Web3.getConnectedAddress();
+    if (!isAdminWallet(viewerAddr)) return;
+
+    const queryStr = document.getElementById('admin-user-search-input').value.trim().toLowerCase();
+    if (!queryStr) return;
+
+    const btn = document.querySelector('.admin-search-wrap button');
+    const orig = btn.textContent;
+    btn.disabled = true; btn.textContent = '...';
+
+    try {
+      // 1. Check if it's a direct address
+      if (/^0x[a-fA-F0-9]{40}$/.test(queryStr)) {
+        const snap = await getDoc(doc(db, 'users', queryStr));
+        if (snap.exists()) {
+          showPublicProfile(queryStr);
+          btn.disabled = false; btn.textContent = orig;
+          return;
+        }
+      }
+
+      // 2. Search by Twitter/Telegram handle
+      // We assume exact match for simplicity and safety
+      const cleanHandle = queryStr.startsWith('@') ? queryStr : '@' + queryStr;
+      
+      const qTwitter = query(collection(db, 'users'), where('profile.socials.twitter', '==', cleanHandle), limit(1));
+      const qTelegram = query(collection(db, 'users'), where('profile.socials.telegram', '==', cleanHandle), limit(1));
+      
+      const [snapTw, snapTg] = await Promise.all([getDocs(qTwitter), getDocs(qTelegram)]);
+      
+      let foundAddr = null;
+      if (!snapTw.empty) foundAddr = snapTw.docs[0].id;
+      else if (!snapTg.empty) foundAddr = snapTg.docs[0].id;
+
+      if (foundAddr) {
+        showPublicProfile(foundAddr);
+      } else {
+        showToast('User not found!');
+      }
+    } catch(e) {
+      console.error("Admin search error:", e);
+      alert("Search failed: " + e.message);
+    } finally {
+      btn.disabled = false; btn.textContent = orig;
+    }
+  }
+
   /* ── Admin Rankings Tools ── */
   async function resetGlobalLeaderboard() {
     const addr = Web3.getConnectedAddress();
@@ -3103,6 +3151,7 @@ const Game = (() => {
     closeAdminPanel,
     adminSwitchTab,
     adminMarkPaid,
+    adminSearchUser,
     confirmLeave,
     cancelLeave,
     leaveAndSubmit,
