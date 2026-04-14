@@ -39,8 +39,8 @@ const Game = (() => {
     'finopps.jpg', 'harry.jpg', 'hush.jpg', 'jay.jpg', 'karakot.jpg', 'kingsman.jpg', 'krishna.jpg', 
     'leoo.jpg', 'leviop.jpg', 'licht.jpg', 'luka.jpg', 'malewicz.jpg', 'mayank.jpg', 'nobita.jpg', 
     'numaa.jpg', 'prakash.jpg', 'prashant.jpg', 'prateek.jpg', 'prithboy.jpg', 'prity.jpg', 'rahul.jpg', 
-    'reeb.jpg', 'riyaz.jpg', 'rjjax.jpg', 'rosaa.jpg', 'sakuna.jpg', 'shux.jpg', 'siluu.jpg', 'somrat.jpg', 
-    'starfish.jpg', 'suraj.jpg', 'susmita.jpg', 'toji.jpg', 'trung.jpg', 'virus.jpg', 'yakson.jpg'
+    'reeb.jpg', 'rio.jpg', 'riyaz.jpg', 'rjjax.jpg', 'rosaa.jpg', 'sakuna.jpg', 'shux.jpg', 'siluu.jpg', 'somrat.jpg', 
+    'starfish.jpg', 'sukanto.jpg', 'suraj.jpg', 'susmita.jpg', 'timister.jpg', 'toji.jpg', 'trung.jpg', 'virus.jpg', 'yakson.jpg'
   ];
 
   const FALLBACK_COINS = PROFILE_IMAGES.map(name => ({
