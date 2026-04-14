@@ -10,15 +10,15 @@ const Game = (() => {
      CONFIG
   ═══════════════════════════════════════════ */
   const CFG = {
-    gravity:           1400,      // px/s²
-    trailLength:       20,        // points kept in swipe trail
-    trailFadeMs:       120,       // older points fade out
-    spawnIntervalBase: 1100,      // ms between spawns (base)
-    spawnIntervalMin:  320,       // floor
+    gravity:           1200,      // Reduced for floatier feel
+    trailLength:       20,
+    trailFadeMs:       120,
+    spawnIntervalBase: 1200,      // Slightly slower base
+    spawnIntervalMin:  700,       // Much higher floor (less crowded)
     coinsPerWaveBase:  1,
-    coinsPerWaveMax:   5,
-    difficultyStep:    30000,     // ms between difficulty bumps
-    bombRatio:         3,         // 1 bomb per N coin spawns
+    coinsPerWaveMax:   3,         // Fewer coins at once
+    difficultyStep:    30000,
+    bombRatio:         4,         // Fewer bombs
     maxDiffLevel:      6,
     particleCount:     16,
     coinRadius:        38,
@@ -809,8 +809,8 @@ const Game = (() => {
     const newLevel = 1 + Math.floor(progress * 5);
     if (newLevel > diffLevel) {
       diffLevel = newLevel;
-      spawnInterval = Math.max(CFG.spawnIntervalMin, CFG.spawnIntervalBase * (1 - progress * 0.6));
-      coinsPerWave  = Math.min(CFG.coinsPerWaveMax, CFG.coinsPerWaveBase + Math.floor(progress * 4));
+      spawnInterval = Math.max(CFG.spawnIntervalMin, CFG.spawnIntervalBase * (1 - progress * 0.4));
+      coinsPerWave  = Math.min(CFG.coinsPerWaveMax, CFG.coinsPerWaveBase + Math.floor(progress * 2));
       document.getElementById('hud-level').textContent = diffLevel;
     }
 
@@ -888,8 +888,8 @@ const Game = (() => {
     const radius  = type === 'bomb' ? CFG.bombRadius : CFG.coinRadius;
     const x       = radius + Math.random() * (W - radius * 2);
     const y       = H + radius;
-    // Increased base speed for higher jumps; reduced scaling for manageable endgame
-    const speed   = (1050 + Math.random() * 450) * (1 + (diffLevel - 1) * 0.12);
+    // Further reduced scaling for a truly playful endgame
+    const speed   = (950 + Math.random() * 400) * (1 + (diffLevel - 1) * 0.07);
     const angle   = -Math.PI / 2 + (Math.random() - 0.5) * 0.9; // mostly up, slight spread
     const vx      = Math.cos(angle) * speed * (Math.random() < 0.5 ? -1 : 1) * 0.25;
     const vy      = -speed;
