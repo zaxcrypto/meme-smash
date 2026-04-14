@@ -10,15 +10,15 @@ const Game = (() => {
      CONFIG
   ═══════════════════════════════════════════ */
   const CFG = {
-    gravity:           1200,      // Reduced for floatier feel
+    gravity:           1100,      // Even more floaty and relaxed
     trailLength:       20,
     trailFadeMs:       120,
-    spawnIntervalBase: 1200,      // Slightly slower base
-    spawnIntervalMin:  700,       // Much higher floor (less crowded)
+    spawnIntervalBase: 1300,      // Slower baseline
+    spawnIntervalMin:  850,       // Keep it from getting too crowded
     coinsPerWaveBase:  1,
-    coinsPerWaveMax:   3,         // Fewer coins at once
+    coinsPerWaveMax:   3,         // Maximum items at any time
     difficultyStep:    30000,
-    bombRatio:         4,         // Fewer bombs
+    bombRatio:         5,         // Bombs appear even less frequently
     maxDiffLevel:      6,
     particleCount:     16,
     coinRadius:        38,
@@ -668,16 +668,28 @@ const Game = (() => {
     isGameOver        = false;
     hasSubmittedRunScore = false;
     shakeFrames       = 0;
+
+    // Ensure revive button is visible for the next game
+    const rb = document.getElementById('btn-revive');
+    if (rb) rb.style.display = 'block';
+
     updateHUD();
   }
 
-  function gameOver() {
+  function gameOver(isTimeout = false) {
     isPlaying  = false;
     isGameOver = true;
     cancelAnimationFrame(rafId);
-    sfxBomb();
-    triggerBombFlash();
-    triggerShake(18, 22);
+    
+    // Hide revive button if game ended due to timeout
+    const rb = document.getElementById('btn-revive');
+    if (rb) rb.style.display = isTimeout ? 'none' : 'block';
+
+    if (!isTimeout) {
+      sfxBomb();
+      triggerBombFlash();
+      triggerShake(18, 22);
+    }
     
     const addr = Web3.getConnectedAddress();
     if (addr) {
@@ -796,7 +808,7 @@ const Game = (() => {
       if (timeLeft <= 0) {
         timeLeft = 0;
         updateHUD();
-        gameOver();
+        gameOver(true);
         return;
       }
     }
@@ -809,8 +821,9 @@ const Game = (() => {
     const newLevel = 1 + Math.floor(progress * 5);
     if (newLevel > diffLevel) {
       diffLevel = newLevel;
-      spawnInterval = Math.max(CFG.spawnIntervalMin, CFG.spawnIntervalBase * (1 - progress * 0.4));
-      coinsPerWave  = Math.min(CFG.coinsPerWaveMax, CFG.coinsPerWaveBase + Math.floor(progress * 2));
+      // Much gentler scaling for interval and waves
+      spawnInterval = Math.max(CFG.spawnIntervalMin, CFG.spawnIntervalBase * (1 - progress * 0.25));
+      coinsPerWave  = Math.min(CFG.coinsPerWaveMax, CFG.coinsPerWaveBase + Math.floor(progress * 1.5));
       document.getElementById('hud-level').textContent = diffLevel;
     }
 
@@ -888,8 +901,8 @@ const Game = (() => {
     const radius  = type === 'bomb' ? CFG.bombRadius : CFG.coinRadius;
     const x       = radius + Math.random() * (W - radius * 2);
     const y       = H + radius;
-    // Further reduced scaling for a truly playful endgame
-    const speed   = (950 + Math.random() * 400) * (1 + (diffLevel - 1) * 0.07);
+    // Extremely subtle speed increase for consistent "fun" feel
+    const speed   = (900 + Math.random() * 400) * (1 + (diffLevel - 1) * 0.04);
     const angle   = -Math.PI / 2 + (Math.random() - 0.5) * 0.9; // mostly up, slight spread
     const vx      = Math.cos(angle) * speed * (Math.random() < 0.5 ? -1 : 1) * 0.25;
     const vy      = -speed;
@@ -953,7 +966,7 @@ const Game = (() => {
       bombStrikes++;
       updateHUD();
       if (bombStrikes >= 3) {
-        gameOver();
+        gameOver(false);
       }
       return;
     }
