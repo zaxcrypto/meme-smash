@@ -1652,6 +1652,11 @@ const Game = (() => {
     return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
+  function lighten(hex, amount) {
+    let c = hex.replace('#','');
+    if (c.length === 3) c = c.split('').map(x=>x+x).join('');
+    const r = Math.min(255, parseInt(c.slice(0,2),16)+amount);
+    const g = Math.min(255, parseInt(c.slice(2,4),16)+amount);
     const b = Math.min(255, parseInt(c.slice(4,6),16)+amount);
     return `rgb(${r},${g},${b})`;
   }
