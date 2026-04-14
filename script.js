@@ -1579,7 +1579,15 @@ const Game = (() => {
 
   async function renderLeaderboard() {
     const list  = document.getElementById('leaderboard-list');
+    const adminPanel = document.getElementById('admin-lb-controls');
     if (!list) return;
+
+    // Admin UI visibility
+    const connectedAddr = Web3.getConnectedAddress();
+    if (adminPanel) {
+      adminPanel.style.display = isAdminWallet(connectedAddr) ? 'flex' : 'none';
+    }
+
     list.innerHTML = '<li class="lb-empty">Loading Global Scores...</li>';
 
     let board = await fetchLeaderboardFromCloud();
@@ -1643,6 +1651,64 @@ const Game = (() => {
 
   function closePublicProfile() {
     document.getElementById('modal-public-profile').classList.remove('active');
+  }
+
+  /* ── Admin Rankings Tools ── */
+  async function resetGlobalLeaderboard() {
+    const addr = Web3.getConnectedAddress();
+    if (!isAdminWallet(addr)) return;
+    
+    if (!confirm("⚠️ CAUTION: This will RESET ALL GLOBAL RANKINGS to 0 for everyone. This action cannot be undone. Are you absolutely sure?")) return;
+    if (!confirm("FINAL CONFIRMATION: Wipe all global scores now?")) return;
+
+    try {
+      const btn = document.querySelector('#admin-lb-controls button:last-child');
+      const origText = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Wiping...';
+
+      const snap = await getDocs(collection(db, 'users'));
+      const promises = [];
+      snap.forEach(docSnap => {
+        promises.push(setDoc(doc(db, 'users', docSnap.id), {
+          profile: { topScore: 0, cumulativeScore: 0 }
+        }, { merge: true }));
+      });
+      
+      await Promise.all(promises);
+      alert('Global rankings have been reset successfully!');
+      renderLeaderboard();
+      btn.textContent = origText;
+      btn.disabled = false;
+    } catch(e) {
+      console.error(e);
+      alert('Reset failed: ' + e.message);
+    }
+  }
+
+  async function copyLeaderboardData() {
+    try {
+      const board = await fetchLeaderboardFromCloud();
+      if (!board.length) { alert('Leaderboard is empty.'); return; }
+
+      const title = lbMode === 'score' ? 'TOP SCORE RANKINGS' : 'TOP POINTS RANKINGS';
+      let text = `🏆 MEME SMASH - ${title}\n(Fetched: ${new Date().toLocaleString()})\n\n`;
+      
+      board.forEach((entry, i) => {
+        const val = lbMode === 'score' ? entry.topScore : entry.points;
+        text += `${i+1} - ${entry.name} - address(${entry.address}) - ${val}\n`;
+      });
+
+      await navigator.clipboard.writeText(text);
+      
+      const btn = document.querySelector('#admin-lb-controls button:first-child');
+      const orig = btn.textContent;
+      btn.textContent = '✅ Copied!';
+      setTimeout(() => btn.textContent = orig, 2000);
+    } catch(e) {
+      console.error(e);
+      alert('Copy failed: ' + e.message);
+    }
   }
 
   /* ═══════════════════════════════════════════
@@ -2627,6 +2693,8 @@ const Game = (() => {
     cancelLeave,
     leaveAndSubmit,
     toggleRefInfo,
+    resetGlobalLeaderboard,
+    copyLeaderboardData,
   };
 
 })();

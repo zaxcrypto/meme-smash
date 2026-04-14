@@ -539,6 +539,15 @@
         <button id="btn-lb-points" class="btn btn-secondary" style="margin-bottom:0; padding:8px 15px; font-size:14px;"
           onclick="Game.setLeaderboardMode('points')">Top Points</button>
       </div>
+
+      <!-- Admin LB Controls -->
+      <div id="admin-lb-controls" style="display:none; flex-direction: column; gap: 8px; margin-bottom: 15px; padding: 12px; background: rgba(255,193,7,0.1); border: 1.5px dashed #FFC107; border-radius: 12px;">
+        <div style="font-size: 11px; font-weight: 900; color: #856404; text-transform: uppercase; letter-spacing: 0.5px; text-align:center;">Admin Rankings Tools</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+          <button class="btn btn-secondary" onclick="Game.copyLeaderboardData()" style="margin-bottom:0; padding:10px; font-size:12px; background:#2196F3; color:white; border-bottom: 2px solid #0d47a1;">📋 Copy Data</button>
+          <button class="btn btn-secondary" onclick="Game.resetGlobalLeaderboard()" style="margin-bottom:0; padding:10px; font-size:12px; background:#f44336; color:white; border-bottom: 2px solid #b71c1c;">🔥 Reset All</button>
+        </div>
+      </div>
       <ol id="leaderboard-list" class="lb-list"></ol>
       <div class="lb-buttons">
         <button class="btn btn-primary" onclick="Game.goHome()">Home</button>
