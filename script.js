@@ -273,6 +273,27 @@ const Game = (() => {
     }
   }
 
+  function showToast(msg, icon = '💡') {
+    let container = document.querySelector('.toast-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.className = 'toast-container';
+      document.body.appendChild(container);
+    }
+    
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.innerHTML = `<span class="toast-icon">${icon}</span> <span>${msg}</span>`;
+    
+    container.appendChild(toast);
+    
+    // Remove after animation (3s total per CSS)
+    setTimeout(() => {
+      toast.remove();
+      if (container.children.length === 0) container.remove();
+    }, 3200);
+  }
+
   /* ═══════════════════════════════════════════
      INIT
   ═══════════════════════════════════════════ */
@@ -330,7 +351,7 @@ const Game = (() => {
 
     const profile = getProfileData(addr);
     if (!profile.name || profile.name.trim() === '') {
-      alert('Please set and save your Ninja Name in your Profile first!');
+      showToast("Please set username to start the game", "👤");
       showProfile();
       return;
     }
@@ -519,6 +540,15 @@ const Game = (() => {
   function showProfile() {
     refreshProfileUI(Web3.getConnectedAddress());
     showScreen('screen-profile');
+
+    // Auto-focus name field for new users
+    setTimeout(() => {
+      const input = document.getElementById('playerName');
+      if (input) {
+        input.focus();
+        input.select();
+      }
+    }, 300);
   }
 
   function saveProfileName() {
@@ -896,8 +926,9 @@ const Game = (() => {
 
 
       // Age-based removal to prevent overcrowding since they never "fall off"
+      // Reduced from 15s to 5s at user request
       o.age = (o.age || 0) + dt;
-      if (o.age > 15) {
+      if (o.age > 5) {
         objects.splice(i, 1);
       }
     }
@@ -1610,7 +1641,10 @@ const Game = (() => {
       snap.forEach(docSnap => {
         const addr = docSnap.id;
         const profile = docSnap.data().profile || {};
-        if (profile.name) {
+        // Only show users who have an active name AND a score/point value > 0
+        // This ensures the leaderboard remains empty after an Admin Reset
+        const hasScore = (profile.topScore > 0 || profile.cumulativeScore > 0);
+        if (profile.name && hasScore) {
           board.push({
             address: addr,
             name: profile.name || 'Ninja',
