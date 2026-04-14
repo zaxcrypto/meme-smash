@@ -2899,15 +2899,11 @@ const Game = (() => {
     
     const batchStats = document.getElementById('batch-stats');
     const batchBtn   = document.getElementById('btn-batch-claim');
-    
-    // Exact fee display for transparency
-    const feeEth = Web3.usdToEthStrSync(0.01);
-    const feeDisplay = `Fee: $0.01 (~${feeEth.slice(0, 10)} ETH)`;
 
     if (batchStats) batchStats.textContent = `Total Claimable: ${totalClaimable} Meme Points`;
     if (batchBtn) {
       batchBtn.disabled = totalClaimable === 0;
-      batchBtn.innerHTML = `<span>Batch Claim All (${totalClaimable} MP)</span><small style="display:block; font-size:10px; opacity:0.8;">${feeDisplay}</small>`;
+      batchBtn.textContent = `Batch Claim All (${totalClaimable} MP)`;
     }
   }
 
