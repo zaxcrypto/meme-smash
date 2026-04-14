@@ -1831,10 +1831,11 @@ body::after {
 }
 
 .btn-checkin {
-  background: linear-gradient(180deg, #FFC107 0%, #FF9800 100%) !important;
-  border-bottom: 5px solid #E67E22 !important;
+  background: linear-gradient(180deg, #FF4B2B 0%, #FF2B2B 100%) !important;
+  border-bottom: 5px solid #C62828 !important;
   color: white !important;
   margin-bottom: 0 !important;
+  box-shadow: 0 4px 15px rgba(255, 43, 43, 0.35) !important;
 }
 
 .btn-tasks {
