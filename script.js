@@ -73,6 +73,7 @@ const Game = (() => {
   let isPlaying    = false;
   let isGameOver   = false;
   let isPaused     = false;
+  let hasSubmittedRunScore = false;
   let lastPausedTime = 0;
   let totalPauseTime = 0;
   let isMuted      = false;
@@ -234,6 +235,7 @@ const Game = (() => {
   /* ═══════════════════════════════════════════
      ASSET LOADER
   ═══════════════════════════════════════════ */
+  function loadImages(coins) {
     return Promise.all(coins.map(coin => new Promise(resolve => {
       if (imgCache[coin.id]) { resolve(); return; }
       const img = new Image();
@@ -609,11 +611,12 @@ const Game = (() => {
     updateHUD();
   }
 
-  async function submitScoreMenu() {
+   async function submitScoreMenu() {
     try {
       if (confirm(`Submit your score of ${score} to leaderboard for $0.01 worth of ETH?`)) {
         await Web3.payToSubmitScore();
         alert('Payment successful! Score submitted.');
+        hasSubmittedRunScore = true;
         
         // Add to Career Score
         const addr = Web3.getConnectedAddress();
@@ -663,6 +666,7 @@ const Game = (() => {
     nextSpawnTime     = 0;
     diffTimer         = 0;
     isGameOver        = false;
+    hasSubmittedRunScore = false;
     shakeFrames       = 0;
     updateHUD();
   }
@@ -697,12 +701,35 @@ const Game = (() => {
   }
 
   function goHome() {
+    if ((isPlaying || isGameOver) && score > 0 && !hasSubmittedRunScore) {
+      showScreen('modal-leave-confirm');
+      return;
+    }
+    confirmLeave();
+  }
+
+  function confirmLeave() {
     if (rafId) cancelAnimationFrame(rafId);
     isPlaying = false;
     isGameOver = false;
     isPaused = false;
     objects.length = 0; halves.length = 0; particles.length = 0; trail.length = 0;
     showScreen('screen-home');
+  }
+
+  function cancelLeave() {
+    if (isGameOver) {
+      showScreen('screen-gameover');
+    } else if (isPaused) {
+      showScreen('screen-settings');
+    } else {
+      showScreen('screen-hud');
+    }
+  }
+
+  function leaveAndSubmit() {
+    showScreen(isGameOver ? 'screen-gameover' : 'screen-hud');
+    submitScoreMenu();
   }
 
   function toggleSettings() {
@@ -2556,6 +2583,9 @@ const Game = (() => {
     closeAdminPanel,
     adminSwitchTab,
     adminMarkPaid,
+    confirmLeave,
+    cancelLeave,
+    leaveAndSubmit,
   };
 
 })();

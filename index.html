@@ -711,6 +711,21 @@
     </div>
   </div>
 
+  <!-- Exit Confirmation Modal -->
+  <div id="modal-leave-confirm" class="screen" style="z-index: 300;">
+    <div class="screen-card">
+      <h2 class="lb-title" style="margin-bottom:15px; color:#F0208E;">Warning!</h2>
+      <p style="font-weight:800; color:var(--text-dark); margin-bottom:20px; line-height:1.4;">
+        If you don't submit your score, points won't be given and you won't be listed on the leaderboard.
+      </p>
+      <div class="gameover-buttons" style="display: grid; grid-template-columns: 1fr; gap: 10px;">
+        <button class="btn btn-primary" style="background: linear-gradient(180deg, #FFD700 0%, #FFA500 100%); color: #2D1060; border-bottom: 3px solid #B8860B;" onclick="Game.leaveAndSubmit()">Submit to Leaderboard</button>
+        <button class="btn btn-secondary" style="background: #ff4444; border-bottom: 3px solid #b71c1c;" onclick="Game.confirmLeave()">Just Go Home</button>
+        <button class="btn btn-secondary" onclick="Game.cancelLeave()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <script type="module" src="script.js?v=7"></script>
 </body>
 
