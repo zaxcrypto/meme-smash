@@ -2452,7 +2452,6 @@ const Game = (() => {
       rd.paidOutUSD = (rd.paidOutUSD || 0) + req.amountUSD;
       rd.payoutHistory.push({ amount: req.amountUSD, paidAt: Date.now() });
       saveRefData(userAddr, rd);
-      
       alert(`Marked paid! $${formatUSD(req.amountUSD)} sent to ${userAddr}`);
     } catch(e) {
       console.error(e);
