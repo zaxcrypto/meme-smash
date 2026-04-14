@@ -30,20 +30,26 @@ const Game = (() => {
   };
 
   /* ═══════════════════════════════════════════
-     MEME COIN DATA (fallback + display)
+     FRIENDS PROFILE DATA
   ═══════════════════════════════════════════ */
-  const FALLBACK_COINS = [
-    { id:'dogecoin',          symbol:'DOGE',  name:'Dogecoin',    color:'#C2A633', img:'https://assets.coingecko.com/coins/images/5/large/dogecoin.png' },
-    { id:'shiba-inu',         symbol:'SHIB',  name:'Shiba Inu',   color:'#E05716', img:'https://assets.coingecko.com/coins/images/11939/large/shiba.png' },
-    { id:'pepe',              symbol:'PEPE',  name:'Pepe',        color:'#4CAF50', img:'https://assets.coingecko.com/coins/images/29850/large/pepe-token.jpeg' },
-    { id:'floki',             symbol:'FLOKI', name:'Floki',       color:'#F5A623', img:'https://assets.coingecko.com/coins/images/16746/large/PNG_image.png' },
-    { id:'bonk',              symbol:'BONK',  name:'Bonk',        color:'#F7931A', img:'https://assets.coingecko.com/coins/images/28600/large/bonk.jpg' },
-    { id:'dogwifcoin',        symbol:'WIF',   name:'dogwifhat',   color:'#A78BFA', img:'https://assets.coingecko.com/coins/images/33566/large/dogwifhat.jpg' },
-    { id:'brett-based',       symbol:'BRETT', name:'Brett',       color:'#3B82F6', img:'https://assets.coingecko.com/coins/images/35529/large/Brett_(BRETT)_logo.png' },
-    { id:'meme-ai',           symbol:'MEME',  name:'Meme',        color:'#EC4899', img:'https://assets.coingecko.com/coins/images/36070/large/meme_ai.jpg' },
-    { id:'turbo',             symbol:'TURBO', name:'Turbo',       color:'#10B981', img:'https://assets.coingecko.com/coins/images/30424/large/logonoline_%281%29.png' },
-    { id:'cat-in-a-dogs-world', symbol:'MEW', name:'MEW',         color:'#F472B6', img:'https://assets.coingecko.com/coins/images/36975/large/mew_icon.png' },
+  const PROFILE_IMAGES = [
+    'aashir.jpg', 'abdul.jpg', 'abhay.jpg', 'abiiix.jpg', 'acolous.jpg', 'akash.jpg', 'alvin.jpg', 
+    'amelia.jpg', 'ankit.jpg', 'anya.jpg', 'beamnxw.jpg', 'bigbella.jpg', 'biswa.jpg', 'bitbull.jpg', 
+    'blurryface.jpg', 'cantonboy.jpg', 'cipherr.jpg', 'cj.jpg', 'danny.jpg', 'dex.jpg', 'elora.jpg', 
+    'finopps.jpg', 'harry.jpg', 'hush.jpg', 'jay.jpg', 'karakot.jpg', 'kingsman.jpg', 'krishna.jpg', 
+    'leoo.jpg', 'leviop.jpg', 'licht.jpg', 'luka.jpg', 'malewicz.jpg', 'mayank.jpg', 'nobita.jpg', 
+    'numaa.jpg', 'prakash.jpg', 'prashant.jpg', 'prateek.jpg', 'prithboy.jpg', 'prity.jpg', 'rahul.jpg', 
+    'reeb.jpg', 'riyaz.jpg', 'rjjax.jpg', 'rosaa.jpg', 'sakuna.jpg', 'shux.jpg', 'siluu.jpg', 'somrat.jpg', 
+    'starfish.jpg', 'suraj.jpg', 'susmita.jpg', 'toji.jpg', 'trung.jpg', 'virus.jpg', 'yakson.jpg'
   ];
+
+  const FALLBACK_COINS = PROFILE_IMAGES.map(name => ({
+    id: name.split('.')[0],
+    symbol: name.split('.')[0].toUpperCase().slice(0, 4),
+    name: name.split('.')[0],
+    color: '#FFD700',
+    img: `./friends_profiles/${name}`
+  }));
 
   /* ═══════════════════════════════════════════
      STATE
@@ -57,6 +63,8 @@ const Game = (() => {
   let diffLevel  = 1;
   let missedCoins = 0;
   let bombStrikes = 0;
+  let timeLeft    = 120;     // 2 minutes in seconds
+  const gameDuration = 120;
   let coinSpawnCounter = 0;   // for bomb ratio
   let spawnInterval;          // current ms between spawns
   let coinsPerWave;
@@ -238,22 +246,7 @@ const Game = (() => {
   }
 
   async function fetchCoinData() {
-    try {
-      const res = await fetch(
-        'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&category=meme-token&order=market_cap_desc&per_page=20&page=1',
-        { signal: AbortSignal.timeout(5000) }
-      );
-      if (!res.ok) throw new Error('API error');
-      const data = await res.json();
-      const coins = data.slice(0,12).map(c => ({
-        id: c.id, symbol: c.symbol.toUpperCase(),
-        name: c.name, color: FALLBACK_COINS.find(f=>f.id===c.id)?.color || '#FFD700',
-        img: c.image,
-      }));
-      return coins.length >= 4 ? coins : FALLBACK_COINS;
-    } catch {
-      return FALLBACK_COINS;
-    }
+    return FALLBACK_COINS;
   }
 
   /* ═══════════════════════════════════════════
@@ -602,6 +595,12 @@ const Game = (() => {
     objects.length = 0;
     missedCoins = 0;
     bombStrikes = 0;
+    
+    // If times was up, reset it. If bombs were up, keep the same time.
+    if (timeLeft <= 0) {
+      timeLeft = gameDuration;
+    }
+    
     isPlaying = true;
     isGameOver = false;
     updateHUD();
@@ -657,6 +656,7 @@ const Game = (() => {
     coinSpawnCounter  = 0;
     spawnInterval     = CFG.spawnIntervalBase;
     coinsPerWave      = CFG.coinsPerWaveBase;
+    timeLeft          = gameDuration;
     nextSpawnTime     = 0;
     diffTimer         = 0;
     isGameOver        = false;
@@ -760,13 +760,27 @@ const Game = (() => {
      UPDATE
   ═══════════════════════════════════════════ */
   function update(dt, now) {
-    // Difficulty progression
-    diffTimer += dt * 1000;
-    if (diffTimer >= CFG.difficultyStep && diffLevel < CFG.maxDiffLevel) {
-      diffTimer = 0;
-      diffLevel++;
-      spawnInterval = Math.max(CFG.spawnIntervalMin, spawnInterval * 0.80);
-      coinsPerWave  = Math.min(CFG.coinsPerWaveMax, coinsPerWave + 1);
+    // Game Timer
+    if (isPlaying && !isPaused) {
+      timeLeft -= dt;
+      if (timeLeft <= 0) {
+        timeLeft = 0;
+        updateHUD();
+        gameOver();
+        return;
+      }
+    }
+
+    // Difficulty progression based on timer
+    const elapsed = gameDuration - timeLeft;
+    const progress = Math.min(elapsed / gameDuration, 1);
+    
+    // Scale difficulty levels (1 to 6) based on 2 mins
+    const newLevel = 1 + Math.floor(progress * 5);
+    if (newLevel > diffLevel) {
+      diffLevel = newLevel;
+      spawnInterval = Math.max(CFG.spawnIntervalMin, CFG.spawnIntervalBase * (1 - progress * 0.6));
+      coinsPerWave  = Math.min(CFG.coinsPerWaveMax, CFG.coinsPerWaveBase + Math.floor(progress * 4));
       document.getElementById('hud-level').textContent = diffLevel;
     }
 
@@ -1026,6 +1040,11 @@ const Game = (() => {
     document.getElementById('hud-level').textContent = diffLevel;
     document.getElementById('hud-missed').textContent = `${missedCoins}/50`;
     
+    // Timer display
+    const mins = Math.floor(timeLeft / 60);
+    const secs = Math.floor(timeLeft % 60);
+    document.getElementById('hud-timer').textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+
     const strikesContainer = document.getElementById('bomb-strikes');
     strikesContainer.innerHTML = '';
     for (let i = 0; i < 3; i++) {
@@ -2148,7 +2167,7 @@ const Game = (() => {
         listEl.innerHTML = sortedRefs.map((r, index) => `
           <div class="ref-item">
             <div class="ref-item-info">
-              <span class="ref-item-name" style="cursor:pointer; text-decoration:underline;" title="View Profile" onclick="Game.showPublicProfile('${r.addr}')">${index+1}. ${escHtml(r.name || 'Unknown')}</span>
+              <span class="ref-item-name" style="cursor:pointer;" title="View Profile" onclick="Game.showPublicProfile('${r.addr}')">${index+1}. ${escHtml(r.name || 'Unknown')}</span>
             </div>
             <div class="ref-item-right">
               <span class="ref-item-status ${r.status}">${r.status === 'valid' ? 'Valid' : `Pending (${r.gamesSubmitted}/10)`}</span>
@@ -2238,7 +2257,7 @@ const Game = (() => {
         let html = sortedRefs.slice(0, 3).map((r, index) => `
           <div class="ref-item">
             <div class="ref-item-info">
-              <span class="ref-item-name" style="cursor:pointer; text-decoration:underline;" title="View Profile" onclick="Game.showPublicProfile('${r.addr}')">${index + 1}. ${escHtml(r.name || 'Unknown')}</span>
+              <span class="ref-item-name" style="cursor:pointer;" title="View Profile" onclick="Game.showPublicProfile('${r.addr}')">${index + 1}. ${escHtml(r.name || 'Unknown')}</span>
             </div>
             <div class="ref-item-right">
               <span class="ref-item-status ${r.status}">${r.status === 'valid' ? 'Valid' : `Pending (${r.gamesSubmitted}/10)`}</span>

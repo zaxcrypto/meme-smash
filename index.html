@@ -443,12 +443,21 @@
           <div class="hud-label">RUN SCORE</div>
           <div id="hud-score" class="hud-score">0</div>
         </div>
-        <div class="hud-level-wrap" style="margin-top:8px;">
+        <div class="hud-level-wrap" style="margin-top:8px; display:none;">
           <div class="hud-label">MISSED</div>
           <div id="hud-missed" class="hud-level" style="color:#ff4444;background:none;-webkit-text-fill-color:unset;">
             0/50</div>
         </div>
       </div>
+
+      <!-- Central Timer -->
+      <div class="hud-center">
+        <div class="hud-timer-wrap">
+          <div class="hud-label">TIME LEFT</div>
+          <div id="hud-timer" class="hud-timer">02:00</div>
+        </div>
+      </div>
+
       <div class="hud-right" style="display:flex;flex-direction:column;align-items:flex-end;">
         <button id="btn-settings" class="btn-settings" onclick="Game.toggleSettings()">
           <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" width="32" height="32">
