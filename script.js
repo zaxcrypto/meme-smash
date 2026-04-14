@@ -88,6 +88,7 @@ const Game = (() => {
   // Loaded images cache
   const imgCache = {};
   let coinDefs = [];
+  let coinQueue = [];         // Sequential spawning set
 
   // Shake
   let shakeFrames  = 0;
@@ -669,6 +670,9 @@ const Game = (() => {
     hasSubmittedRunScore = false;
     shakeFrames       = 0;
 
+    // Reset spawning queue
+    coinQueue = [];
+
     // Ensure revive button is visible for the next game
     const rb = document.getElementById('btn-revive');
     if (rb) rb.style.display = 'block';
@@ -911,8 +915,14 @@ const Game = (() => {
     if (type === 'bomb') {
       objects.push({ type:'bomb', x, y, vx, vy, angle:0, spin, radius, sliced:false });
     } else {
+      // Manage sequential queue to avoid duplicates and ensure all profiles are shown
+      if (coinQueue.length === 0 && coinDefs.length > 0) {
+        coinQueue = [...coinDefs];
+        shuffleArray(coinQueue);
+      }
+      
+      const coin = coinQueue.length > 0 ? coinQueue.pop() : coinDefs[0];
       const isRare = Math.random() < CFG.rareChance;
-      const coin   = coinDefs[Math.floor(Math.random() * coinDefs.length)];
       const pts    = isRare
         ? CFG.scoreRareMin + Math.floor(Math.random() * (CFG.scoreRareMax - CFG.scoreRareMin + 1))
         : CFG.scoreCommon;
@@ -1642,13 +1652,15 @@ const Game = (() => {
     return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
-  function lighten(hex, amount) {
-    let c = hex.replace('#','');
-    if (c.length === 3) c = c.split('').map(x=>x+x).join('');
-    const r = Math.min(255, parseInt(c.slice(0,2),16)+amount);
-    const g = Math.min(255, parseInt(c.slice(2,4),16)+amount);
     const b = Math.min(255, parseInt(c.slice(4,6),16)+amount);
     return `rgb(${r},${g},${b})`;
+  }
+
+  function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
   }
 
   /* ═══════════════════════════════════════════
