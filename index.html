@@ -168,12 +168,14 @@
 
     <!-- ── TWITTER (X) ── -->
     <symbol id="ico-twitter" viewBox="0 0 24 24">
-      <path fill="currentColor" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+      <path fill="currentColor"
+        d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
     </symbol>
 
     <!-- ── TELEGRAM ── -->
     <symbol id="ico-telegram" viewBox="0 0 24 24">
-      <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.64-.35-1 .22-1.58.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.11.02-1.93 1.23-5.46 3.62-.51.35-.98.53-1.39.52-.45-.01-1.32-.26-1.97-.48-.8-.27-1.43-.42-1.38-.89.03-.25.38-.51 1.07-.78 4.2-1.83 7-3.04 8.4-3.64 3.99-1.7 4.82-1.99 5.36-1.99.12 0 .38.03.55.17.14.12.18.28.19.45.01.07.02.15.02.24z"/>
+      <path fill="currentColor"
+        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.64-.35-1 .22-1.58.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.11.02-1.93 1.23-5.46 3.62-.51.35-.98.53-1.39.52-.45-.01-1.32-.26-1.97-.48-.8-.27-1.43-.42-1.38-.89.03-.25.38-.51 1.07-.78 4.2-1.83 7-3.04 8.4-3.64 3.99-1.7 4.82-1.99 5.36-1.99.12 0 .38.03.55.17.14.12.18.28.19.45.01.07.02.15.02.24z" />
     </symbol>
 
     <!-- ── VOLUME OFF ── -->
@@ -464,10 +466,13 @@
         <!-- Social Media Section -->
         <div class="social-section">
           <div class="social-title">🔗 Social Connections</div>
-          
+
           <div class="social-row">
-            <div class="social-icon-btn twitter"><svg class="btn-icon-svg"><use href="#ico-twitter"/></svg></div>
-            <input id="profile-twitter" class="social-input" type="text" placeholder="@TwitterID" maxlength="32" autocomplete="off" />
+            <div class="social-icon-btn twitter"><svg class="btn-icon-svg">
+                <use href="#ico-twitter" />
+              </svg></div>
+            <input id="profile-twitter" class="social-input" type="text" placeholder="@Enter id" maxlength="32"
+              autocomplete="off" />
             <div class="social-copy-group">
               <div class="social-copy-badge badge-uid" onclick="Game.copySocial('twitter', 'uid')">Copy @ID</div>
               <div class="social-copy-badge badge-url" onclick="Game.copySocial('twitter', 'url')">Copy URL</div>
@@ -475,15 +480,19 @@
           </div>
 
           <div class="social-row">
-            <div class="social-icon-btn telegram"><svg class="btn-icon-svg"><use href="#ico-telegram"/></svg></div>
-            <input id="profile-telegram" class="social-input" type="text" placeholder="@TelegramID" maxlength="32" autocomplete="off" />
+            <div class="social-icon-btn telegram"><svg class="btn-icon-svg">
+                <use href="#ico-telegram" />
+              </svg></div>
+            <input id="profile-telegram" class="social-input" type="text" placeholder="@Enter id" maxlength="32"
+              autocomplete="off" />
             <div class="social-copy-group">
               <div class="social-copy-badge badge-uid" onclick="Game.copySocial('telegram', 'uid')">Copy @ID</div>
               <div class="social-copy-badge badge-url" onclick="Game.copySocial('telegram', 'url')">Copy URL</div>
             </div>
           </div>
-          
-          <button class="btn btn-secondary" onclick="Game.saveSocials()" style="margin-top: 5px; padding: 10px; font-size: 15px;">Save Socials</button>
+
+          <button class="btn btn-secondary" onclick="Game.saveSocials()"
+            style="margin-top: 5px; padding: 10px; font-size: 15px;">Save Socials</button>
         </div>
       </div>
 
@@ -847,33 +856,43 @@
         <div style="font-size:12px; font-weight:bold; color:var(--text-dark); margin-bottom: 8px;">SOCIAL PROFILES</div>
         <div id="pub-socials">
           <div class="pub-social-row">
-             <div class="pub-social-left">
-                <div class="social-icon-btn twitter" style="width:24px;height:24px;"><svg style="width:16px;height:16px;"><use href="#ico-twitter"/></svg></div>
-                <span id="pub-twitter-handle" class="pub-social-handle">@NotAvailable</span>
-             </div>
-             <div class="social-copy-group" id="pub-twitter-actions">
-                <div class="social-copy-badge badge-uid" onclick="Game.copySocialExternal('twitter', 'uid')">Copy ID</div>
-                <div class="social-copy-badge badge-url" onclick="Game.copySocialExternal('twitter', 'url')">URL</div>
-             </div>
+            <div class="pub-social-left">
+              <div class="social-icon-btn twitter" style="width:24px;height:24px;"><svg style="width:16px;height:16px;">
+                  <use href="#ico-twitter" />
+                </svg></div>
+              <span id="pub-twitter-handle" class="pub-social-handle">@NotAvailable</span>
+            </div>
+            <div class="social-copy-group" id="pub-twitter-actions">
+              <div class="social-copy-badge badge-uid" onclick="Game.copySocialExternal('twitter', 'uid')">Copy ID</div>
+              <div class="social-copy-badge badge-url" onclick="Game.copySocialExternal('twitter', 'url')">URL</div>
+            </div>
           </div>
           <div class="pub-social-row">
-             <div class="pub-social-left">
-                <div class="social-icon-btn telegram" style="width:24px;height:24px;"><svg style="width:16px;height:16px;"><use href="#ico-telegram"/></svg></div>
-                <span id="pub-telegram-handle" class="pub-social-handle">@NotAvailable</span>
-             </div>
-             <div class="social-copy-group" id="pub-telegram-actions">
-                <div class="social-copy-badge badge-uid" onclick="Game.copySocialExternal('telegram', 'uid')">Copy ID</div>
-                <div class="social-copy-badge badge-url" onclick="Game.copySocialExternal('telegram', 'url')">URL</div>
-             </div>
+            <div class="pub-social-left">
+              <div class="social-icon-btn telegram" style="width:24px;height:24px;"><svg
+                  style="width:16px;height:16px;">
+                  <use href="#ico-telegram" />
+                </svg></div>
+              <span id="pub-telegram-handle" class="pub-social-handle">@NotAvailable</span>
+            </div>
+            <div class="social-copy-group" id="pub-telegram-actions">
+              <div class="social-copy-badge badge-uid" onclick="Game.copySocialExternal('telegram', 'uid')">Copy ID
+              </div>
+              <div class="social-copy-badge badge-url" onclick="Game.copySocialExternal('telegram', 'url')">URL</div>
+            </div>
           </div>
         </div>
 
         <!-- Admin Social Controls -->
         <div id="pub-admin-socials" class="admin-edit-socials" style="display:none;">
           <div style="font-size: 11px; font-weight: 800; color: var(--orange); margin-bottom: 8px;">ADMIN OVERRIDE</div>
-          <input id="pub-admin-twitter" class="name-input" type="text" placeholder="Force Twitter" style="font-size:12px; padding:8px 12px; margin-bottom:8px;" />
-          <input id="pub-admin-telegram" class="name-input" type="text" placeholder="Force Telegram" style="font-size:12px; padding:8px 12px; margin-bottom:10px;" />
-          <button id="pub-admin-save" class="btn btn-primary" style="padding:10px; font-size:14px; background:var(--orange); border-bottom:3px solid #b45309;">Save for User</button>
+          <input id="pub-admin-twitter" class="name-input" type="text" placeholder="Force Twitter"
+            style="font-size:12px; padding:8px 12px; margin-bottom:8px;" />
+          <input id="pub-admin-telegram" class="name-input" type="text" placeholder="Force Telegram"
+            style="font-size:12px; padding:8px 12px; margin-bottom:10px;" />
+          <button id="pub-admin-save" class="btn btn-primary"
+            style="padding:10px; font-size:14px; background:var(--orange); border-bottom:3px solid #b45309;">Save for
+            User</button>
         </div>
       </div>
     </div>
