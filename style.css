@@ -1564,7 +1564,7 @@ body::after {
 /* ── Home Action Pills & Top Bar ── */
 .home-top-bar {
   position: absolute;
-  top: 15px;
+  top: 12px;
   left: 18px;
   right: 18px;
   display: flex;
@@ -1586,6 +1586,28 @@ body::after {
   flex-direction: column;
   align-items: flex-end;
 }
+
+.btn-admin-pill {
+  background: linear-gradient(180deg, #333 0%, #000 100%) !important;
+  color: white !important;
+  padding: 8px 16px !important;
+  border-radius: 50px !important;
+  font-size: 11px !important;
+  font-weight: 900 !important;
+  border: 1px solid rgba(255,255,255,0.15) !important;
+  box-shadow: 
+    0 4px 10px rgba(0,0,0,0.4),
+    inset 0 1px 1px rgba(255,255,255,0.2) !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: transform 0.1s;
+}
+
+.btn-admin-pill:active { transform: scale(0.95); }
 
 #wallet-pill-wrap {
   display: flex;
@@ -1796,6 +1818,14 @@ body::after {
 
 .home-grid-row > button {
   flex: 1;
+  height: 54px; /* Force equal height */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 !important;
+  font-size: 14px !important;
+  font-weight: 900 !important;
+  border-radius: 20px !important;
 }
 
 .home-grid-row > button[style*="display: none"] {
@@ -1803,18 +1833,30 @@ body::after {
 }
 
 .btn-checkin {
-  background: linear-gradient(180deg, #FFC107 0%, #FF9800 100%);
-  border-bottom: 5px solid #E67E22;
-  color: white;
-  padding: 12px;
+  background: linear-gradient(180deg, #FFC107 0%, #FF9800 100%) !important;
+  border-bottom: 5px solid #E67E22 !important;
+  color: white !important;
 }
 
 .btn-tasks {
-  background: linear-gradient(180deg, #FF8C00 0%, #E67E22 100%);
-  border-bottom: 5px solid #D35400;
-  color: white;
-  margin-bottom: 0 !important; /* Managed by grid gap */
+  background: linear-gradient(180deg, #FF8C00 0%, #E67E22 100%) !important;
+  border-bottom: 5px solid #D35400 !important;
+  color: white !important;
+  margin-bottom: 0 !important;
   width: 100%;
+}
+
+/* Secondary (Profile/Rankings) in grid */
+.home-grid-row .btn-secondary {
+  background: linear-gradient(180deg, #A78BFA 0%, #7C3AED 100%) !important;
+  border-bottom: 5px solid #5b21b6 !important;
+  color: white !important;
+  opacity: 1 !important; /* Overrule startup state */
+}
+
+.home-grid-row .btn-secondary:disabled {
+  opacity: 0.5 !important;
+  filter: grayscale(1) !important;
 }
 
 .btn-refer-large {
