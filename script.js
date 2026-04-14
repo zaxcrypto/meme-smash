@@ -2042,7 +2042,7 @@ const Game = (() => {
   /* ═══════════════════════════════════════════
      REFERRAL SYSTEM
   ═══════════════════════════════════════════ */
-  const ADMIN_WALLET  = '0xd448777940dFaBF65FD259fA8a9903e60E1FF178';
+
   const PAYOUT_MIN_USD = 5.0;
   const REF_TIER_DEFS = [
     { label: 'Active',  min: 0,   rate: 0.10, color: '#4CAF50' },
