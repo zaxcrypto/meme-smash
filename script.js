@@ -1860,43 +1860,46 @@ const Game = (() => {
     }
   }
 
+  window._adminSearchFilter = null;
+
   async function adminSearchUser() {
     const viewerAddr = Web3.getConnectedAddress();
     if (!isAdminWallet(viewerAddr)) return;
 
-    const queryStr = document.getElementById('admin-user-search-input').value.trim().toLowerCase();
+    const input = document.getElementById('admin-user-search-input');
+    const queryStr = (input?.value || '').trim().toLowerCase();
     if (!queryStr) return;
 
-    const btn = document.querySelector('.admin-search-wrap button');
+    const btn = document.querySelector('.admin-search-wrap button.btn-primary');
     const orig = btn.textContent;
     btn.disabled = true; btn.textContent = '...';
 
     try {
+      let foundAddr = null;
+
       // 1. Check if it's a direct address
       if (/^0x[a-fA-F0-9]{40}$/.test(queryStr)) {
         const snap = await getDoc(doc(db, 'users', queryStr));
         if (snap.exists()) {
-          showPublicProfile(queryStr);
-          btn.disabled = false; btn.textContent = orig;
-          return;
+          foundAddr = queryStr;
         }
       }
 
-      // 2. Search by Twitter/Telegram handle
-      // We assume exact match for simplicity and safety
-      const cleanHandle = queryStr.startsWith('@') ? queryStr : '@' + queryStr;
-      
-      const qTwitter = query(collection(db, 'users'), where('profile.socials.twitter', '==', cleanHandle), limit(1));
-      const qTelegram = query(collection(db, 'users'), where('profile.socials.telegram', '==', cleanHandle), limit(1));
-      
-      const [snapTw, snapTg] = await Promise.all([getDocs(qTwitter), getDocs(qTelegram)]);
-      
-      let foundAddr = null;
-      if (!snapTw.empty) foundAddr = snapTw.docs[0].id;
-      else if (!snapTg.empty) foundAddr = snapTg.docs[0].id;
+      // 2. Search by Twitter/Telegram handle if not found by address
+      if (!foundAddr) {
+        const cleanHandle = queryStr.startsWith('@') ? queryStr : '@' + queryStr;
+        const qTwitter = query(collection(db, 'users'), where('profile.socials.twitter', '==', cleanHandle), limit(1));
+        const qTelegram = query(collection(db, 'users'), where('profile.socials.telegram', '==', cleanHandle), limit(1));
+        
+        const [snapTw, snapTg] = await Promise.all([getDocs(qTwitter), getDocs(qTelegram)]);
+        
+        if (!snapTw.empty) foundAddr = snapTw.docs[0].id;
+        else if (!snapTg.empty) foundAddr = snapTg.docs[0].id;
+      }
 
       if (foundAddr) {
-        showPublicProfile(foundAddr);
+        window._adminSearchFilter = foundAddr;
+        renderAdminPanel(); // List will now be filtered
       } else {
         showToast('User not found!');
       }
@@ -1906,6 +1909,13 @@ const Game = (() => {
     } finally {
       btn.disabled = false; btn.textContent = orig;
     }
+  }
+
+  function adminClearSearch() {
+    window._adminSearchFilter = null;
+    const input = document.getElementById('admin-user-search-input');
+    if (input) input.value = '';
+    renderAdminPanel();
   }
 
   /* ── Admin Rankings Tools ── */
@@ -2825,11 +2835,17 @@ const Game = (() => {
   }
 
   async function renderAdminPanel() {
-    if (!isAdminWallet(Web3.getConnectedAddress())) return;
+    const viewerAddr = Web3.getConnectedAddress();
+    if (!isAdminWallet(viewerAddr)) return;
+
+    // Filter Logic
+    const filterAddr = window._adminSearchFilter;
+    const clearBtn = document.getElementById('admin-search-clear');
+    if (clearBtn) clearBtn.style.display = filterAddr ? 'flex' : 'none';
 
     /* ----- Payout Queue ----- */
     const qEl = document.getElementById('admin-payout-queue');
-    if (qEl) {
+    if (qEl && _adminTab === 'queue') {
       const all = await _getAllPayoutReqs();
       const pending = all.filter(r => r.status === 'pending');
       const paid    = all.filter(r => r.status === 'paid');
@@ -2866,14 +2882,61 @@ const Game = (() => {
 
     /* ----- Users List ----- */
     const uEl = document.getElementById('admin-users-list');
-    if (uEl) {
-      const users = await _getAllUsers();
+    const summaryEl = document.getElementById('admin-user-summary');
+    
+    if (uEl && _adminTab === 'users') {
+      let users = await _getAllUsers();
+      
+      if (filterAddr) {
+        users = users.filter(u => u.addr.toLowerCase() === filterAddr.toLowerCase());
+      }
+
+      // Render Summary if filtering
+      if (filterAddr && users.length > 0 && summaryEl) {
+        const u = users[0];
+        const valids = (u.refData?.referrals||[]).filter(r=>r.status==='valid').length;
+        summaryEl.innerHTML = `
+          <div class="admin-summary-card">
+            <div class="summary-header">
+              <span class="summary-title">User Insights</span>
+              <button class="btn btn-secondary" style="margin:0; padding:6px 12px; font-size:11px;" onclick="Game.showPublicProfile('${u.addr}')">View Profile</button>
+            </div>
+            <div class="summary-grid">
+              <div class="summary-item">
+                <div class="summary-label">Total Spent Fees</div>
+                <div class="summary-value highlight">$${(u.fees?.totalUSD||0).toFixed(3)}</div>
+              </div>
+              <div class="summary-item">
+                <div class="summary-label">Total Invites / Valid</div>
+                <div class="summary-value">${(u.refData?.referrals||[]).length} / ${valids}</div>
+              </div>
+              <div class="summary-item">
+                <div class="summary-label">Total Games Played</div>
+                <div class="summary-value">${u.fees?.gamesSubmitted||0}</div>
+              </div>
+              <div class="summary-item">
+                <div class="summary-label">Meme Points</div>
+                <div class="summary-value">${u.profile?.cumulativeScore||0}</div>
+              </div>
+            </div>
+            <div style="font-size:10px; color:#666; margin-top:10px; font-family:monospace;">
+              ID: ${u.addr}<br>
+              Name: ${u.profile?.name || 'Unnamed'}<br>
+              Twitter: ${u.profile?.socials?.twitter || 'Not Linked'}<br>
+              Telegram: ${u.profile?.socials?.telegram || 'Not Linked'}
+            </div>
+          </div>
+        `;
+      } else if (summaryEl) {
+        summaryEl.innerHTML = '';
+      }
+
       if (!users.length) {
-        uEl.innerHTML = '<div class="admin-empty">No user profiles found on this device</div>';
+        uEl.innerHTML = '<div class="admin-empty">' + (filterAddr ? 'User history not found' : 'No user profiles found') + '</div>';
       } else {
         uEl.innerHTML = users.map(({addr, profile, fees, binding, refData}) => {
           const valids = (refData?.referrals||[]).filter(r=>r.status==='valid').length;
-          const txRows = (fees?.txHistory||[]).slice(-8).reverse()
+          const txRows = (fees?.txHistory||[]).slice(-15).reverse()
             .map(t=>`<span class="admin-tx">${t.type} $${formatUSD(t.amountUSD)} · ${new Date(t.ts).toLocaleDateString()}</span>`).join('');
           return `<div class="admin-user-card">
             <div class="admin-user-hdr">

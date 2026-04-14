@@ -810,9 +810,11 @@
           <input id="admin-user-search-input" class="name-input" 
             style="font-size:12px; padding:10px 14px; margin-bottom:0;" 
             placeholder="Wallet, @Twitter, or Telegram..." autocomplete="off" />
+          <button id="admin-search-clear" class="btn-admin-clear" onclick="Game.adminClearSearch()" style="display:none;">✕</button>
           <button class="btn btn-primary" onclick="Game.adminSearchUser()" 
             style="width:auto; padding:8px 15px; margin-bottom:0; font-size:14px; background:var(--sky); border-bottom:3px solid #0099cc;">Search</button>
         </div>
+        <div id="admin-user-summary"></div>
         <div id="admin-users-list"></div>
       </div>
 
