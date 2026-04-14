@@ -48,7 +48,7 @@ const Game = (() => {
     symbol: name.split('.')[0].toUpperCase().slice(0, 4),
     name: name.split('.')[0],
     color: '#FFD700',
-    img: `./friends_profiles/${name}`
+    img: `/friends_profiles/${name}`
   }));
 
   /* ═══════════════════════════════════════════
@@ -138,10 +138,10 @@ const Game = (() => {
     ensureAudio();
     // Use import.meta.url so Vite resolves the correct asset URL in both dev and prod
     try {
-      bombAudioEl = new Audio(new URL('./fahhh.mp3', import.meta.url).href);
+      bombAudioEl = new Audio('/fahhh.mp3');
       bombAudioEl.volume = 1.0;
 
-      weeeAudioEl = new Audio(new URL('./weee.mp3', import.meta.url).href);
+      weeeAudioEl = new Audio('/weee.mp3');
       weeeAudioEl.volume = 1.0;
     } catch(e) {
       console.warn("Audio load error:", e);
