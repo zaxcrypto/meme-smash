@@ -457,8 +457,8 @@ const Game = (() => {
       btnProfile.style.opacity = '1';
       btnProfile.style.filter = 'none';
 
-      btnConnect.textContent = 'Disconnect Wallet';
-      addrEl.textContent = `Connected: ${address.slice(0,6)}...${address.slice(-4)}`;
+      btnConnect.textContent = 'Disconnect';
+      addrEl.textContent = `${address.slice(0,6)}...${address.slice(-4)}`;
       addrEl.style.display = 'block';
     } else {
       btnStart.disabled = true;

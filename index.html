@@ -360,14 +360,21 @@
 
   <!-- ═══════════════ HOME SCREEN ═══════════════ -->
   <div id="screen-home" class="screen active">
-    <div class="screen-card" style="position:relative;">
+    <div class="screen-card" style="position:relative; padding-top: 45px;">
 
-      <!-- Action Pills Row (top-right) -->
-      <div class="home-pill-row">
-        <button class="btn-checkin-pill" onclick="Game.showCheckinModal()" title="Daily Check-In">📅 Check-In</button>
-        <button class="btn-refer-pill" onclick="Game.showReferModal()" title="Refer &amp; Earn">★ Refer</button>
-        <button class="btn-admin-pill" id="btn-admin-pill" onclick="Game.showAdminPanel()" title="Admin Panel"
-          style="display:none;">⚙ Admin</button>
+      <!-- NEW Top Bar Layout -->
+      <div class="home-top-bar">
+        <div class="top-bar-left"></div>
+        <div class="top-bar-mid">
+          <button class="btn-admin-pill" id="btn-admin-pill" onclick="Game.showAdminPanel()" title="Admin Panel"
+            style="display:none;">⚙ Admin</button>
+        </div>
+        <div class="top-bar-right">
+          <div id="wallet-pill-wrap">
+            <button id="btn-connect" class="btn-wallet-pill" onclick="Game.handleWalletAction()">Connect Wallet</button>
+            <div id="user-address" style="display:none;"></div>
+          </div>
+        </div>
       </div>
 
       <div class="hero-logo-wrap">
@@ -390,21 +397,23 @@
 
       <p class="subtitle">Slice the memes. Dodge the bombs.</p>
 
-      <div id="wallet-section" style="margin-bottom: 20px;">
-        <button id="btn-connect" class="btn btn-secondary" onclick="Game.handleWalletAction()">Connect Wallet</button>
-        <div id="user-address" class="subtitle" style="display:none; margin-top: 10px; font-size: 12px; opacity: 0.8;">
+      <!-- Vertical Menu Stack -->
+      <div class="home-menu-stack">
+        <button id="btn-start" class="btn btn-primary" onclick="Game.startGame()" disabled
+          style="opacity: 0.5; filter: grayscale(1); margin-bottom: 12px;">Play Now (Connect Wallet First)</button>
+
+        <div class="home-grid-row">
+          <button id="btn-checkin-home" class="btn btn-checkin" onclick="Game.showCheckinModal()">📅 Check-In</button>
+          <button id="btn-tasks" class="btn btn-tasks" onclick="Game.showTasksModal()" style="display:none;">Daily Tasks</button>
         </div>
-      </div>
 
-      <button id="btn-tasks" class="btn btn-tasks" onclick="Game.showTasksModal()" style="display:none;">📅 Daily
-        Tasks</button>
+        <div class="home-grid-row">
+          <button id="btn-profile" class="btn btn-secondary" onclick="Game.showProfile()" disabled
+            style="opacity: 0.5; filter: grayscale(1);">Profile</button>
+          <button id="btn-rankings" class="btn btn-secondary" onclick="Game.showLeaderboard()">Rankings</button>
+        </div>
 
-      <button id="btn-start" class="btn btn-primary" onclick="Game.startGame()" disabled
-        style="opacity: 0.5; filter: grayscale(1);">Play Now (Connect Wallet First)</button>
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-        <button id="btn-profile" class="btn btn-secondary" onclick="Game.showProfile()" disabled
-          style="opacity: 0.5; filter: grayscale(1); padding: 12px;">Profile</button>
-        <button class="btn btn-secondary" style="padding: 12px;" onclick="Game.showLeaderboard()">Rankings</button>
+        <button id="btn-refer-main" class="btn btn-refer-large" onclick="Game.showReferModal()">★ Refer To Earn</button>
       </div>
 
     </div>

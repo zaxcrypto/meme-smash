@@ -1561,6 +1561,75 @@ body::after {
   margin-bottom: 18px;
 }
 
+/* ── Home Action Pills & Top Bar ── */
+.home-top-bar {
+  position: absolute;
+  top: 15px;
+  left: 18px;
+  right: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  z-index: 100;
+}
+
+.top-bar-mid {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  justify-content: center;
+}
+
+.top-bar-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+#wallet-pill-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.btn-wallet-pill {
+  background: linear-gradient(135deg, #a78bfa, #7c3aed);
+  color: white;
+  border: none;
+  border-radius: 50px;
+  padding: 6px 14px;
+  font-size: 11px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 
+    0 3px 0 #5b21b6,
+    0 4px 10px rgba(124, 58, 237, 0.3);
+  transition: transform 0.1s, box-shadow 0.1s;
+  white-space: nowrap;
+}
+
+.btn-wallet-pill:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #5b21b6;
+}
+
+#user-address {
+  font-family: monospace;
+  font-size: 9px;
+  color: var(--text-mid);
+  opacity: 0.8;
+  font-weight: 700;
+  background: rgba(255,255,255,0.4);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.home-pill-row {
+  display: none; /* Replaced by top-bar */
+}
+
 #wm-list {
   display: flex;
   flex-direction: column;
@@ -1709,82 +1778,53 @@ body::after {
 }
 
 /* ══════════════════════════════════════
-   HOME ACTION PILL ROW
-══════════════════════════════════════ */
-.home-pill-row {
+   HOME MENU STACK & GRIDS
+   ══════════════════════════════════════ */
+.home-menu-stack {
   display: flex;
-  gap: 6px;
-  justify-content: flex-end;
-  align-items: center;
+  flex-direction: column;
+  gap: 12px;
   width: 100%;
-  flex-wrap: wrap;
-  margin-bottom: 2px;
+  margin-top: 10px;
 }
 
-/* Base pill style shared */
-.btn-checkin-pill,
-.btn-refer-pill,
-.btn-admin-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 7px 13px;
-  border: none;
-  border-radius: 50px;
-  font-family: 'Nunito', sans-serif;
-  font-size: 12px;
+.home-grid-row {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.home-grid-row > button {
+  flex: 1;
+}
+
+.home-grid-row > button[style*="display: none"] {
+  display: none !important;
+}
+
+.btn-checkin {
+  background: linear-gradient(180deg, #FFC107 0%, #FF9800 100%);
+  border-bottom: 5px solid #E67E22;
+  color: white;
+  padding: 12px;
+}
+
+.btn-tasks {
+  background: linear-gradient(180deg, #FF8C00 0%, #E67E22 100%);
+  border-bottom: 5px solid #D35400;
+  color: white;
+  margin-bottom: 0 !important; /* Managed by grid gap */
+  width: 100%;
+}
+
+.btn-refer-large {
+  background: linear-gradient(180deg, #D946EF 0%, #9333EA 100%);
+  border-bottom: 5px solid #7E22CE;
+  color: white;
   font-weight: 900;
-  cursor: pointer;
-  letter-spacing: 0.3px;
-  color: #fff;
-  transition: transform 0.13s, box-shadow 0.13s, filter 0.13s;
-  white-space: nowrap;
-}
-
-.btn-checkin-pill {
-  background: linear-gradient(135deg, #FFD700 0%, #FF8C00 100%);
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.20);
-  box-shadow: 0 3px 0 #A05000, 0 5px 14px rgba(255, 140, 0, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.4);
-}
-
-.btn-checkin-pill:hover {
-  filter: brightness(1.08);
-  transform: translateY(-2px);
-}
-
-.btn-checkin-pill:active {
-  transform: translateY(2px);
-  box-shadow: 0 1px 0 #A05000;
-}
-
-.btn-refer-pill {
-  background: linear-gradient(135deg, #FF3DAE 0%, #9B3BDB 100%);
-  box-shadow: 0 3px 0 #5b21b6, 0 5px 14px rgba(155, 59, 219, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.3);
-}
-
-.btn-refer-pill:hover {
-  filter: brightness(1.1);
-  transform: translateY(-2px);
-}
-
-.btn-refer-pill:active {
-  transform: translateY(2px);
-  box-shadow: 0 1px 0 #5b21b6;
-}
-
-.btn-admin-pill {
-  background: linear-gradient(135deg, #455A64, #263238);
-  box-shadow: 0 3px 0 #111, 0 5px 12px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.12);
-  font-size: 11px;
-}
-
-.btn-admin-pill:hover {
-  filter: brightness(1.3);
-  transform: translateY(-2px);
-}
-
-.btn-admin-pill:active {
-  transform: translateY(2px);
+  font-size: 18px;
+  padding: 15px;
+  margin-top: 5px;
 }
 
 /* Tile checkmark for done days */
