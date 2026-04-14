@@ -122,10 +122,10 @@ const Game = (() => {
     if (isMuted) return;
     if (weeeAudioEl) {
       const clone = weeeAudioEl.cloneNode();
-      clone.volume = 1.0;
-      clone.play().catch(e => playTone(880,'sawtooth',0.12,0.15));
+      clone.volume = 0.5;
+      clone.play().catch(e => playTone(880,'sawtooth',0.12,0.12));
     } else {
-      playTone(880,'sawtooth',0.12,0.15);
+      playTone(880,'sawtooth',0.12,0.12);
     }
   }
   function sfxScore()  { playTone(1200,'sine',0.08,0.1); }
@@ -143,7 +143,7 @@ const Game = (() => {
       bombAudioEl.volume = 1.0;
 
       weeeAudioEl = new Audio('/weee.mp3');
-      weeeAudioEl.volume = 1.0;
+      weeeAudioEl.volume = 0.5;
     } catch(e) {
       console.warn("Audio load error:", e);
     }
@@ -170,7 +170,7 @@ const Game = (() => {
       rumble.type = 'sawtooth';
       rumble.frequency.setValueAtTime(200, audioCtx.currentTime);
       rumble.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.6);
-      rumbleGain.gain.setValueAtTime(0.35, audioCtx.currentTime);
+      rumbleGain.gain.setValueAtTime(0.6, audioCtx.currentTime);
       rumbleGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.65);
       rumble.connect(rumbleGain); rumbleGain.connect(audioCtx.destination);
       rumble.start(); rumble.stop(audioCtx.currentTime + 0.65);
@@ -187,7 +187,7 @@ const Game = (() => {
       bp.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + 0.55);
       bp.Q.value = 4;
       const nGain = audioCtx.createGain();
-      nGain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+      nGain.gain.setValueAtTime(0.8, audioCtx.currentTime);
       nGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
       noise.connect(bp); bp.connect(nGain); nGain.connect(audioCtx.destination);
       noise.start(); noise.stop(audioCtx.currentTime + 0.7);
