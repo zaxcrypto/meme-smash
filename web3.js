@@ -56,7 +56,7 @@ function usdToEthStrSync(usdAmount) {
  * Send ETH to a target address with the exact USD-equivalent value.
  * Amount is always correct regardless of ETH price volatility.
  */
-async function sendETH(toAddress, usdAmount) {
+export async function sendETH(toAddress, usdAmount) {
   // Self-Healing for Base App: If provider is missing, try to pick up the injected one immediately
   if (!activeProvider && typeof window !== 'undefined' && window.ethereum) {
     activeProvider = window.ethereum;

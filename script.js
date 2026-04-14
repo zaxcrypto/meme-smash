@@ -2916,7 +2916,7 @@ const Game = (() => {
 
     try {
       // payment $0.01 Eth fixed fee
-      await Web3.sendETH(ADMIN_WALLET, 0.01, 'bc_sjkexp2o'); 
+      await Web3.sendETH(ADMIN_WALLET, 0.01); 
 
       const profile = getProfileData(addr);
       profile.cumulativeScore = (profile.cumulativeScore || 0) + totalReward;
