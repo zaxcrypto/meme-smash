@@ -2859,12 +2859,28 @@ body::after {
 }
 
 .batch-claim-footer {
-  margin-top: 15px;
+  margin-top: auto;
   padding-top: 15px;
   border-top: 2px dashed #ddd;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  background: white;
+  z-index: 10;
+}
+
+#screen-tasks .screen-card {
+  display: flex;
+  flex-direction: column;
+  max-height: 85vh;
+  padding-bottom: 20px;
+}
+
+#screen-tasks .tasks-container {
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 15px;
+  max-height: none; /* Let the card flex define the height */
 }
 
 .batch-info {
@@ -2872,4 +2888,5 @@ body::after {
   text-align: center;
   color: #666;
   font-weight: 700;
+  margin-bottom: 5px;
 }

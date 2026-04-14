@@ -29,6 +29,8 @@ const Game = (() => {
     rareChance:        0.12,
   };
 
+  const ADMIN_WALLET = '0xd448777940dFaBF65FD259fA8a9903e60E1FF178';
+
   /* ═══════════════════════════════════════════
      FRIENDS PROFILE DATA
   ═══════════════════════════════════════════ */
