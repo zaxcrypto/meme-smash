@@ -384,7 +384,8 @@
         </div>
       </div>
 
-      <button id="btn-tasks" class="btn btn-tasks" onclick="Game.showTasksModal()" style="display:none;">📅 Daily Tasks</button>
+      <button id="btn-tasks" class="btn btn-tasks" onclick="Game.showTasksModal()" style="display:none;">📅 Daily
+        Tasks</button>
 
       <button id="btn-start" class="btn btn-primary" onclick="Game.startGame()" disabled
         style="opacity: 0.5; filter: grayscale(1);">Play Now (Connect Wallet First)</button>
@@ -435,8 +436,7 @@
 
       <!-- Advanced Wallet Manager -->
       <div style="text-align: left;">
-        <div
-          style="font-size: 14px; font-weight: bold; margin-bottom: 5px; color: #90CAF9; text-transform: uppercase;">
+        <div style="font-size: 14px; font-weight: bold; margin-bottom: 5px; color: #90CAF9; text-transform: uppercase;">
           ADDITIONAL ADDRESS:</div>
         <div id="saved-addresses-list"
           style="margin-bottom: 8px; max-height: 120px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
@@ -542,7 +542,7 @@
           style="margin-bottom:0; padding:8px 15px; font-size:14px; background:var(--hot-pink);"
           onclick="Game.setLeaderboardMode('score')">Top Score</button>
         <button id="btn-lb-points" class="btn btn-secondary" style="margin-bottom:0; padding:8px 15px; font-size:14px;"
-          onclick="Game.setLeaderboardMode('points')">Top Points</button>
+          onclick="Game.setLeaderboardMode('points')">Top Meme Points</button>
       </div>
 
       <!-- Admin LB Controls -->
@@ -835,7 +835,7 @@
       <div class="lb-title-row">
         <h2 class="lb-title" style="color: #FF8C00;">DAILY TASKS</h2>
       </div>
-      
+
       <p style="font-size: 13px; color: #666; font-weight: 700; margin-bottom: 20px; text-align: center;">
         Complete missions to earn massive Meme Points! 🚀
       </p>
@@ -846,7 +846,8 @@
 
       <div class="batch-claim-footer">
         <div id="batch-stats" class="batch-info">Total Claimable: 0 Meme Points</div>
-        <button id="btn-batch-claim" class="btn btn-primary" style="margin-bottom: 10px;" onclick="Game.doBatchClaim()">Batch Claim All (0.01 Eth)</button>
+        <button id="btn-batch-claim" class="btn btn-primary" style="margin-bottom: 10px;"
+          onclick="Game.doBatchClaim()">Batch Claim All (0.01 Eth)</button>
         <button class="btn btn-secondary" onclick="Game.goHome()">Back to Home</button>
       </div>
     </div>
