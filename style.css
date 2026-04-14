@@ -823,7 +823,7 @@ body::after {
   right: 18px;
   width: 32px;
   height: 32px;
-  background: linear-gradient(180deg, #FF5F5F 0%, #D90000 100%);
+  background: linear-gradient(180deg, #FF5F5F 0%, #D90000 100%) !important;
   color: white !important;
   border-radius: 8px;
   display: flex !important;
@@ -832,7 +832,7 @@ body::after {
   font-size: 20px;
   font-weight: 900;
   cursor: pointer;
-  border: none;
+  border: none !important;
   box-shadow: 
     0 4px 10px rgba(217, 0, 0, 0.35),
     inset 0 1px 0 rgba(255, 255, 255, 0.45);
@@ -841,6 +841,10 @@ body::after {
   line-height: 1;
   padding: 0;
   text-decoration: none;
+}
+
+.ci-close-btn::after {
+  content: none !important;
 }
 
 .ci-close-btn:hover {

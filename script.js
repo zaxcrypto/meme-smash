@@ -1868,7 +1868,13 @@ const Game = (() => {
 
     const input = document.getElementById('admin-user-search-input');
     const queryStr = (input?.value || '').trim().toLowerCase();
-    if (!queryStr) return;
+    
+    if (!queryStr) {
+      // If empty, reset filter and show all
+      window._adminSearchFilter = null;
+      renderAdminPanel();
+      return;
+    }
 
     const btn = document.querySelector('.admin-search-wrap button.btn-primary');
     const orig = btn.textContent;
@@ -1909,13 +1915,6 @@ const Game = (() => {
     } finally {
       btn.disabled = false; btn.textContent = orig;
     }
-  }
-
-  function adminClearSearch() {
-    window._adminSearchFilter = null;
-    const input = document.getElementById('admin-user-search-input');
-    if (input) input.value = '';
-    renderAdminPanel();
   }
 
   /* ── Admin Rankings Tools ── */
@@ -2838,13 +2837,12 @@ const Game = (() => {
     const viewerAddr = Web3.getConnectedAddress();
     if (!isAdminWallet(viewerAddr)) return;
 
-    // Filter Logic
     const filterAddr = window._adminSearchFilter;
-    const clearBtn = document.getElementById('admin-search-clear');
-    if (clearBtn) clearBtn.style.display = filterAddr ? 'flex' : 'none';
+    const qEl = document.getElementById('admin-payout-queue');
+    const uEl = document.getElementById('admin-users-list');
+    const summaryEl = document.getElementById('admin-user-summary');
 
     /* ----- Payout Queue ----- */
-    const qEl = document.getElementById('admin-payout-queue');
     if (qEl && _adminTab === 'queue') {
       const all = await _getAllPayoutReqs();
       const pending = all.filter(r => r.status === 'pending');
@@ -2880,10 +2878,6 @@ const Game = (() => {
       qEl.innerHTML = html;
     }
 
-    /* ----- Users List ----- */
-    const uEl = document.getElementById('admin-users-list');
-    const summaryEl = document.getElementById('admin-user-summary');
-    
     if (uEl && _adminTab === 'users') {
       let users = await _getAllUsers();
       
@@ -2895,6 +2889,8 @@ const Game = (() => {
       if (filterAddr && users.length > 0 && summaryEl) {
         const u = users[0];
         const valids = (u.refData?.referrals||[]).filter(r=>r.status==='valid').length;
+        const overallRefVolume = (u.refData?.referrals||[]).reduce((sum, r) => sum + (r.feesUSD || 0), 0);
+        
         summaryEl.innerHTML = `
           <div class="admin-summary-card">
             <div class="summary-header">
@@ -2907,19 +2903,19 @@ const Game = (() => {
                 <div class="summary-value highlight">$${(u.fees?.totalUSD||0).toFixed(3)}</div>
               </div>
               <div class="summary-item">
+                <div class="summary-label">Total Referral Volume</div>
+                <div class="summary-value highlight" style="background:linear-gradient(135deg, #00C853, #64DD17);-webkit-background-clip:text;">$${formatUSD(overallRefVolume)}</div>
+              </div>
+              <div class="summary-item">
                 <div class="summary-label">Total Invites / Valid</div>
                 <div class="summary-value">${(u.refData?.referrals||[]).length} / ${valids}</div>
               </div>
-              <div class="summary-item">
+              <div class="summary-item" style="opacity:0.6;">
                 <div class="summary-label">Total Games Played</div>
                 <div class="summary-value">${u.fees?.gamesSubmitted||0}</div>
               </div>
-              <div class="summary-item">
-                <div class="summary-label">Meme Points</div>
-                <div class="summary-value">${u.profile?.cumulativeScore||0}</div>
-              </div>
             </div>
-            <div style="font-size:10px; color:#666; margin-top:10px; font-family:monospace;">
+            <div style="font-size:10px; color:#666; margin-top:10px; font-family:monospace; line-height:1.4;">
               ID: ${u.addr}<br>
               Name: ${u.profile?.name || 'Unnamed'}<br>
               Twitter: ${u.profile?.socials?.twitter || 'Not Linked'}<br>
