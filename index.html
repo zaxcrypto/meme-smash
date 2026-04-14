@@ -475,7 +475,8 @@
       <div class="hud-center">
         <div class="hud-timer-wrap">
           <div class="hud-label">TIME LEFT</div>
-          <div id="hud-timer" class="hud-timer">02:00</div>
+          <div id="hud-timer" class="hud-timer">01:00</div>
+
         </div>
       </div>
 
@@ -512,9 +513,10 @@
         <button id="btn-revive" class="btn btn-primary"
           style="background: linear-gradient(180deg, #7FE82A 0%, #4CAF50 100%); border-bottom: 3px solid #1B5E20; margin-bottom: 0;"
           onclick="Game.reviveMenu()">Revive ($0.05 ETH)</button>
-        <button class="btn btn-primary"
+        <button id="btn-submit-score" class="btn btn-primary"
           style="background: linear-gradient(180deg, #FFD700 0%, #FFA500 100%); color: #2D1060; border-bottom: 3px solid #B8860B; margin-bottom: 0;"
           onclick="Game.submitScoreMenu()">Submit Score ($0.01 ETH)</button>
+
         <button class="btn btn-secondary" style="margin-bottom: 0;" onclick="Game.restartGame()">Play Again</button>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
           <button class="btn btn-secondary" style="margin-bottom: 0; padding: 12px;"

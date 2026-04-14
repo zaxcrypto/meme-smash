@@ -63,8 +63,8 @@ const Game = (() => {
   let diffLevel  = 1;
   let missedCoins = 0;
   let bombStrikes = 0;
-  let timeLeft    = 120;     // 2 minutes in seconds
-  const gameDuration = 120;
+  let timeLeft    = 60;      // Changed from 120s to 60s
+  const gameDuration = 60;
   let coinSpawnCounter = 0;   // for bomb ratio
   let spawnInterval;          // current ms between spawns
   let coinsPerWave;
@@ -571,18 +571,26 @@ const Game = (() => {
   }
 
   async function reviveMenu() {
+    const addr = Web3.getConnectedAddress();
+    if (!addr) { alert('Connect your wallet first!'); return; }
+
     const btn = document.getElementById('btn-revive');
     const originalText = btn.textContent;
     try {
-      if (!confirm("Revive for $0.05 worth of ETH?")) return;
-      btn.textContent = 'Processing...';
+      // Direct trigger for mobile compatibility (avoids popup blockage)
+      btn.disabled = true;
+      btn.textContent = 'Opening Wallet...';
+      
       await Web3.payToRevive();
+      
       // Track fee for referral system
       const feeAddr = Web3.getConnectedAddress();
       if (feeAddr) recordFeePayment(feeAddr, 'revive', 0.05);
+      
       btn.textContent = 'Success!';
       setTimeout(() => {
         btn.textContent = originalText;
+        btn.disabled = false;
         resetForRevive();
         showScreen('screen-hud');
         isPlaying = true;
@@ -591,8 +599,9 @@ const Game = (() => {
       }, 1000);
     } catch (e) {
       console.error(e);
-      btn.textContent = 'Payment Failed';
-      setTimeout(() => btn.textContent = originalText, 2000);
+      btn.disabled = false;
+      btn.textContent = e.message.includes('User rejected') ? 'Cancelled' : 'Payment Failed';
+      setTimeout(() => btn.textContent = originalText, 2500);
     }
   }
 
@@ -612,28 +621,42 @@ const Game = (() => {
     updateHUD();
   }
 
-   async function submitScoreMenu() {
-    try {
-      if (confirm(`Submit your score of ${score} to leaderboard for $0.01 worth of ETH?`)) {
-        await Web3.payToSubmitScore();
-        alert('Payment successful! Score submitted.');
-        hasSubmittedRunScore = true;
-        
-        // Add to Career Score
-        const addr = Web3.getConnectedAddress();
-        if (addr) {
-          const profile = getProfileData(addr);
-          profile.cumulativeScore += score;
-          saveProfileData(addr, profile);
-          refreshProfileUI(addr);
-          recordFeePayment(addr, 'submit', 0.01); // Track for referral system
-        }
+  async function submitScoreMenu() {
+    const addr = Web3.getConnectedAddress();
+    if (!addr) { alert('Connect your wallet first!'); return; }
 
-        showLeaderboard();
+    const btn = document.getElementById('btn-submit-score');
+    const origText = btn.textContent;
+    try {
+      btn.disabled = true;
+      btn.textContent = 'Waiting for Wallet...';
+      
+      await Web3.payToSubmitScore();
+      btn.textContent = 'Score Submitted!';
+      
+      hasSubmittedRunScore = true;
+      
+      // Add to Career Score
+      const addr = Web3.getConnectedAddress();
+      if (addr) {
+        const profile = getProfileData(addr);
+        profile.cumulativeScore += score;
+        saveProfileData(addr, profile);
+        refreshProfileUI(addr);
+        recordFeePayment(addr, 'submit', 0.01); // Track for referral system
       }
+
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.textContent = origText;
+        showLeaderboard();
+      }, 1500);
+
     } catch (e) {
       console.error(e);
-      alert('Payment failed or cancelled.');
+      btn.disabled = false;
+      btn.textContent = e.message.includes('User rejected') ? 'Cancelled' : 'Submit Failed';
+      setTimeout(() => btn.textContent = origText, 2500);
     }
   }
 
@@ -666,6 +689,7 @@ const Game = (() => {
     timeLeft          = gameDuration;
     nextSpawnTime     = 0;
     diffTimer         = 0;
+    diffLevel         = 1;
     isGameOver        = false;
     hasSubmittedRunScore = false;
     shakeFrames       = 0;
@@ -821,13 +845,13 @@ const Game = (() => {
     const elapsed = gameDuration - timeLeft;
     const progress = Math.min(elapsed / gameDuration, 1);
     
-    // Scale difficulty levels (1 to 6) based on 2 mins
+    // Scale difficulty levels (1 to 6) optimized for a 60-second session
     const newLevel = 1 + Math.floor(progress * 5);
     if (newLevel > diffLevel) {
       diffLevel = newLevel;
-      // Much gentler scaling for interval and waves
-      spawnInterval = Math.max(CFG.spawnIntervalMin, CFG.spawnIntervalBase * (1 - progress * 0.25));
-      coinsPerWave  = Math.min(CFG.coinsPerWaveMax, CFG.coinsPerWaveBase + Math.floor(progress * 1.5));
+      // Faster but smoother scaling for 60s intensity
+      spawnInterval = Math.max(CFG.spawnIntervalMin, CFG.spawnIntervalBase * (1 - progress * 0.3));
+      coinsPerWave  = Math.min(CFG.coinsPerWaveMax, CFG.coinsPerWaveBase + Math.floor(progress * 2));
       document.getElementById('hud-level').textContent = diffLevel;
     }
 
@@ -844,15 +868,37 @@ const Game = (() => {
       o.x  += o.vx * dt;
       o.y  += o.vy * dt;
       o.angle += o.spin * dt;
-      if (o.y > H + o.radius + 10) {
-        if (!o.sliced && o.type === 'coin') {
-          missedCoins++;
-          updateHUD();
-          // Removed: missedCoins limit no longer ends the game
-        }
+
+      // Wall Bouncing: Ensure items stay within the visible frame (4-Way Bouncing)
+      
+      // Left/Right
+      if (o.x < o.radius) {
+        o.x = o.radius;
+        o.vx = Math.abs(o.vx) * 0.85; // slightly higher bounce for more life
+      } else if (o.x > W - o.radius) {
+        o.x = W - o.radius;
+        o.vx = -Math.abs(o.vx) * 0.85;
+      // Top/Bottom (Full Frame Containment)
+      if (o.y < o.radius) {
+        o.y = o.radius;
+        o.vy = Math.abs(o.vy) * 0.8; // bounce down
+      } else if (o.y > H - o.radius) {
+        // Instead of falling off, items now bounce back up!
+        o.y = H - o.radius;
+        o.vy = -Math.abs(o.vy) * 0.85; 
+        
+        // Slightly nudge VX to keep it dynamic
+        o.vx += (Math.random() - 0.5) * 60;
+      }
+
+      // Age-based removal to prevent overcrowding since they never "fall off"
+      o.age = (o.age || 0) + dt;
+      if (o.age > 15) {
         objects.splice(i, 1);
       }
     }
+
+
 
     // Halves physics
     for (let i = halves.length - 1; i >= 0; i--) {
@@ -907,8 +953,8 @@ const Game = (() => {
     const y       = H + radius;
     // Extremely subtle speed increase for consistent "fun" feel
     const speed   = (900 + Math.random() * 400) * (1 + (diffLevel - 1) * 0.04);
-    const angle   = -Math.PI / 2 + (Math.random() - 0.5) * 0.9; // mostly up, slight spread
-    const vx      = Math.cos(angle) * speed * (Math.random() < 0.5 ? -1 : 1) * 0.25;
+    const angle   = -Math.PI / 2 + (Math.random() - 0.5) * 0.45; // reduced spread to keep items closer to center
+    const vx      = Math.cos(angle) * speed * (Math.random() < 0.5 ? -1 : 1) * 0.15;
     const vy      = -speed;
     const spin    = (Math.random() - 0.5) * 4;
 

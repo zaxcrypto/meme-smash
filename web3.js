@@ -33,18 +33,21 @@ async function getEthUsdPrice() {
     return _cachedEthPrice;
   } catch (e) {
     console.warn('[web3] ETH price fetch failed, using fallback $2000:', e);
-    return _cachedEthPrice || 2000; // fallback if no cache
+    return _cachedEthPrice || 2500; // fallback if no cache
   }
 }
 
+// Pre-fetch immediately and every 30 seconds to ensure sendETH is instant
+getEthUsdPrice();
+setInterval(getEthUsdPrice, 30000);
+
 /**
  * Converts a USD amount to ETH string using current live price.
- * e.g. $0.05 at $2500/ETH → "0.00002" ETH
+ * Non-async fallback to ensure user gesture is preserved.
  */
-async function usdToEthStr(usdAmount) {
-  const price = await getEthUsdPrice();
+function usdToEthStrSync(usdAmount) {
+  const price = _cachedEthPrice || 2500;
   const eth = usdAmount / price;
-  // Format to 18 significant decimals, strip trailing zeros
   const str = eth.toFixed(18).replace(/0+$/, '').replace(/\.$/, '');
   return str || '0';
 }
@@ -54,9 +57,22 @@ async function usdToEthStr(usdAmount) {
  * Amount is always correct regardless of ETH price volatility.
  */
 async function sendETH(toAddress, usdAmount) {
-  if (!activeProvider || !connectedAddress) throw new Error('Wallet not connected');
+  // Self-Healing for Base App: If provider is missing, try to pick up the injected one immediately
+  if (!activeProvider && typeof window !== 'undefined' && window.ethereum) {
+    activeProvider = window.ethereum;
+  }
+  
+  if (!activeProvider) throw new Error('Wallet not connected');
 
-  const ethStr  = await usdToEthStr(usdAmount);
+  // If connectedAddress is missing but we have a provider, try to re-probed
+  if (!connectedAddress && activeProvider.selectedAddress) {
+    connectedAddress = activeProvider.selectedAddress;
+  }
+
+  if (!connectedAddress) throw new Error('Wallet address not found');
+
+  // Must be synchronous to preserve user gesture in mobile browsers
+  const ethStr  = usdToEthStrSync(usdAmount);
   const weiVal  = parseEther(ethStr);
   const hexVal  = '0x' + weiVal.toString(16);
 
@@ -74,6 +90,7 @@ async function sendETH(toAddress, usdAmount) {
     }],
   });
 }
+
 
 // ─── State ────────────────────────────────────────────────────────────────────
 const discoveredWallets = new Map();
@@ -248,6 +265,8 @@ export function getConnectedAddress() { return connectedAddress || null; }
 
 export async function autoConnectWallet() {
   await new Promise(r => setTimeout(r, 200));
+
+  // 1. Try EIP-6963 Discovered Wallets
   const wallets = [...discoveredWallets.values()];
   for (const { provider } of wallets) {
     try {
@@ -256,27 +275,22 @@ export async function autoConnectWallet() {
         connectedAddress = accounts[0];
         activeProvider   = provider;
         walletClient     = createWalletClient({ account: connectedAddress, chain: base, transport: custom(provider) });
-        provider.on?.('accountsChanged', (accs) => {
-          connectedAddress = accs[0] || null;
-          if (!connectedAddress) { walletClient = null; activeProvider = null; }
-          window.dispatchEvent(new CustomEvent('walletAccountChanged', { detail: { address: connectedAddress } }));
-        });
-        provider.on?.('disconnect', () => {
-          connectedAddress = null; walletClient = null; activeProvider = null;
-          window.dispatchEvent(new CustomEvent('walletAccountChanged', { detail: { address: null } }));
-        });
+        _bindProviderEvents(provider);
         return connectedAddress;
       }
-    } catch(e) { /* try next */ }
+    } catch(e) { /* next */ }
   }
-  // Fallback for Mobile In-App Browsers (Base App / Coinbase Wallet)
+
+  // 2. Fallback for Mobile In-App Browsers (Base App / Coinbase Wallet)
   if (typeof window !== 'undefined' && window.ethereum) {
     try {
+      // Specifically check for Coinbase/Base App which might not announce via EIP-6963 instantly
       const accounts = await window.ethereum.request({ method: 'eth_accounts' });
       if (accounts && accounts.length > 0) {
         connectedAddress = accounts[0];
         activeProvider   = window.ethereum;
         walletClient = createWalletClient({ account: connectedAddress, chain: base, transport: custom(activeProvider) });
+        _bindProviderEvents(activeProvider);
         return connectedAddress;
       }
     } catch(e) {}
@@ -284,6 +298,20 @@ export async function autoConnectWallet() {
 
   return null;
 }
+
+function _bindProviderEvents(provider) {
+  if (!provider.on) return;
+  provider.on('accountsChanged', (accs) => {
+    connectedAddress = accs[0] || null;
+    if (!connectedAddress) { walletClient = null; activeProvider = null; }
+    window.dispatchEvent(new CustomEvent('walletAccountChanged', { detail: { address: connectedAddress } }));
+  });
+  provider.on('disconnect', () => {
+    connectedAddress = null; walletClient = null; activeProvider = null;
+    window.dispatchEvent(new CustomEvent('walletAccountChanged', { detail: { address: null } }));
+  });
+}
+
 
 // ─── Game Payment Functions (all priced in USD, sent as ETH at live rate) ─────
 
