@@ -888,7 +888,8 @@ const Game = (() => {
     const radius  = type === 'bomb' ? CFG.bombRadius : CFG.coinRadius;
     const x       = radius + Math.random() * (W - radius * 2);
     const y       = H + radius;
-    const speed   = (800 + Math.random() * 400) * (1 + (diffLevel - 1) * 0.18);
+    // Increased base speed for higher jumps; reduced scaling for manageable endgame
+    const speed   = (1050 + Math.random() * 450) * (1 + (diffLevel - 1) * 0.12);
     const angle   = -Math.PI / 2 + (Math.random() - 0.5) * 0.9; // mostly up, slight spread
     const vx      = Math.cos(angle) * speed * (Math.random() < 0.5 ? -1 : 1) * 0.25;
     const vy      = -speed;
