@@ -1564,7 +1564,7 @@ body::after {
 /* ── Home Action Pills & Top Bar ── */
 .home-top-bar {
   position: absolute;
-  top: 12px;
+  top: 15px;
   left: 18px;
   right: 18px;
   display: flex;
@@ -1632,10 +1632,7 @@ body::after {
   white-space: nowrap;
 }
 
-.btn-wallet-pill:active {
-  transform: translateY(2px);
-  box-shadow: 0 1px 0 #5b21b6;
-}
+.btn-wallet-pill:active { transform: translateY(2px); box-shadow: 0 1px 0 #5b21b6; }
 
 #user-address {
   font-family: monospace;
@@ -1649,7 +1646,7 @@ body::after {
 }
 
 .home-pill-row {
-  display: none; /* Replaced by top-bar */
+  display: none !important;
 }
 
 #wm-list {
@@ -1818,7 +1815,7 @@ body::after {
 
 .home-grid-row > button {
   flex: 1;
-  height: 54px; /* Force equal height */
+  height: 54px !important; /* Force exact same height */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1826,6 +1823,7 @@ body::after {
   font-size: 14px !important;
   font-weight: 900 !important;
   border-radius: 20px !important;
+  box-sizing: border-box !important;
 }
 
 .home-grid-row > button[style*="display: none"] {
@@ -1836,6 +1834,7 @@ body::after {
   background: linear-gradient(180deg, #FFC107 0%, #FF9800 100%) !important;
   border-bottom: 5px solid #E67E22 !important;
   color: white !important;
+  margin-bottom: 0 !important;
 }
 
 .btn-tasks {
@@ -1851,7 +1850,7 @@ body::after {
   background: linear-gradient(180deg, #A78BFA 0%, #7C3AED 100%) !important;
   border-bottom: 5px solid #5b21b6 !important;
   color: white !important;
-  opacity: 1 !important; /* Overrule startup state */
+  opacity: 1 !important;
 }
 
 .home-grid-row .btn-secondary:disabled {
@@ -1860,13 +1859,15 @@ body::after {
 }
 
 .btn-refer-large {
-  background: linear-gradient(180deg, #D946EF 0%, #9333EA 100%);
-  border-bottom: 5px solid #7E22CE;
-  color: white;
-  font-weight: 900;
-  font-size: 18px;
-  padding: 15px;
-  margin-top: 5px;
+  background: linear-gradient(180deg, #D946EF 0%, #9333EA 100%) !important;
+  border-bottom: 5px solid #7E22CE !important;
+  color: white !important;
+  font-weight: 900 !important;
+  font-size: 18px !important;
+  padding: 15px !important;
+  margin-top: 5px !important;
+  height: auto !important; /* Larger than secondary buttons */
+  border-radius: 20px !important;
 }
 
 /* Tile checkmark for done days */
@@ -2813,7 +2814,6 @@ body::after {
 }
 
 @keyframes ci-today-glow {
-
   0%,
   100% {
     box-shadow: 0 4px 16px rgba(255, 179, 0, 0.40);
