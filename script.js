@@ -638,17 +638,6 @@ const Game = (() => {
     showToast('Social connections updated!');
   }
 
-  function copySocial(platform, type) {
-    const inputId = platform === 'twitter' ? 'profile-twitter' : 'profile-telegram';
-    const handle = document.getElementById(inputId).value.trim();
-    if (!handle) { showToast('No handle entered'); return; }
-    
-    const textToCopy = type === 'uid' ? handle : _getSocialUrl(platform, handle);
-    navigator.clipboard.writeText(textToCopy).then(() => {
-      showToast(`${platform === 'twitter' ? 'Twitter' : 'Telegram'} ${type === 'uid' ? 'handle' : 'link'} copied!`);
-    });
-  }
-
   function _getSocialUrl(platform, handle) {
     const clean = handle.startsWith('@') ? handle.slice(1) : handle;
     if (platform === 'twitter') return `https://twitter.com/${clean}`;
@@ -3125,7 +3114,6 @@ const Game = (() => {
     showProfile,
     saveProfileName,
     saveSocials,
-    copySocial,
     copySocialExternal,
     addAlternativeAddress,
     removeAlternativeAddress,
