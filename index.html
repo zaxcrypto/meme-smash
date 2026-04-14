@@ -384,6 +384,8 @@
         </div>
       </div>
 
+      <button id="btn-tasks" class="btn btn-tasks" onclick="Game.showTasksModal()" style="display:none;">📅 Daily Tasks</button>
+
       <button id="btn-start" class="btn btn-primary" onclick="Game.startGame()" disabled
         style="opacity: 0.5; filter: grayscale(1);">Play Now (Connect Wallet First)</button>
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
@@ -434,16 +436,17 @@
       <!-- Advanced Wallet Manager -->
       <div style="text-align: left;">
         <div
-          style="font-size: 14px; font-weight: bold; margin-bottom: 10px; color: #90CAF9; text-transform: uppercase;">
-          ADDITIONAL ADDRESS</div>
+          style="font-size: 14px; font-weight: bold; margin-bottom: 5px; color: #90CAF9; text-transform: uppercase;">
+          ADDITIONAL ADDRESS:</div>
         <div id="saved-addresses-list"
-          style="margin-bottom: 15px; max-height: 120px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
+          style="margin-bottom: 8px; max-height: 120px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
           <!-- dynamically populated -->
         </div>
 
+
         <input id="alt-address-input" class="name-input" type="text" placeholder="0x..."
           style="font-size: 14px; margin-bottom: 8px;" autocomplete="off" spellcheck="false" />
-        <input id="alt-desc-input" class="name-input" type="text" placeholder="Description (e.g. Vault)"
+        <input id="alt-desc-input" class="name-input" type="text" placeholder="Description (e.g. Reward wallet)"
           style="font-size: 14px; margin-bottom: 12px;" autocomplete="off" spellcheck="false" />
         <button class="btn btn-secondary" onclick="Game.addAlternativeAddress()">Add Address</button>
       </div>
@@ -543,11 +546,18 @@
       </div>
 
       <!-- Admin LB Controls -->
-      <div id="admin-lb-controls" style="display:none; flex-direction: column; gap: 8px; margin-bottom: 15px; padding: 12px; background: rgba(255,193,7,0.1); border: 1.5px dashed #FFC107; border-radius: 12px;">
-        <div style="font-size: 11px; font-weight: 900; color: #856404; text-transform: uppercase; letter-spacing: 0.5px; text-align:center;">Admin Rankings Tools</div>
+      <div id="admin-lb-controls"
+        style="display:none; flex-direction: column; gap: 8px; margin-bottom: 15px; padding: 12px; background: rgba(255,193,7,0.1); border: 1.5px dashed #FFC107; border-radius: 12px;">
+        <div
+          style="font-size: 11px; font-weight: 900; color: #856404; text-transform: uppercase; letter-spacing: 0.5px; text-align:center;">
+          Admin Rankings Tools</div>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-          <button class="btn btn-secondary" onclick="Game.copyLeaderboardData()" style="margin-bottom:0; padding:10px; font-size:12px; background:#2196F3; color:white; border-bottom: 2px solid #0d47a1;">📋 Copy Data</button>
-          <button class="btn btn-secondary" onclick="Game.resetGlobalLeaderboard()" style="margin-bottom:0; padding:10px; font-size:12px; background:#f44336; color:white; border-bottom: 2px solid #b71c1c;">🔥 Reset All</button>
+          <button class="btn btn-secondary" onclick="Game.copyLeaderboardData()"
+            style="margin-bottom:0; padding:10px; font-size:12px; background:#2196F3; color:white; border-bottom: 2px solid #0d47a1;">📋
+            Copy Data</button>
+          <button class="btn btn-secondary" onclick="Game.resetGlobalLeaderboard()"
+            style="margin-bottom:0; padding:10px; font-size:12px; background:#f44336; color:white; border-bottom: 2px solid #b71c1c;">🔥
+            Reset All</button>
         </div>
       </div>
       <ol id="leaderboard-list" class="lb-list"></ol>
@@ -815,6 +825,29 @@
         <button class="btn btn-secondary" style="background: #ff4444; border-bottom: 3px solid #b71c1c;"
           onclick="Game.confirmLeave()">Just Go Home</button>
         <button class="btn btn-secondary" onclick="Game.cancelLeave()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ TASKS SCREEN ═══════════════ -->
+  <div id="screen-tasks" class="screen">
+    <div class="screen-card">
+      <div class="lb-title-row">
+        <h2 class="lb-title" style="color: #FF8C00;">DAILY TASKS</h2>
+      </div>
+      
+      <p style="font-size: 13px; color: #666; font-weight: 700; margin-bottom: 20px; text-align: center;">
+        Complete missions to earn massive Meme Points! 🚀
+      </p>
+
+      <div id="tasks-list" class="tasks-container">
+        <!-- Dynamically populated -->
+      </div>
+
+      <div class="batch-claim-footer">
+        <div id="batch-stats" class="batch-info">Total Claimable: 0 Meme Points</div>
+        <button id="btn-batch-claim" class="btn btn-primary" style="margin-bottom: 10px;" onclick="Game.doBatchClaim()">Batch Claim All (0.01 Eth)</button>
+        <button class="btn btn-secondary" onclick="Game.goHome()">Back to Home</button>
       </div>
     </div>
   </div>
