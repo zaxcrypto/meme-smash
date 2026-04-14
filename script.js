@@ -40,7 +40,8 @@ const Game = (() => {
     'leoo.jpg', 'leviop.jpg', 'licht.jpg', 'luka.jpg', 'malewicz.jpg', 'mayank.jpg', 'nobita.jpg', 
     'numaa.jpg', 'prakash.jpg', 'prashant.jpg', 'prateek.jpg', 'prithboy.jpg', 'prity.jpg', 'rahul.jpg', 
     'reeb.jpg', 'rio.jpg', 'riyaz.jpg', 'rjjax.jpg', 'rosaa.jpg', 'sakuna.jpg', 'shux.jpg', 'siluu.jpg', 'somrat.jpg', 
-    'starfish.jpg', 'sukanto.jpg', 'suraj.jpg', 'susmita.jpg', 'timister.jpg', 'toji.jpg', 'trung.jpg', 'virus.jpg', 'yakson.jpg'
+    'starfish.jpg', 'sukanto.jpg', 'suraj.jpg', 'susmita.jpg', 'timister.jpg', 'toji.jpg', 'trung.jpg', 'virus.jpg', 'yakson.jpg',
+    'comrade.jpg', 'fluxio.jpg'
   ];
 
   const FALLBACK_COINS = PROFILE_IMAGES.map(name => ({
@@ -878,6 +879,8 @@ const Game = (() => {
       } else if (o.x > W - o.radius) {
         o.x = W - o.radius;
         o.vx = -Math.abs(o.vx) * 0.85;
+      }
+
       // Top/Bottom (Full Frame Containment)
       if (o.y < o.radius) {
         o.y = o.radius;
@@ -890,6 +893,7 @@ const Game = (() => {
         // Slightly nudge VX to keep it dynamic
         o.vx += (Math.random() - 0.5) * 60;
       }
+
 
       // Age-based removal to prevent overcrowding since they never "fall off"
       o.age = (o.age || 0) + dt;
