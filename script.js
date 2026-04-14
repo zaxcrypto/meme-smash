@@ -497,7 +497,8 @@ const Game = (() => {
         dailyRevives: 0,
         lastResetDay: 0,
         claims: {}
-      }
+      },
+      socials: { twitter: '', telegram: '' }
     };
     if (!address) return fresh;
     const key = `meme_smash_profile_${address.toLowerCase()}`;
@@ -541,6 +542,14 @@ const Game = (() => {
     document.getElementById('profile-cumulative-score').textContent = profile.cumulativeScore;
     document.getElementById('playerName').value = profile.name;
     document.getElementById('hud-career-score').textContent = profile.cumulativeScore;
+    
+    // Socials
+    if (document.getElementById('profile-twitter')) {
+      document.getElementById('profile-twitter').value = profile.socials?.twitter || '';
+    }
+    if (document.getElementById('profile-telegram')) {
+      document.getElementById('profile-telegram').value = profile.socials?.telegram || '';
+    }
     
     const list = document.getElementById('saved-addresses-list');
     list.innerHTML = '';
@@ -616,6 +625,44 @@ const Game = (() => {
     profile.altAddresses.splice(index, 1);
     saveProfileData(address, profile);
     refreshProfileUI(address);
+  }
+
+  function saveSocials() {
+    const address = Web3.getConnectedAddress();
+    if (!address) return;
+    const profile = getProfileData(address);
+    if (!profile.socials) profile.socials = { twitter: '', telegram: '' };
+    profile.socials.twitter = document.getElementById('profile-twitter').value.trim();
+    profile.socials.telegram = document.getElementById('profile-telegram').value.trim();
+    saveProfileData(address, profile);
+    showToast('Social connections updated!');
+  }
+
+  function copySocial(platform, type) {
+    const inputId = platform === 'twitter' ? 'profile-twitter' : 'profile-telegram';
+    const handle = document.getElementById(inputId).value.trim();
+    if (!handle) { showToast('No handle entered'); return; }
+    
+    const textToCopy = type === 'uid' ? handle : _getSocialUrl(platform, handle);
+    navigator.clipboard.writeText(textToCopy).then(() => {
+      showToast(`${platform === 'twitter' ? 'Twitter' : 'Telegram'} ${type === 'uid' ? 'handle' : 'link'} copied!`);
+    });
+  }
+
+  function _getSocialUrl(platform, handle) {
+    const clean = handle.startsWith('@') ? handle.slice(1) : handle;
+    if (platform === 'twitter') return `https://twitter.com/${clean}`;
+    if (platform === 'telegram') return `https://t.me/${clean}`;
+    return handle;
+  }
+
+  function copySocialExternal(platform, type) {
+    const handle = platform === 'twitter' ? window._activeSocials?.twitter : window._activeSocials?.telegram;
+    if (!handle) return;
+    const textToCopy = type === 'uid' ? handle : _getSocialUrl(platform, handle);
+    navigator.clipboard.writeText(textToCopy).then(() => {
+      showToast('Copied to clipboard!');
+    });
   }
 
   function copyAddress(addr, btnEl) {
@@ -1760,6 +1807,31 @@ const Game = (() => {
           altList.innerHTML += `<div style="font-size:11px; font-family:monospace; margin-bottom:4px; padding:5px; background:rgba(0,0,0,0.1); border-radius:4px; border: 1px solid rgba(0,0,0,0.05);"><b>${escHtml(alt.desc)}</b>: <span style="user-select:all;">${escHtml(alt.address)}</span></div>`;
         });
       }
+
+      // Socials render
+      window._activeSocials = p.socials || { twitter: '', telegram: '' };
+      const tw = window._activeSocials.twitter;
+      const tg = window._activeSocials.telegram;
+      
+      document.getElementById('pub-twitter-handle').textContent = tw ? tw : '@NotAvailable';
+      document.getElementById('pub-twitter-handle').className = tw ? 'pub-social-handle' : 'pub-social-notav';
+      document.getElementById('pub-twitter-actions').style.display = tw ? 'flex' : 'none';
+
+      document.getElementById('pub-telegram-handle').textContent = tg ? tg : '@NotAvailable';
+      document.getElementById('pub-telegram-handle').className = tg ? 'pub-social-handle' : 'pub-social-notav';
+      document.getElementById('pub-telegram-actions').style.display = tg ? 'flex' : 'none';
+
+      // Admin Power
+      const viewerAddr = Web3.getConnectedAddress();
+      const adminSec = document.getElementById('pub-admin-socials');
+      if (isAdminWallet(viewerAddr)) {
+        adminSec.style.display = 'block';
+        document.getElementById('pub-admin-twitter').value = tw || '';
+        document.getElementById('pub-admin-telegram').value = tg || '';
+        document.getElementById('pub-admin-save').onclick = () => adminSaveSocials(addr);
+      } else {
+        adminSec.style.display = 'none';
+      }
       
       document.getElementById('modal-public-profile').classList.add('active');
     } catch(e) {
@@ -1769,6 +1841,34 @@ const Game = (() => {
 
   function closePublicProfile() {
     document.getElementById('modal-public-profile').classList.remove('active');
+    window._activeSocials = null;
+  }
+
+  async function adminSaveSocials(targetAddr) {
+    const viewerAddr = Web3.getConnectedAddress();
+    if (!isAdminWallet(viewerAddr)) return;
+
+    const tw = document.getElementById('pub-admin-twitter').value.trim();
+    const tg = document.getElementById('pub-admin-telegram').value.trim();
+    
+    const btn = document.getElementById('pub-admin-save');
+    const orig = btn.textContent;
+    btn.disabled = true; btn.textContent = 'Saving...';
+    
+    try {
+      // Update cloud directly for the target user
+      await setDoc(doc(db, 'users', targetAddr), {
+        profile: { socials: { twitter: tw, telegram: tg } }
+      }, { merge: true });
+      
+      showToast('User socials updated by Admin!');
+      showPublicProfile(targetAddr); // refresh
+    } catch(e) {
+      console.error(e);
+      alert('Admin save failed: ' + e.message);
+    } finally {
+      btn.disabled = false; btn.textContent = orig;
+    }
   }
 
   /* ── Admin Rankings Tools ── */
@@ -2976,6 +3076,9 @@ const Game = (() => {
     submitScoreMenu,
     showProfile,
     saveProfileName,
+    saveSocials,
+    copySocial,
+    copySocialExternal,
     addAlternativeAddress,
     removeAlternativeAddress,
     copyAddress,

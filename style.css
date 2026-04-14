@@ -648,6 +648,120 @@ body::after {
 }
 
 /* ══════════════════════════════════════
+   SOCIAL MEDIA STYLES
+   ══════════════════════════════════════ */
+.social-section {
+  text-align: left;
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid rgba(0,0,0,0.05);
+}
+
+.social-title {
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 12px;
+  color: var(--text-mid);
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.social-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  background: rgba(255,255,255,0.8);
+  padding: 8px 12px;
+  border-radius: 15px;
+  border: 1px solid rgba(200,160,255,0.3);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.social-icon-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.social-icon-btn.twitter { background: #000; color: white; }
+.social-icon-btn.telegram { background: #229ED9; color: white; }
+
+.social-input {
+  flex-grow: 1;
+  border: none;
+  background: transparent;
+  font-family: 'Nunito', sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text-dark);
+  outline: none;
+}
+
+.social-copy-group {
+  display: flex;
+  gap: 4px;
+}
+
+.social-copy-badge {
+  padding: 4px 8px;
+  font-size: 10px;
+  font-weight: 900;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.1s;
+  white-space: nowrap;
+}
+
+.badge-uid { background: rgba(255, 61, 174, 0.1); color: var(--hot-pink); border: 1px solid rgba(255, 61, 174, 0.2); }
+.badge-url { background: rgba(123, 47, 255, 0.1); color: var(--purple); border: 1px solid rgba(123, 47, 255, 0.2); }
+
+.social-copy-badge:active { transform: scale(0.95); opacity: 0.8; }
+
+.pub-social-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  padding: 10px;
+  background: rgba(255,255,255,0.6);
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,0.05);
+}
+
+.pub-social-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pub-social-handle {
+  font-weight: 800;
+  font-size: 14px;
+  color: var(--text-dark);
+}
+
+.pub-social-notav {
+  font-size: 11px;
+  color: #999;
+  font-style: italic;
+}
+
+.admin-edit-socials {
+  margin-top: 15px;
+  padding: 12px;
+  background: rgba(255, 140, 0, 0.05);
+  border: 1px dashed var(--orange);
+  border-radius: 12px;
+}
+
+/* ══════════════════════════════════════
    ULTRA PREMIUM BUTTONS
 ══════════════════════════════════════ */
 .btn {
