@@ -3005,9 +3005,9 @@ const Game = (() => {
     toggleRefInfo,
     resetGlobalLeaderboard,
     copyLeaderboardData,
-    showTasksModal: showTasksModal,
-    doTaskClaim: doTaskClaim,
-    doBatchClaim: doBatchClaim,
+    showTasksModal: function() { return showTasksModal(); },
+    doTaskClaim: function(ids) { return doTaskClaim(ids); },
+    doBatchClaim: function() { return doBatchClaim(); },
   };
 
 })();
