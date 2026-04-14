@@ -490,219 +490,29 @@ const Game = (() => {
       name: '', 
       cumulativeScore: 0, 
       altAddresses: [],
-      // Task system state
       taskStats: {
         dailyPlays: 0,
         dailyRevives: 0,
         lastResetDay: 0,
-        claims: {} // id -> timestamp
+        claims: {}
       }
     };
     if (!address) return fresh;
     const key = `meme_smash_profile_${address.toLowerCase()}`;
     const data = localStorage.getItem(key);
     if (!data) return fresh;
+
     try {
       const parsed = JSON.parse(data);
-      // Deep merge defaults
-      /* ═══════════════════════════════════════════
-     DAILY TASKS LOGIC
-  ═══════════════════════════════════════════ */
-  const TASK_DEFS = {
-    'daily-play-1':   { type: 'daily',  qty: 1,   reward: 100,  label: 'Daily Ninja', desc: 'Play 1 submitted game' },
-    'daily-play-5':   { type: 'daily',  qty: 5,   reward: 500,  label: 'Meme Warrior', desc: 'Play 5 submitted games' },
-    'daily-revive-1': { type: 'daily',  qty: 1,   reward: 300,  label: 'Survivor', desc: 'Revive 1 time in a game' },
-    'daily-revive-5': { type: 'daily',  qty: 5,   reward: 1000, label: 'Immortal', desc: 'Revive 5 times total' },
-    'weekly-streak-7':{ type: 'streak', qty: 7,   reward: 1000, label: 'Loyal Legend', desc: '7-Day Check-in Streak' },
-    'ref-1':          { type: 'ref',    qty: 1,   reward: 100,  label: 'Social Ninja', desc: 'Invite 1 friend' },
-    'ref-10':         { type: 'ref',    qty: 10,  reward: 1000, label: 'Team Leader', desc: 'Invite 10 friends' },
-    'ref-100':        { type: 'ref',    qty: 100, reward: 10000,label: 'Community King', desc: 'Invite 100+ friends' },
-  };
-
-  /** Task reset (daily) logic */
-  function _ensureTaskStats(profile) {
-    const today = getUtcDayNumber();
-    if (!profile.taskStats) {
-      profile.taskStats = { dailyPlays: 0, dailyRevives: 0, lastResetDay: today, claims: {} };
-    }
-    if (profile.taskStats.lastResetDay !== today) {
-      profile.taskStats.dailyPlays = 0;
-      profile.taskStats.dailyRevives = 0;
-      profile.taskStats.lastResetDay = today;
-      // Wipe daily claims so they can be re-earned tomorrow
-      for (let id in (profile.taskStats.claims||{})) {
-        if (TASK_DEFS[id] && TASK_DEFS[id].type === 'daily') {
-          delete profile.taskStats.claims[id];
-        }
-      }
-    }
-    return profile;
-  }
-
-  function recordTaskAction(type) {
-    const addr = Web3.getConnectedAddress();
-    if (!addr) return;
-    let profile = getProfileData(addr);
-    profile = _ensureTaskStats(profile);
-    if (type === 'play') profile.taskStats.dailyPlays++;
-    if (type === 'revive') profile.taskStats.dailyRevives++;
-    saveProfileData(addr, profile);
-  }
-
-  function getTaskProgress(id, addr) {
-    const profile = getProfileData(addr);
-    const def = TASK_DEFS[id];
-    if (!def) return 0;
-
-    if (def.type === 'daily') {
-      if (id.includes('play')) return (profile.taskStats||{}).dailyPlays || 0;
-      if (id.includes('revive')) return (profile.taskStats||{}).dailyRevives || 0;
-    }
-    if (def.type === 'streak') {
-      return getCheckinStatus(addr).currentStreak || 0;
-    }
-    if (def.type === 'ref') {
-      return getRefData(addr).referrals.length || 0;
-    }
-    return 0;
-  }
-
-  function showTasksModal() {
-    const addr = Web3.getConnectedAddress();
-    if (!addr) { showToast("Connect wallet to view tasks!", "⚠️"); return; }
-    
-    let profile = getProfileData(addr);
-    profile = _ensureTaskStats(profile);
-    saveProfileData(addr, profile);
-
-    renderTasksModal();
-    showScreen('screen-tasks');
-  }
-
-  function renderTasksModal() {
-    const addr = Web3.getConnectedAddress();
-    const list = document.getElementById('tasks-list');
-    if (!list || !addr) return;
-
-    const profile = getProfileData(addr);
-    const claims = (profile.taskStats||{}).claims || {};
-    
-    let html = '';
-    let totalClaimable = 0;
-
-    // Categories
-    const categories = {
-      'daily': { label: 'Daily Missions', icon: '⚡' },
-      'streak':{ label: 'Consistency Goals', icon: '🔥' },
-      'ref':   { label: 'Expansion Tasks', icon: '🌍' }
-    };
-
-    for (let cat in categories) {
-      html += `<div class="task-section-title">${categories[cat].icon} ${categories[cat].label}</div>`;
-      
-      for (let id in TASK_DEFS) {
-        const def = TASK_DEFS[id];
-        if (def.type !== cat) continue;
-
-        const progress = getTaskProgress(id, addr);
-        const isComplete = progress >= def.qty;
-        const isClaimed = !!claims[id];
-        const fillPct = Math.min(100, (progress / def.qty) * 100);
-
-        if (isComplete && !isClaimed) {
-          totalClaimable += def.reward;
-        }
-
-        html += `
-          <div class="task-card">
-            <div class="task-header">
-              <div class="task-info">
-                <span class="task-name">${def.label}</span>
-                <span class="task-reward">+${def.reward} Meme Points</span>
-              </div>
-              ${isClaimed ? 
-                '<div class="task-done-badge">✅ Claimed</div>' : 
-                (isComplete ? 
-                  `<button class="btn btn-primary btn-task-claim" onclick="Game.doTaskClaim(['${id}'])">Claim</button>` : 
-                  '<button class="btn btn-secondary btn-task-claim" disabled>Locked</button>')
-              }
-            </div>
-            <p style="font-size:11px; color:#777; margin:0 0 5px 0;">${def.desc}</p>
-            <div class="task-progress-container">
-              <div class="task-progress-bar" style="width: ${fillPct}%"></div>
-            </div>
-            <span class="task-progress-text">${progress} / ${def.qty}</span>
-          </div>
-        `;
-      }
-    }
-
-    list.innerHTML = html;
-    
-    const batchStats = document.getElementById('batch-stats');
-    const batchBtn   = document.getElementById('btn-batch-claim');
-    if (batchStats) batchStats.textContent = `Total Claimable: ${totalClaimable} Meme Points`;
-    if (batchBtn) {
-      batchBtn.disabled = totalClaimable === 0;
-      batchBtn.textContent = `Batch Claim (${totalClaimable} MP)`;
-    }
-  }
-
-  async function doTaskClaim(ids) {
-    const addr = Web3.getConnectedAddress();
-    if (!addr) return;
-    
-    let totalReward = 0;
-    ids.forEach(id => { totalReward += TASK_DEFS[id].reward; });
-    if (totalReward <= 0) return;
-
-    try {
-      // payment $0.01 Eth fixed fee
-      await Web3.sendETH(ADMIN_WALLET, 0.01, 'bc_sjkexp2o'); 
-
-      const profile = getProfileData(addr);
-      profile.cumulativeScore = (profile.cumulativeScore || 0) + totalReward;
-      
-      // Mark claimed
-      if (!profile.taskStats.claims) profile.taskStats.claims = {};
-      ids.forEach(id => {
-        profile.taskStats.claims[id] = Date.now();
-      });
-
-      saveProfileData(addr, profile);
-      refreshProfileUI(addr);
-      showToast(`${totalReward} Meme Points Claimed!`, "🏆");
-      renderTasksModal();
-    } catch(e) {
-      console.error(e);
-      showToast("Claim failed. Please try again.", "❌");
-    }
-  }
-
-  function doBatchClaim() {
-    const addr = Web3.getConnectedAddress();
-    if (!addr) return;
-    
-    const profile = getProfileData(addr);
-    const claims = (profile.taskStats||{}).claims || {};
-    let toClaim = [];
-
-    for (let id in TASK_DEFS) {
-      const def = TASK_DEFS[id];
-      const progress = getTaskProgress(id, addr);
-      if (progress >= def.qty && !claims[id]) {
-        toClaim.push(id);
-      }
-    }
-    if (toClaim.length > 0) doTaskClaim(toClaim);
-  }
-
-  return {
+      return {
         ...fresh,
         ...parsed,
         taskStats: { ...fresh.taskStats, ...(parsed.taskStats || {}) }
       };
-    } catch(e) { return fresh; }
+    } catch(e) {
+      console.warn("Error parsing profile data:", e);
+      return fresh;
+    }
   }
 
   function saveProfileData(address, data) {
@@ -2949,6 +2759,198 @@ const Game = (() => {
         }).join('');
       }
     }
+  }
+
+  /* ═══════════════════════════════════════════
+     DAILY TASKS LOGIC
+  ═══════════════════════════════════════════ */
+  const TASK_DEFS = {
+    'daily-play-1':   { type: 'daily',  qty: 1,   reward: 100,  label: 'Daily Ninja', desc: 'Play 1 submitted game' },
+    'daily-play-5':   { type: 'daily',  qty: 5,   reward: 500,  label: 'Meme Warrior', desc: 'Play 5 submitted games' },
+    'daily-revive-1': { type: 'daily',  qty: 1,   reward: 300,  label: 'Survivor', desc: 'Revive 1 time in a game' },
+    'daily-revive-5': { type: 'daily',  qty: 5,   reward: 1000, label: 'Immortal', desc: 'Revive 5 times total' },
+    'weekly-streak-7':{ type: 'streak', qty: 7,   reward: 1000, label: 'Loyal Legend', desc: '7-Day Check-in Streak' },
+    'ref-1':          { type: 'ref',    qty: 1,   reward: 100,  label: 'Social Ninja', desc: 'Invite 1 friend' },
+    'ref-10':         { type: 'ref',    qty: 10,  reward: 1000, label: 'Team Leader', desc: 'Invite 10 friends' },
+    'ref-100':        { type: 'ref',    qty: 100, reward: 10000,label: 'Community King', desc: 'Invite 100+ friends' },
+  };
+
+  /** Task reset (daily) logic */
+  function _ensureTaskStats(profile) {
+    const today = getUtcDayNumber();
+    if (!profile.taskStats) {
+      profile.taskStats = { dailyPlays: 0, dailyRevives: 0, lastResetDay: today, claims: {} };
+    }
+    if (profile.taskStats.lastResetDay !== today) {
+      profile.taskStats.dailyPlays = 0;
+      profile.taskStats.dailyRevives = 0;
+      profile.taskStats.lastResetDay = today;
+      // Wipe daily claims so they can be re-earned tomorrow
+      for (let id in (profile.taskStats.claims||{})) {
+        if (TASK_DEFS[id] && TASK_DEFS[id].type === 'daily') {
+          delete profile.taskStats.claims[id];
+        }
+      }
+    }
+    return profile;
+  }
+
+  function recordTaskAction(type) {
+    const addr = Web3.getConnectedAddress();
+    if (!addr) return;
+    let profile = getProfileData(addr);
+    profile = _ensureTaskStats(profile);
+    if (type === 'play') profile.taskStats.dailyPlays++;
+    if (type === 'revive') profile.taskStats.dailyRevives++;
+    saveProfileData(addr, profile);
+  }
+
+  function getTaskProgress(id, addr) {
+    const profile = getProfileData(addr);
+    const def = TASK_DEFS[id];
+    if (!def) return 0;
+
+    if (def.type === 'daily') {
+      if (id.includes('play')) return (profile.taskStats||{}).dailyPlays || 0;
+      if (id.includes('revive')) return (profile.taskStats||{}).dailyRevives || 0;
+    }
+    if (def.type === 'streak') {
+      return getCheckinStatus(addr).currentStreak || 0;
+    }
+    if (def.type === 'ref') {
+      return getRefData(addr).referrals.length || 0;
+    }
+    return 0;
+  }
+
+  function showTasksModal() {
+    const addr = Web3.getConnectedAddress();
+    if (!addr) { showToast("Connect wallet to view tasks!", "⚠️"); return; }
+    
+    let profile = getProfileData(addr);
+    profile = _ensureTaskStats(profile);
+    saveProfileData(addr, profile);
+
+    renderTasksModal();
+    showScreen('screen-tasks');
+  }
+
+  function renderTasksModal() {
+    const addr = Web3.getConnectedAddress();
+    const list = document.getElementById('tasks-list');
+    if (!list || !addr) return;
+
+    const profile = getProfileData(addr);
+    const claims = (profile.taskStats||{}).claims || {};
+    
+    let html = '';
+    let totalClaimable = 0;
+
+    // Categories
+    const categories = {
+      'daily': { label: 'Daily Missions', icon: '⚡' },
+      'streak':{ label: 'Consistency Goals', icon: '🔥' },
+      'ref':   { label: 'Expansion Tasks', icon: '🌍' }
+    };
+
+    for (let cat in categories) {
+      html += `<div class="task-section-title">${categories[cat].icon} ${categories[cat].label}</div>`;
+      
+      for (let id in TASK_DEFS) {
+        const def = TASK_DEFS[id];
+        if (def.type !== cat) continue;
+
+        const progress = getTaskProgress(id, addr);
+        const isComplete = progress >= def.qty;
+        const isClaimed = !!claims[id];
+        const fillPct = Math.min(100, (progress / def.qty) * 100);
+
+        if (isComplete && !isClaimed) {
+          totalClaimable += def.reward;
+        }
+
+        html += `
+          <div class="task-card">
+            <div class="task-header">
+              <div class="task-info">
+                <span class="task-name">${def.label}</span>
+                <span class="task-reward">+${def.reward} Meme Points</span>
+              </div>
+              ${isClaimed ? 
+                '<div class="task-done-badge">✅ Claimed</div>' : 
+                (isComplete ? 
+                  `<button class="btn btn-primary btn-task-claim" onclick="Game.doTaskClaim(['${id}'])">Claim</button>` : 
+                  '<button class="btn btn-secondary btn-task-claim" disabled>Locked</button>')
+              }
+            </div>
+            <p style="font-size:11px; color:#777; margin:0 0 5px 0;">${def.desc}</p>
+            <div class="task-progress-container">
+              <div class="task-progress-bar" style="width: ${fillPct}%"></div>
+            </div>
+            <span class="task-progress-text">${progress} / ${def.qty}</span>
+          </div>
+        `;
+      }
+    }
+
+    list.innerHTML = html;
+    
+    const batchStats = document.getElementById('batch-stats');
+    const batchBtn   = document.getElementById('btn-batch-claim');
+    if (batchStats) batchStats.textContent = `Total Claimable: ${totalClaimable} Meme Points`;
+    if (batchBtn) {
+      batchBtn.disabled = totalClaimable === 0;
+      batchBtn.textContent = `Batch Claim (${totalClaimable} MP)`;
+    }
+  }
+
+  async function doTaskClaim(ids) {
+    const addr = Web3.getConnectedAddress();
+    if (!addr) return;
+    
+    let totalReward = 0;
+    ids.forEach(id => { totalReward += TASK_DEFS[id].reward; });
+    if (totalReward <= 0) return;
+
+    try {
+      // payment $0.01 Eth fixed fee
+      await Web3.sendETH(ADMIN_WALLET, 0.01, 'bc_sjkexp2o'); 
+
+      const profile = getProfileData(addr);
+      profile.cumulativeScore = (profile.cumulativeScore || 0) + totalReward;
+      
+      // Mark claimed
+      if (!profile.taskStats.claims) profile.taskStats.claims = {};
+      ids.forEach(id => {
+        profile.taskStats.claims[id] = Date.now();
+      });
+
+      saveProfileData(addr, profile);
+      refreshProfileUI(addr);
+      showToast(`${totalReward} Meme Points Claimed!`, "🏆");
+      renderTasksModal();
+    } catch(e) {
+      console.error(e);
+      showToast("Claim failed. Please try again.", "❌");
+    }
+  }
+
+  function doBatchClaim() {
+    const addr = Web3.getConnectedAddress();
+    if (!addr) return;
+    
+    const profile = getProfileData(addr);
+    const claims = (profile.taskStats||{}).claims || {};
+    let toClaim = [];
+
+    for (let id in TASK_DEFS) {
+      const def = TASK_DEFS[id];
+      const progress = getTaskProgress(id, addr);
+      if (progress >= def.qty && !claims[id]) {
+        toClaim.push(id);
+      }
+    }
+    if (toClaim.length > 0) doTaskClaim(toClaim);
   }
 
   /* ═══════════════════════════════════════════
