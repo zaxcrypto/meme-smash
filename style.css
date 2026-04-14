@@ -823,9 +823,9 @@ body::after {
   right: 18px;
   width: 32px;
   height: 32px;
-  background: linear-gradient(180deg, #FF5F5F 0%, #D90000 100%) !important;
+  background: linear-gradient(180deg, #FF4B4B 0%, #E60000 100%) !important;
   color: white !important;
-  border-radius: 8px;
+  border-radius: 9px;
   display: flex !important;
   align-items: center;
   justify-content: center;
@@ -834,10 +834,12 @@ body::after {
   cursor: pointer;
   border: none !important;
   box-shadow: 
-    0 4px 10px rgba(217, 0, 0, 0.35),
+    0 0 12px rgba(230, 0, 0, 0.6),
+    0 4px 8px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  filter: drop-shadow(0 0 2px rgba(255, 0, 0, 0.4));
   z-index: 1000;
-  transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1), filter 0.1s;
+  transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1), filter 0.1s, box-shadow 0.1s;
   line-height: 1;
   padding: 0;
   text-decoration: none;
