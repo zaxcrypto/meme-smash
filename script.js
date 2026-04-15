@@ -10,23 +10,23 @@ const Game = (() => {
      CONFIG
   ═══════════════════════════════════════════ */
   const CFG = {
-    gravity:           1100,      // Even more floaty and relaxed
-    trailLength:       20,
-    trailFadeMs:       120,
+    gravity: 1100,      // Even more floaty and relaxed
+    trailLength: 20,
+    trailFadeMs: 120,
     spawnIntervalBase: 1300,      // Slower baseline
-    spawnIntervalMin:  850,       // Keep it from getting too crowded
-    coinsPerWaveBase:  1,
-    coinsPerWaveMax:   3,         // Maximum items at any time
-    difficultyStep:    30000,
-    bombRatio:         5,         // Bombs appear even less frequently
-    maxDiffLevel:      6,
-    particleCount:     16,
-    coinRadius:        38,
-    bombRadius:        34,
-    scoreCommon:       1,
-    scoreRareMin:      2,
-    scoreRareMax:      5,
-    rareChance:        0.12,
+    spawnIntervalMin: 850,       // Keep it from getting too crowded
+    coinsPerWaveBase: 1,
+    coinsPerWaveMax: 3,         // Maximum items at any time
+    difficultyStep: 30000,
+    bombRatio: 5,         // Bombs appear even less frequently
+    maxDiffLevel: 6,
+    particleCount: 16,
+    coinRadius: 38,
+    bombRadius: 34,
+    scoreCommon: 1,
+    scoreRareMin: 2,
+    scoreRareMax: 5,
+    rareChance: 0.12,
   };
 
   const ADMIN_WALLET = '0xd448777940dFaBF65FD259fA8a9903e60E1FF178';
@@ -35,13 +35,13 @@ const Game = (() => {
      FRIENDS PROFILE DATA
   ═══════════════════════════════════════════ */
   const PROFILE_IMAGES = [
-    'aashir.jpg', 'abdul.jpg', 'abhay.jpg', 'abiiix.jpg', 'acolous.jpg', 'akash.jpg', 'alvin.jpg', 
-    'amelia.jpg', 'ankit.jpg', 'anya.jpg', 'beamnxw.jpg', 'bigbella.jpg', 'biswa.jpg', 'bitbull.jpg', 
-    'blurryface.jpg', 'cantonboy.jpg', 'cipherr.jpg', 'cj.jpg', 'danny.jpg', 'dex.jpg', 'elora.jpg', 
-    'finopps.jpg', 'harry.jpg', 'hush.jpg', 'jay.jpg', 'karakot.jpg', 'kingsman.jpg', 'krishna.jpg', 
-    'leoo.jpg', 'leviop.jpg', 'licht.jpg', 'luka.jpg', 'malewicz.jpg', 'mayank.jpg', 'nobita.jpg', 
-    'numaa.jpg', 'prakash.jpg', 'prashant.jpg', 'prateek.jpg', 'prithboy.jpg', 'prity.jpg', 'rahul.jpg', 
-    'reeb.jpg', 'rio.jpg', 'riyaz.jpg', 'rjjax.jpg', 'rosaa.jpg', 'sakuna.jpg', 'shux.jpg', 'siluu.jpg', 'somrat.jpg', 
+    'aashir.jpg', 'abdul.jpg', 'abhay.jpg', 'abiiix.jpg', 'acolous.jpg', 'akash.jpg', 'alvin.jpg',
+    'amelia.jpg', 'ankit.jpg', 'anya.jpg', 'beamnxw.jpg', 'bigbella.jpg', 'biswa.jpg', 'bitbull.jpg',
+    'blurryface.jpg', 'cantonboy.jpg', 'cipherr.jpg', 'cj.jpg', 'danny.jpg', 'dex.jpg', 'elora.jpg',
+    'finopps.jpg', 'harry.jpg', 'hush.jpg', 'jay.jpg', 'karakot.jpg', 'kingsman.jpg', 'krishna.jpg',
+    'leoo.jpg', 'leviop.jpg', 'licht.jpg', 'luka.jpg', 'malewicz.jpg', 'mayank.jpg', 'nobita.jpg',
+    'numaa.jpg', 'prakash.jpg', 'prashant.jpg', 'prateek.jpg', 'prithboy.jpg', 'prity.jpg', 'rahul.jpg',
+    'reeb.jpg', 'rio.jpg', 'riyaz.jpg', 'rjjax.jpg', 'rosaa.jpg', 'sakuna.jpg', 'shux.jpg', 'siluu.jpg', 'somrat.jpg',
     'starfish.jpg', 'sukanto.jpg', 'suraj.jpg', 'susmita.jpg', 'timister.jpg', 'toji.jpg', 'trung.jpg', 'virus.jpg', 'yakson.jpg',
     'comrade.jpg', 'fluxio.jpg', '0x_art.jpg', 'hash.jpg', 'maddy.jpg', 'raj.jpg'
   ];
@@ -60,29 +60,29 @@ const Game = (() => {
   let canvas, ctx;
   let W, H;
   let rafId;
-  let lastTime   = 0;
+  let lastTime = 0;
   let playerName = '';
-  let score      = 0;
-  let diffLevel  = 1;
+  let score = 0;
+  let diffLevel = 1;
   let missedCoins = 0;
   let bombStrikes = 0;
-  let timeLeft    = 60;      // Changed from 120s to 60s
+  let timeLeft = 60;      // Changed from 120s to 60s
   const gameDuration = 60;
   let coinSpawnCounter = 0;   // for bomb ratio
   let spawnInterval;          // current ms between spawns
   let coinsPerWave;
   let nextSpawnTime = 0;
-  let diffTimer    = 0;
-  let isPlaying    = false;
-  let isGameOver   = false;
-  let isPaused     = false;
+  let diffTimer = 0;
+  let isPlaying = false;
+  let isGameOver = false;
+  let isPaused = false;
   let hasSubmittedRunScore = false;
   let lastPausedTime = 0;
   let totalPauseTime = 0;
-  let isMuted      = false;
+  let isMuted = false;
 
-  const objects   = [];       // live coins + bombs
-  const halves    = [];       // sliced halves
+  const objects = [];       // live coins + bombs
+  const halves = [];       // sliced halves
   const particles = [];       // burst particles
 
   // Swipe trail
@@ -94,7 +94,7 @@ const Game = (() => {
   let coinQueue = [];         // Sequential spawning set
 
   // Shake
-  let shakeFrames  = 0;
+  let shakeFrames = 0;
   let shakeMagnitude = 0;
 
   // Combo tracking
@@ -106,11 +106,11 @@ const Game = (() => {
   ═══════════════════════════════════════════ */
   let audioCtx;
   function ensureAudio() {
-    if (!audioCtx) { try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){} }
+    if (!audioCtx) { try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { } }
   }
-  function playTone(freq, type, duration, gain=0.18) {
+  function playTone(freq, type, duration, gain = 0.18) {
     if (isMuted) return;
-    ensureAudio(); if(!audioCtx) return;
+    ensureAudio(); if (!audioCtx) return;
     try {
       const o = audioCtx.createOscillator();
       const g = audioCtx.createGain();
@@ -119,20 +119,20 @@ const Game = (() => {
       g.gain.setValueAtTime(gain, audioCtx.currentTime);
       g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
       o.start(); o.stop(audioCtx.currentTime + duration);
-    } catch(e){}
+    } catch (e) { }
   }
   function sfxSlice() {
     if (isMuted) return;
     if (weeeAudioEl) {
       const clone = weeeAudioEl.cloneNode();
       clone.volume = 0.5;
-      clone.play().catch(e => playTone(880,'sawtooth',0.12,0.12));
+      clone.play().catch(e => playTone(880, 'sawtooth', 0.12, 0.12));
     } else {
-      playTone(880,'sawtooth',0.12,0.12);
+      playTone(880, 'sawtooth', 0.12, 0.12);
     }
   }
-  function sfxScore()  { playTone(1200,'sine',0.08,0.1); }
-  function sfxMiss()   {}
+  function sfxScore() { playTone(1200, 'sine', 0.08, 0.1); }
+  function sfxMiss() { }
 
   // Sounds
   let bombAudioEl = null;
@@ -147,7 +147,7 @@ const Game = (() => {
 
       weeeAudioEl = new Audio('/weee.mp3');
       weeeAudioEl.volume = 0.5;
-    } catch(e) {
+    } catch (e) {
       console.warn("Audio load error:", e);
     }
   }
@@ -194,7 +194,7 @@ const Game = (() => {
       nGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
       noise.connect(bp); bp.connect(nGain); nGain.connect(audioCtx.destination);
       noise.start(); noise.stop(audioCtx.currentTime + 0.7);
-    } catch(e){}
+    } catch (e) { }
   }
 
   // COMBO sounds
@@ -207,14 +207,14 @@ const Game = (() => {
         const o = audioCtx.createOscillator();
         const g = audioCtx.createGain();
         o.type = 'sine'; o.frequency.value = f;
-        g.gain.setValueAtTime(0, audioCtx.currentTime + i*0.12);
-        g.gain.linearRampToValueAtTime(0.25, audioCtx.currentTime + i*0.12 + 0.02);
-        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + i*0.12 + 0.22);
+        g.gain.setValueAtTime(0, audioCtx.currentTime + i * 0.12);
+        g.gain.linearRampToValueAtTime(0.25, audioCtx.currentTime + i * 0.12 + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + i * 0.12 + 0.22);
         o.connect(g); g.connect(audioCtx.destination);
-        o.start(audioCtx.currentTime + i*0.12);
-        o.stop(audioCtx.currentTime + i*0.12 + 0.25);
+        o.start(audioCtx.currentTime + i * 0.12);
+        o.stop(audioCtx.currentTime + i * 0.12 + 0.25);
       });
-    } catch(e){}
+    } catch (e) { }
   }
 
   function sfxCombo3() {
@@ -226,14 +226,14 @@ const Game = (() => {
         const o = audioCtx.createOscillator();
         const g = audioCtx.createGain();
         o.type = 'triangle'; o.frequency.value = f;
-        g.gain.setValueAtTime(0, audioCtx.currentTime + i*0.1);
-        g.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + i*0.1 + 0.02);
-        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + i*0.1 + 0.28);
+        g.gain.setValueAtTime(0, audioCtx.currentTime + i * 0.1);
+        g.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + i * 0.1 + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + i * 0.1 + 0.28);
         o.connect(g); g.connect(audioCtx.destination);
-        o.start(audioCtx.currentTime + i*0.1);
-        o.stop(audioCtx.currentTime + i*0.1 + 0.32);
+        o.start(audioCtx.currentTime + i * 0.1);
+        o.stop(audioCtx.currentTime + i * 0.1 + 0.32);
       });
-    } catch(e){}
+    } catch (e) { }
   }
 
   /* ═══════════════════════════════════════════
@@ -244,11 +244,11 @@ const Game = (() => {
       if (imgCache[coin.id]) { resolve(); return; }
       const img = new Image();
       // img.crossOrigin = 'anonymous'; // Removed for local assets to prevent load failures
-      img.onload  = () => { imgCache[coin.id] = img; resolve(); };
-      img.onerror = () => { 
+      img.onload = () => { imgCache[coin.id] = img; resolve(); };
+      img.onerror = () => {
         console.error("Failed to load image:", coin.img);
-        imgCache[coin.id] = null; 
-        resolve(); 
+        imgCache[coin.id] = null;
+        resolve();
       };
       img.src = coin.img;
     })));
@@ -267,7 +267,7 @@ const Game = (() => {
     screens.forEach(s => {
       s.classList.remove('active');
     });
-    
+
     // 2. Mark target active
     const el = document.getElementById(id);
     if (el) {
@@ -282,13 +282,13 @@ const Game = (() => {
       container.className = 'toast-container';
       document.body.appendChild(container);
     }
-    
+
     const toast = document.createElement('div');
     toast.className = 'toast';
     toast.innerHTML = `<span class="toast-icon">${icon}</span> <span>${msg}</span>`;
-    
+
     container.appendChild(toast);
-    
+
     // Remove after animation (3s total per CSS)
     setTimeout(() => {
       toast.remove();
@@ -301,7 +301,7 @@ const Game = (() => {
   ═══════════════════════════════════════════ */
   async function init() {
     canvas = document.getElementById('gameCanvas');
-    ctx    = canvas.getContext('2d');
+    ctx = canvas.getContext('2d');
     resize();
     window.addEventListener('resize', resize);
     initAudio();
@@ -314,16 +314,16 @@ const Game = (() => {
     await loadImages(coinDefs);
 
     // Input
-    canvas.addEventListener('mousemove',  onMouseMove, { passive: false });
-    canvas.addEventListener('mousedown',  onPointerDown, { passive: false });
-    canvas.addEventListener('mouseup',    onPointerUp, { passive: false });
+    canvas.addEventListener('mousemove', onMouseMove, { passive: false });
+    canvas.addEventListener('mousedown', onPointerDown, { passive: false });
+    canvas.addEventListener('mouseup', onPointerUp, { passive: false });
     canvas.addEventListener('mouseleave', onPointerUp, { passive: false });
-    canvas.addEventListener('touchmove',  onTouchMove, { passive: false });
+    canvas.addEventListener('touchmove', onTouchMove, { passive: false });
     canvas.addEventListener('touchstart', onTouchStart, { passive: false });
-    canvas.addEventListener('touchend',   onPointerUp, { passive: false });
+    canvas.addEventListener('touchend', onPointerUp, { passive: false });
 
     showScreen('screen-home');
-    
+
     // Auto-Connect previously approved wallets
     Web3.autoConnectWallet().then(addr => {
       if (addr) updatePlayButtonState();
@@ -331,7 +331,7 @@ const Game = (() => {
   }
 
   function resize() {
-    W = canvas.width  = window.innerWidth;
+    W = canvas.width = window.innerWidth;
     H = canvas.height = window.innerHeight;
   }
 
@@ -341,7 +341,7 @@ const Game = (() => {
     ctx.fillStyle = '#2D1060';
     ctx.font = 'bold 20px Nunito, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('Loading meme coins... 🚀', (canvas.width||320)/2, (canvas.height||600)/2);
+    ctx.fillText('Loading meme coins... 🚀', (canvas.width || 320) / 2, (canvas.height || 600) / 2);
   }
 
   /* ═══════════════════════════════════════════
@@ -365,14 +365,14 @@ const Game = (() => {
     resetGameState();
     showScreen('screen-hud');
     isPlaying = true;
-    lastTime  = performance.now();
+    lastTime = performance.now();
     if (rafId) cancelAnimationFrame(rafId);
     rafId = requestAnimationFrame(gameLoop);
   }
 
   async function handleWalletAction() {
     const btn = document.getElementById('btn-connect');
-    
+
     if (Web3.getConnectedAddress()) {
       await Web3.disconnectWallet();
       updatePlayButtonState();
@@ -406,7 +406,7 @@ const Game = (() => {
         if (data.fees) localStorage.setItem(`meme_smash_fees_${addr.toLowerCase()}`, JSON.stringify(data.fees));
         if (data.checkin) localStorage.setItem(`meme_smash_checkin_${addr.toLowerCase()}`, JSON.stringify(data.checkin));
       }
-    } catch(e) {
+    } catch (e) {
       console.warn("Cloud sync error:", e);
     }
   }
@@ -419,7 +419,7 @@ const Game = (() => {
       const bindingInfo = JSON.parse(localStorage.getItem(`meme_smash_binding_${addr.toLowerCase()}`) || 'null');
       const feesInfo = JSON.parse(localStorage.getItem(`meme_smash_fees_${addr.toLowerCase()}`) || 'null');
       const checkinInfo = JSON.parse(localStorage.getItem(`meme_smash_checkin_${addr.toLowerCase()}`) || 'null');
-      
+
       const payload = {};
       if (profileInfo) payload.profile = profileInfo;
       if (refDataInfo) payload.refData = refDataInfo;
@@ -427,8 +427,8 @@ const Game = (() => {
       if (feesInfo) payload.fees = feesInfo;
       if (checkinInfo) payload.checkin = checkinInfo;
 
-      setDoc(doc(db, 'users', addr.toLowerCase()), payload, { merge: true }).catch(e=>console.warn("Cloud write err:", e));
-    } catch(e){}
+      setDoc(doc(db, 'users', addr.toLowerCase()), payload, { merge: true }).catch(e => console.warn("Cloud write err:", e));
+    } catch (e) { }
   }
 
   function updatePlayButtonState() {
@@ -452,13 +452,13 @@ const Game = (() => {
       btnStart.style.opacity = '1';
       btnStart.style.filter = 'none';
       btnStart.textContent = 'Play Now';
-      
+
       btnProfile.disabled = false;
       btnProfile.style.opacity = '1';
       btnProfile.style.filter = 'none';
 
       btnConnect.textContent = 'Disconnect';
-      addrEl.textContent = `${address.slice(0,6)}...${address.slice(-4)}`;
+      addrEl.textContent = `${address.slice(0, 6)}...${address.slice(-4)}`;
       addrEl.style.display = 'block';
     } else {
       btnStart.disabled = true;
@@ -469,7 +469,7 @@ const Game = (() => {
       btnProfile.disabled = true;
       btnProfile.style.opacity = '0.5';
       btnProfile.style.filter = 'grayscale(1)';
-      
+
       btnConnect.textContent = 'Connect Wallet';
       addrEl.style.display = 'none';
     }
@@ -488,9 +488,9 @@ const Game = (() => {
      PROFILE & LOCAL DATA
   ═══════════════════════════════════════════ */
   function getProfileData(address) {
-    const fresh = { 
-      name: '', 
-      cumulativeScore: 0, 
+    const fresh = {
+      name: '',
+      cumulativeScore: 0,
       altAddresses: [],
       taskStats: {
         dailyPlays: 0,
@@ -512,7 +512,7 @@ const Game = (() => {
         ...parsed,
         taskStats: { ...fresh.taskStats, ...(parsed.taskStats || {}) }
       };
-    } catch(e) {
+    } catch (e) {
       console.warn("Error parsing profile data:", e);
       return fresh;
     }
@@ -528,7 +528,7 @@ const Game = (() => {
   function refreshProfileUI(address) {
     const profile = getProfileData(address);
     const addrEl = document.getElementById('profile-connected-address');
-    
+
     if (address && address.length >= 42) {
       addrEl.textContent = `${address.slice(0, 10)}...${address.slice(-8)}`;
       addrEl.dataset.full = address;
@@ -538,11 +538,11 @@ const Game = (() => {
       addrEl.dataset.full = '';
       document.getElementById('btn-copy-primary').style.display = 'none';
     }
-    
+
     document.getElementById('profile-cumulative-score').textContent = profile.cumulativeScore;
     document.getElementById('playerName').value = profile.name;
     document.getElementById('hud-career-score').textContent = profile.cumulativeScore;
-    
+
     // Socials
     if (document.getElementById('profile-twitter')) {
       document.getElementById('profile-twitter').value = profile.socials?.twitter || '';
@@ -550,10 +550,10 @@ const Game = (() => {
     if (document.getElementById('profile-telegram')) {
       document.getElementById('profile-telegram').value = profile.socials?.telegram || '';
     }
-    
+
     const list = document.getElementById('saved-addresses-list');
     list.innerHTML = '';
-    
+
     if (profile.altAddresses.length === 0) {
       list.innerHTML = '<div style="font-size:12px; color:rgba(255,255,255,0.5);">No secondary addresses saved yet.</div>';
     } else {
@@ -563,7 +563,7 @@ const Game = (() => {
         item.innerHTML = `
           <div class="alt-wallet-info">
             <span class="alt-wallet-desc">${alt.desc}</span>
-            <span class="alt-wallet-addr">${alt.address.slice(0,10)}...${alt.address.slice(-8)}</span>
+            <span class="alt-wallet-addr">${alt.address.slice(0, 10)}...${alt.address.slice(-8)}</span>
           </div>
           <div style="display:flex; gap: 5px;">
             <button class="alt-wallet-copy-btn" onclick="Game.copyAddress('${alt.address}', this)">Copy</button>
@@ -603,7 +603,7 @@ const Game = (() => {
     if (!address) return;
     const altAddr = document.getElementById('alt-address-input').value.trim();
     const altDesc = document.getElementById('alt-desc-input').value.trim() || 'Additional';
-    
+
     if (!/^0x[a-fA-F0-9]{40}$/.test(altAddr)) {
       alert("Invalid EVM Address");
       return;
@@ -676,16 +676,16 @@ const Game = (() => {
       // Direct trigger for mobile compatibility (avoids popup blockage)
       btn.disabled = true;
       btn.textContent = 'Opening Wallet...';
-      
+
       await Web3.payToRevive();
-      
+
       // Track fee for referral system
       const feeAddr = Web3.getConnectedAddress();
       if (feeAddr) {
         recordFeePayment(feeAddr, 'revive', 0.05);
         recordTaskAction('revive');
       }
-      
+
       btn.textContent = 'Success!';
       setTimeout(() => {
         btn.textContent = originalText;
@@ -709,12 +709,12 @@ const Game = (() => {
     objects.length = 0;
     missedCoins = 0;
     bombStrikes = 0;
-    
+
     // If times was up, reset it. If bombs were up, keep the same time.
     if (timeLeft <= 0) {
       timeLeft = gameDuration;
     }
-    
+
     isPlaying = true;
     isGameOver = false;
     updateHUD();
@@ -729,14 +729,14 @@ const Game = (() => {
     try {
       btn.disabled = true;
       btn.textContent = 'Waiting for Wallet...';
-      
+
       await Web3.payToSubmitScore();
       btn.textContent = 'Score Submitted!';
-      
+
       recordTaskAction('play');
 
       hasSubmittedRunScore = true;
-      
+
       // Add to Career Score
       const addr = Web3.getConnectedAddress();
       if (addr) {
@@ -766,7 +766,7 @@ const Game = (() => {
       resetGameState();
       showScreen('screen-hud');
       isPlaying = true;
-      lastTime  = performance.now();
+      lastTime = performance.now();
       if (rafId) cancelAnimationFrame(rafId);
       rafId = requestAnimationFrame(gameLoop);
     } else {
@@ -775,25 +775,25 @@ const Game = (() => {
   }
 
   function resetGameState() {
-    objects.length    = 0;
-    halves.length     = 0;
-    particles.length  = 0;
-    trail.length      = 0;
-    recentSliceTimes  = [];
-    score             = 0;
-    diffLevel         = 1;
-    missedCoins       = 0;
-    bombStrikes       = 0;
-    coinSpawnCounter  = 0;
-    spawnInterval     = CFG.spawnIntervalBase;
-    coinsPerWave      = CFG.coinsPerWaveBase;
-    timeLeft          = gameDuration;
-    nextSpawnTime     = 0;
-    diffTimer         = 0;
-    diffLevel         = 1;
-    isGameOver        = false;
+    objects.length = 0;
+    halves.length = 0;
+    particles.length = 0;
+    trail.length = 0;
+    recentSliceTimes = [];
+    score = 0;
+    diffLevel = 1;
+    missedCoins = 0;
+    bombStrikes = 0;
+    coinSpawnCounter = 0;
+    spawnInterval = CFG.spawnIntervalBase;
+    coinsPerWave = CFG.coinsPerWaveBase;
+    timeLeft = gameDuration;
+    nextSpawnTime = 0;
+    diffTimer = 0;
+    diffLevel = 1;
+    isGameOver = false;
     hasSubmittedRunScore = false;
-    shakeFrames       = 0;
+    shakeFrames = 0;
 
     // Reset spawning queue
     coinQueue = [];
@@ -806,10 +806,10 @@ const Game = (() => {
   }
 
   function gameOver(isTimeout = false) {
-    isPlaying  = false;
+    isPlaying = false;
     isGameOver = true;
     cancelAnimationFrame(rafId);
-    
+
     // Hide revive button if game ended due to timeout
     const rb = document.getElementById('btn-revive');
     if (rb) rb.style.display = isTimeout ? 'none' : 'block';
@@ -819,7 +819,7 @@ const Game = (() => {
       triggerBombFlash();
       triggerShake(18, 22);
     }
-    
+
     const addr = Web3.getConnectedAddress();
     if (addr) {
       const profile = getProfileData(addr);
@@ -831,7 +831,7 @@ const Game = (() => {
 
     setTimeout(() => {
       document.getElementById('gameover-name').textContent = playerName;
-      document.getElementById('final-score').textContent   = score;
+      document.getElementById('final-score').textContent = score;
       showScreen('screen-gameover');
     }, 900);
   }
@@ -945,14 +945,14 @@ const Game = (() => {
     // Difficulty progression based on timer
     const elapsed = gameDuration - timeLeft;
     const progress = Math.min(elapsed / gameDuration, 1);
-    
+
     // Scale difficulty levels (1 to 6) optimized for a 60-second session
     const newLevel = 1 + Math.floor(progress * 5);
     if (newLevel > diffLevel) {
       diffLevel = newLevel;
       // Faster but smoother scaling for 60s intensity
       spawnInterval = Math.max(CFG.spawnIntervalMin, CFG.spawnIntervalBase * (1 - progress * 0.3));
-      coinsPerWave  = Math.min(CFG.coinsPerWaveMax, CFG.coinsPerWaveBase + Math.floor(progress * 2));
+      coinsPerWave = Math.min(CFG.coinsPerWaveMax, CFG.coinsPerWaveBase + Math.floor(progress * 2));
       document.getElementById('hud-level').textContent = diffLevel;
     }
 
@@ -966,12 +966,12 @@ const Game = (() => {
     for (let i = objects.length - 1; i >= 0; i--) {
       const o = objects[i];
       o.vy += CFG.gravity * dt;
-      o.x  += o.vx * dt;
-      o.y  += o.vy * dt;
+      o.x += o.vx * dt;
+      o.y += o.vy * dt;
       o.angle += o.spin * dt;
 
       // Wall Bouncing: Ensure items stay within the visible frame (4-Way Bouncing)
-      
+
       // Left/Right
       if (o.x < o.radius) {
         o.x = o.radius;
@@ -988,8 +988,8 @@ const Game = (() => {
       } else if (o.y > H - o.radius) {
         // Instead of falling off, items now bounce back up!
         o.y = H - o.radius;
-        o.vy = -Math.abs(o.vy) * 0.85; 
-        
+        o.vy = -Math.abs(o.vy) * 0.85;
+
         // Slightly nudge VX to keep it dynamic
         o.vx += (Math.random() - 0.5) * 60;
       }
@@ -1009,10 +1009,10 @@ const Game = (() => {
     for (let i = halves.length - 1; i >= 0; i--) {
       const h = halves[i];
       h.vy += CFG.gravity * 1.2 * dt;
-      h.x  += h.vx * dt;
-      h.y  += h.vy * dt;
+      h.x += h.vx * dt;
+      h.y += h.vy * dt;
       h.angle += h.spin * dt;
-      h.life  -= dt;
+      h.life -= dt;
       if (h.life <= 0 || h.y > H + 120) halves.splice(i, 1);
     }
 
@@ -1020,8 +1020,8 @@ const Game = (() => {
     for (let i = particles.length - 1; i >= 0; i--) {
       const p = particles[i];
       p.vy += 600 * dt;
-      p.x  += p.vx * dt;
-      p.y  += p.vy * dt;
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
       p.life -= dt;
       if (p.life <= 0) particles.splice(i, 1);
     }
@@ -1047,37 +1047,37 @@ const Game = (() => {
         coinSpawnCounter++;
         const spawnBomb = (coinSpawnCounter % CFG.bombRatio === 0) && Math.random() < 0.75;
         if (spawnBomb) spawnObject('bomb');
-        else           spawnObject('coin');
+        else spawnObject('coin');
       }, i * (180 + Math.random() * 200));
     }
   }
 
   function spawnObject(type) {
-    const radius  = type === 'bomb' ? CFG.bombRadius : CFG.coinRadius;
-    const x       = radius + Math.random() * (W - radius * 2);
-    const y       = H + radius;
+    const radius = type === 'bomb' ? CFG.bombRadius : CFG.coinRadius;
+    const x = radius + Math.random() * (W - radius * 2);
+    const y = H + radius;
     // Extremely subtle speed increase for consistent "fun" feel
-    const speed   = (900 + Math.random() * 400) * (1 + (diffLevel - 1) * 0.04);
-    const angle   = -Math.PI / 2 + (Math.random() - 0.5) * 0.45; // reduced spread to keep items closer to center
-    const vx      = Math.cos(angle) * speed * (Math.random() < 0.5 ? -1 : 1) * 0.15;
-    const vy      = -speed;
-    const spin    = (Math.random() - 0.5) * 4;
+    const speed = (900 + Math.random() * 400) * (1 + (diffLevel - 1) * 0.04);
+    const angle = -Math.PI / 2 + (Math.random() - 0.5) * 0.45; // reduced spread to keep items closer to center
+    const vx = Math.cos(angle) * speed * (Math.random() < 0.5 ? -1 : 1) * 0.15;
+    const vy = -speed;
+    const spin = (Math.random() - 0.5) * 4;
 
     if (type === 'bomb') {
-      objects.push({ type:'bomb', x, y, vx, vy, angle:0, spin, radius, sliced:false });
+      objects.push({ type: 'bomb', x, y, vx, vy, angle: 0, spin, radius, sliced: false });
     } else {
       // Manage sequential queue to avoid duplicates and ensure all profiles are shown
       if (coinQueue.length === 0 && coinDefs.length > 0) {
         coinQueue = [...coinDefs];
         shuffleArray(coinQueue);
       }
-      
+
       const coin = coinQueue.length > 0 ? coinQueue.pop() : coinDefs[0];
       const isRare = Math.random() < CFG.rareChance;
-      const pts    = isRare
+      const pts = isRare
         ? CFG.scoreRareMin + Math.floor(Math.random() * (CFG.scoreRareMax - CFG.scoreRareMin + 1))
         : CFG.scoreCommon;
-      objects.push({ type:'coin', x, y, vx, vy, angle:0, spin, radius, coin, pts, isRare, sliced:false });
+      objects.push({ type: 'coin', x, y, vx, vy, angle: 0, spin, radius, coin, pts, isRare, sliced: false });
     }
   }
 
@@ -1107,15 +1107,15 @@ const Game = (() => {
   function segmentCircleIntersects(ax, ay, bx, by, cx, cy, r) {
     const dx = bx - ax, dy = by - ay;
     const fx = ax - cx, fy = ay - cy;
-    const a_ = dx*dx + dy*dy;
-    if (a_ === 0) return Math.hypot(fx,fy) <= r;
-    const b_ = 2*(fx*dx + fy*dy);
-    const c_ = fx*fx + fy*fy - r*r;
-    let disc  = b_*b_ - 4*a_*c_;
+    const a_ = dx * dx + dy * dy;
+    if (a_ === 0) return Math.hypot(fx, fy) <= r;
+    const b_ = 2 * (fx * dx + fy * dy);
+    const c_ = fx * fx + fy * fy - r * r;
+    let disc = b_ * b_ - 4 * a_ * c_;
     if (disc < 0) return false;
     disc = Math.sqrt(disc);
-    const t0 = (-b_ - disc) / (2*a_);
-    const t1 = (-b_ + disc) / (2*a_);
+    const t0 = (-b_ - disc) / (2 * a_);
+    const t1 = (-b_ + disc) / (2 * a_);
     return (t0 >= 0 && t0 <= 1) || (t1 >= 0 && t1 <= 1) || (t0 < 0 && t1 > 1);
   }
 
@@ -1180,13 +1180,13 @@ const Game = (() => {
   function spawnHalves(o) {
     const speed = 220 + Math.random() * 140;
     for (let side = 0; side < 2; side++) {
-      const dir  = side === 0 ? -1 : 1;
+      const dir = side === 0 ? -1 : 1;
       halves.push({
         x: o.x, y: o.y,
-        vx: dir * (speed + Math.random()*80),
-        vy: -(80 + Math.random()*120),
+        vx: dir * (speed + Math.random() * 80),
+        vy: -(80 + Math.random() * 120),
         angle: o.angle,
-        spin: dir * (3 + Math.random()*3),
+        spin: dir * (3 + Math.random() * 3),
         radius: o.radius,
         life: 0.8,
         side,
@@ -1221,14 +1221,14 @@ const Game = (() => {
   ═══════════════════════════════════════════ */
   const floatingTexts = [];
   function showFloatingScore(x, y, pts) {
-    floatingTexts.push({ x, y, pts, life:1.0 });
+    floatingTexts.push({ x, y, pts, life: 1.0 });
   }
 
   /* ═══════════════════════════════════════════
      EFFECTS
   ═══════════════════════════════════════════ */
   function triggerShake(frames, mag) {
-    shakeFrames    = frames;
+    shakeFrames = frames;
     shakeMagnitude = mag;
   }
   function triggerBombFlash() {
@@ -1244,7 +1244,7 @@ const Game = (() => {
     document.getElementById('hud-score').textContent = score;
     document.getElementById('hud-level').textContent = diffLevel;
     // document.getElementById('hud-missed').textContent = `${missedCoins}/50`; // Hidden
-    
+
     // Timer display
     const mins = Math.floor(timeLeft / 60);
     const secs = Math.floor(timeLeft % 60);
@@ -1279,10 +1279,10 @@ const Game = (() => {
 
     // Bright Sky gradient (No Green)
     const bg = ctx.createLinearGradient(0, 0, 0, H);
-    bg.addColorStop(0,   '#38bdf8');   // deep sky
-    bg.addColorStop(0.45,'#7dd3fc');   // light sky
-    bg.addColorStop(0.75,'#bae6fd');   // lighter sky
-    bg.addColorStop(1,   '#e0f2fe');   // very light horizon
+    bg.addColorStop(0, '#38bdf8');   // deep sky
+    bg.addColorStop(0.45, '#7dd3fc');   // light sky
+    bg.addColorStop(0.75, '#bae6fd');   // lighter sky
+    bg.addColorStop(1, '#e0f2fe');   // very light horizon
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, W, H);
 
@@ -1302,8 +1302,8 @@ const Game = (() => {
     for (let i = floatingTexts.length - 1; i >= 0; i--) {
       const ft = floatingTexts[i];
       ft.life -= 0.025;
-      ft.y    -= 1.5;
-      if (ft.life <= 0) { floatingTexts.splice(i,1); continue; }
+      ft.y -= 1.5;
+      if (ft.life <= 0) { floatingTexts.splice(i, 1); continue; }
       ctx.globalAlpha = ft.life;
       ctx.font = `bold ${20 + ft.pts * 3}px Orbitron, sans-serif`;
       ctx.textAlign = 'center';
@@ -1331,17 +1331,17 @@ const Game = (() => {
     for (let i = 0; i < 6; i++) {
       const cx = ((i * 0.25 + t * 1.5) % 1.5) - 0.25;
       const cy = Math.sin(i * 3) * 0.15 + 0.15;
-      const r = 90 + Math.sin(i*2)*20;
+      const r = 90 + Math.sin(i * 2) * 20;
       drawCloudBlob(cx * W, cy * H, r);
     }
-    
+
     // Mid Layer Clouds (Puffier, faster)
     ctx.globalAlpha = 0.45;
     ctx.fillStyle = '#ffffff';
     for (let i = 0; i < 5; i++) {
       const cx = ((i * 0.3 + t * 2.8) % 1.5) - 0.25;
       const cy = Math.sin(i * 5) * 0.1 + 0.08;
-      const r = 70 + Math.sin(i*7)*15;
+      const r = 70 + Math.sin(i * 7) * 15;
       drawCloudBlob(cx * W, cy * H, r);
     }
 
@@ -1351,19 +1351,19 @@ const Game = (() => {
     for (let i = 0; i < 4; i++) {
       const cx = ((i * 0.4 + t * 4.2) % 1.5) - 0.25;
       const cy = Math.sin(i * 11) * 0.05 + 0.05;
-      const r = 85 + Math.sin(i*3)*10;
+      const r = 85 + Math.sin(i * 3) * 10;
       drawCloudBlob(cx * W, cy * H, r);
     }
-    
+
     ctx.globalAlpha = 1;
   }
-  
+
   function drawCloudBlob(x, y, r) {
     ctx.beginPath();
-    ctx.arc(x, y, r, 0, Math.PI*2);
-    ctx.arc(x + r*0.6, y + r*0.15, r*0.75, 0, Math.PI*2);
-    ctx.arc(x - r*0.55, y + r*0.12, r*0.65, 0, Math.PI*2);
-    ctx.arc(x + r*0.3, y - r*0.4, r*0.6, 0, Math.PI*2);
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.arc(x + r * 0.6, y + r * 0.15, r * 0.75, 0, Math.PI * 2);
+    ctx.arc(x - r * 0.55, y + r * 0.12, r * 0.65, 0, Math.PI * 2);
+    ctx.arc(x + r * 0.3, y - r * 0.4, r * 0.6, 0, Math.PI * 2);
     ctx.fill();
   }
 
@@ -1385,57 +1385,57 @@ const Game = (() => {
     const r = o.radius;
     // Rare glow
     if (o.isRare) {
-      ctx.shadowBlur  = 24;
+      ctx.shadowBlur = 24;
       ctx.shadowColor = '#FFD700';
     }
 
     // Outer ring
-    const ringGrad = ctx.createRadialGradient(0, 0, r*0.6, 0, 0, r+5);
+    const ringGrad = ctx.createRadialGradient(0, 0, r * 0.6, 0, 0, r + 5);
     ringGrad.addColorStop(0, o.isRare ? '#FFD700' : (o.coin.color || '#888'));
     ringGrad.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.beginPath();
-    ctx.arc(0, 0, r+3, 0, Math.PI*2);
+    ctx.arc(0, 0, r + 3, 0, Math.PI * 2);
     ctx.fillStyle = ringGrad;
     ctx.fill();
 
     // Coin circle clip
     ctx.beginPath();
-    ctx.arc(0, 0, r, 0, Math.PI*2);
+    ctx.arc(0, 0, r, 0, Math.PI * 2);
     ctx.save();
     ctx.clip();
 
     // Draw image or fallback
     const img = imgCache[o.coin.id];
     if (img) {
-      ctx.drawImage(img, -r, -r, r*2, r*2);
+      ctx.drawImage(img, -r, -r, r * 2, r * 2);
     } else {
       // Fallback gradient circle
-      const grad = ctx.createRadialGradient(-r*0.3, -r*0.3, 0, 0, 0, r);
+      const grad = ctx.createRadialGradient(-r * 0.3, -r * 0.3, 0, 0, 0, r);
       grad.addColorStop(0, lighten(o.coin.color, 60));
       grad.addColorStop(1, o.coin.color);
       ctx.fillStyle = grad;
-      ctx.fillRect(-r, -r, r*2, r*2);
+      ctx.fillRect(-r, -r, r * 2, r * 2);
       ctx.fillStyle = '#fff';
-      ctx.font = `bold ${r*0.55}px Nunito, sans-serif`;
+      ctx.font = `bold ${r * 0.55}px Nunito, sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(o.coin.symbol.slice(0,4), 0, 0);
+      ctx.fillText(o.coin.symbol.slice(0, 4), 0, 0);
     }
     ctx.restore(); // unclip
 
     // Shine overlay
-    const shine = ctx.createLinearGradient(-r, -r, r, r*0.3);
+    const shine = ctx.createLinearGradient(-r, -r, r, r * 0.3);
     shine.addColorStop(0, 'rgba(255,255,255,0.28)');
-    shine.addColorStop(0.5,'rgba(255,255,255,0.06)');
+    shine.addColorStop(0.5, 'rgba(255,255,255,0.06)');
     shine.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.beginPath();
-    ctx.arc(0, 0, r, 0, Math.PI*2);
+    ctx.arc(0, 0, r, 0, Math.PI * 2);
     ctx.fillStyle = shine;
     ctx.fill();
 
     // Border
     ctx.beginPath();
-    ctx.arc(0, 0, r, 0, Math.PI*2);
+    ctx.arc(0, 0, r, 0, Math.PI * 2);
     ctx.strokeStyle = o.isRare ? '#FFD700' : 'rgba(255,255,255,0.35)';
     ctx.lineWidth = o.isRare ? 3 : 1.5;
     ctx.stroke();
@@ -1447,15 +1447,15 @@ const Game = (() => {
     const r = o.radius;
 
     // Pulsing red glow
-    ctx.shadowBlur  = 20 + 10 * Math.sin(Date.now() * 0.006);
+    ctx.shadowBlur = 20 + 10 * Math.sin(Date.now() * 0.006);
     ctx.shadowColor = '#FF2020';
 
     // Body
-    const grad = ctx.createRadialGradient(-r*0.25, -r*0.25, 0, 0, 0, r);
+    const grad = ctx.createRadialGradient(-r * 0.25, -r * 0.25, 0, 0, 0, r);
     grad.addColorStop(0, '#3a3a3a');
     grad.addColorStop(1, '#111');
     ctx.beginPath();
-    ctx.arc(0, 0, r, 0, Math.PI*2);
+    ctx.arc(0, 0, r, 0, Math.PI * 2);
     ctx.fillStyle = grad;
     ctx.fill();
 
@@ -1464,13 +1464,13 @@ const Game = (() => {
     shine.addColorStop(0, 'rgba(255,255,255,0.22)');
     shine.addColorStop(1, 'rgba(255,255,255,0)');
     ctx.beginPath();
-    ctx.arc(0, 0, r, 0, Math.PI*2);
+    ctx.arc(0, 0, r, 0, Math.PI * 2);
     ctx.fillStyle = shine;
     ctx.fill();
 
     // Border
     ctx.beginPath();
-    ctx.arc(0, 0, r, 0, Math.PI*2);
+    ctx.arc(0, 0, r, 0, Math.PI * 2);
     ctx.strokeStyle = '#ff4444';
     ctx.lineWidth = 2.5;
     ctx.stroke();
@@ -1481,16 +1481,16 @@ const Game = (() => {
     ctx.lineWidth = 3;
     ctx.lineCap = 'round';
     ctx.beginPath();
-    ctx.moveTo(r*0.1, -r);
-    ctx.quadraticCurveTo(r*0.5, -r*1.4, r*0.2, -r*1.7);
+    ctx.moveTo(r * 0.1, -r);
+    ctx.quadraticCurveTo(r * 0.5, -r * 1.4, r * 0.2, -r * 1.7);
     ctx.stroke();
 
     // Spark
-    ctx.shadowBlur  = 8;
+    ctx.shadowBlur = 8;
     ctx.shadowColor = '#FF8800';
-    ctx.fillStyle   = '#FFAA00';
+    ctx.fillStyle = '#FFAA00';
     ctx.beginPath();
-    ctx.arc(r*0.2, -r*1.7, 4, 0, Math.PI*2);
+    ctx.arc(r * 0.2, -r * 1.7, 4, 0, Math.PI * 2);
     ctx.fill();
     ctx.shadowBlur = 0;
 
@@ -1505,7 +1505,7 @@ const Game = (() => {
     ctx.beginPath(); ctx.moveTo(-sk, -sk); ctx.lineTo(sk, sk); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(sk, -sk); ctx.lineTo(-sk, sk); ctx.stroke();
     // Small circle in center
-    ctx.beginPath(); ctx.arc(0, 0, r*0.1, 0, Math.PI*2); ctx.fillStyle='#ff2222'; ctx.fill();
+    ctx.beginPath(); ctx.arc(0, 0, r * 0.1, 0, Math.PI * 2); ctx.fillStyle = '#ff2222'; ctx.fill();
     ctx.shadowBlur = 0;
   }
 
@@ -1529,20 +1529,20 @@ const Game = (() => {
 
     const img = imgCache[h.coin?.id];
     if (img) {
-      ctx.drawImage(img, -r, -r, r*2, r*2);
+      ctx.drawImage(img, -r, -r, r * 2, r * 2);
     } else {
-      const grad = ctx.createRadialGradient(-r*0.3, -r*0.3, 0, 0, 0, r);
-      grad.addColorStop(0, lighten(h.coin?.color||'#888', 60));
-      grad.addColorStop(1, h.coin?.color||'#888');
+      const grad = ctx.createRadialGradient(-r * 0.3, -r * 0.3, 0, 0, 0, r);
+      grad.addColorStop(0, lighten(h.coin?.color || '#888', 60));
+      grad.addColorStop(1, h.coin?.color || '#888');
       ctx.fillStyle = grad;
-      ctx.fillRect(-r, -r, r*2, r*2);
+      ctx.fillRect(-r, -r, r * 2, r * 2);
     }
     // Juice drip (vertical gradient overlay)
     const juice = ctx.createLinearGradient(0, -r, 0, r);
     juice.addColorStop(0, 'rgba(255,200,0,0.25)');
     juice.addColorStop(1, 'rgba(255,200,0,0)');
     ctx.fillStyle = juice;
-    ctx.fillRect(-r, -r, r*2, r*2);
+    ctx.fillRect(-r, -r, r * 2, r * 2);
 
     ctx.restore();
     ctx.globalAlpha = 1;
@@ -1553,12 +1553,12 @@ const Game = (() => {
     const alpha = p.life / 0.75;
     ctx.globalAlpha = Math.max(0, alpha);
     ctx.beginPath();
-    ctx.arc(p.x, p.y, p.size * alpha, 0, Math.PI*2);
+    ctx.arc(p.x, p.y, p.size * alpha, 0, Math.PI * 2);
     ctx.fillStyle = p.color;
-    ctx.shadowBlur  = 10;
+    ctx.shadowBlur = 10;
     ctx.shadowColor = p.color;
     ctx.fill();
-    ctx.shadowBlur  = 0;
+    ctx.shadowBlur = 0;
     ctx.globalAlpha = 1;
   }
 
@@ -1580,41 +1580,41 @@ const Game = (() => {
 
     // Build a smooth path using interpolation to avoid "segment" artifacts
     // and create a tapered "comet" look.
-    ctx.lineCap  = 'round';
+    ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
 
     // Glow Pass (Outer Red heat)
-    ctx.shadowBlur  = 0;
+    ctx.shadowBlur = 0;
     ctx.globalCompositeOperation = 'screen';
-    
+
     for (let i = 1; i < recent.length; i++) {
-      const p1 = recent[i-1];
+      const p1 = recent[i - 1];
       const p2 = recent[i];
-      const age  = (now - p2.t) / CFG.trailFadeMs;
+      const age = (now - p2.t) / CFG.trailFadeMs;
       const alpha = (1 - age);
-      const w     = (1 - age) * 22 + 4;
+      const w = (1 - age) * 22 + 4;
 
       // Draw segment with heavy red glow
       ctx.beginPath();
       ctx.moveTo(p1.x, p1.y);
       ctx.lineTo(p2.x, p2.y);
-      ctx.lineWidth   = w;
+      ctx.lineWidth = w;
       ctx.strokeStyle = `rgba(255, 30, 0, ${alpha * 0.4})`;
       ctx.stroke();
-      
+
       // Extra fuzzy glow
-      ctx.lineWidth   = w * 1.8;
+      ctx.lineWidth = w * 1.8;
       ctx.strokeStyle = `rgba(255, 50, 0, ${alpha * 0.15})`;
       ctx.stroke();
     }
 
     // Fire Core Pass (Yellow to Red Taper)
     for (let i = 1; i < recent.length; i++) {
-      const p1 = recent[i-1];
+      const p1 = recent[i - 1];
       const p2 = recent[i];
-      const age  = (now - p2.t) / CFG.trailFadeMs;
+      const age = (now - p2.t) / CFG.trailFadeMs;
       const alpha = (1 - age);
-      const w     = (1 - age) * 14 + 2;
+      const w = (1 - age) * 14 + 2;
 
       const grad = ctx.createLinearGradient(p1.x, p1.y, p2.x, p2.y);
       grad.addColorStop(0, `rgba(255, 230, 100, ${alpha})`); // Hot Yellow/White head
@@ -1623,7 +1623,7 @@ const Game = (() => {
       ctx.beginPath();
       ctx.moveTo(p1.x, p1.y);
       ctx.lineTo(p2.x, p2.y);
-      ctx.lineWidth   = w;
+      ctx.lineWidth = w;
       ctx.strokeStyle = grad;
       ctx.stroke();
     }
@@ -1653,7 +1653,7 @@ const Game = (() => {
     pointerDown = true;
     trail.length = 0;
     const pt = getEventPos(e);
-    trail.push({ x:pt.x, y:pt.y, t:performance.now() });
+    trail.push({ x: pt.x, y: pt.y, t: performance.now() });
   }
   function onPointerUp() {
     pointerDown = false;
@@ -1663,7 +1663,7 @@ const Game = (() => {
     if (!pointerDown || !isPlaying || isPaused) return;
     e.preventDefault();
     const pt = getEventPos(e);
-    trail.push({ x:pt.x, y:pt.y, t:performance.now() });
+    trail.push({ x: pt.x, y: pt.y, t: performance.now() });
     if (trail.length > CFG.trailLength) trail.shift();
   }
   function onTouchStart(e) {
@@ -1672,13 +1672,13 @@ const Game = (() => {
     pointerDown = true;
     trail.length = 0;
     const pt = getTouchPos(e.touches[0]);
-    trail.push({ x:pt.x, y:pt.y, t:performance.now() });
+    trail.push({ x: pt.x, y: pt.y, t: performance.now() });
   }
   function onTouchMove(e) {
     if (!isPlaying || isPaused) return;
     e.preventDefault();
     const pt = getTouchPos(e.touches[0]);
-    trail.push({ x:pt.x, y:pt.y, t:performance.now() });
+    trail.push({ x: pt.x, y: pt.y, t: performance.now() });
     if (trail.length > CFG.trailLength) trail.shift();
   }
   function getEventPos(e) {
@@ -1725,14 +1725,14 @@ const Game = (() => {
         }
       });
       return board;
-    } catch(e) {
+    } catch (e) {
       console.warn("Cloud leaderboard err:", e);
       return [];
     }
   }
 
   async function renderLeaderboard() {
-    const list  = document.getElementById('leaderboard-list');
+    const list = document.getElementById('leaderboard-list');
     const adminPanel = document.getElementById('admin-lb-controls');
     if (!list) return;
 
@@ -1760,14 +1760,14 @@ const Game = (() => {
     ];
     board.forEach((entry, i) => {
       const li = document.createElement('li');
-      li.className = i < 3 ? `rank-${i+1}` : '';
+      li.className = i < 3 ? `rank-${i + 1}` : '';
       li.style.cursor = 'pointer';
       li.onclick = () => showPublicProfile(entry.address);
-      
+
       const val = lbMode === 'score' ? entry.topScore : entry.points;
-      
+
       li.innerHTML = `
-        <span class="lb-rank">${i+1}</span>
+        <span class="lb-rank">${i + 1}</span>
         <span class="lb-name">${escHtml(entry.name)}</span>
         <span class="lb-score">${val}</span>
         <span class="lb-medal">${medals[i] || ''}</span>
@@ -1785,7 +1785,7 @@ const Game = (() => {
       document.getElementById('pub-score').textContent = p.topScore || 0;
       document.getElementById('pub-points').textContent = p.cumulativeScore || 0;
       document.getElementById('pub-primary').textContent = addr;
-      
+
       const altList = document.getElementById('pub-alt-list');
       altList.innerHTML = '';
       const alts = p.altAddresses || [];
@@ -1801,7 +1801,7 @@ const Game = (() => {
       window._activeSocials = p.socials || { twitter: '', telegram: '' };
       const tw = window._activeSocials.twitter;
       const tg = window._activeSocials.telegram;
-      
+
       document.getElementById('pub-twitter-handle').textContent = tw ? tw : '@NotAvailable';
       document.getElementById('pub-twitter-handle').className = tw ? 'pub-social-handle' : 'pub-social-notav';
       document.getElementById('pub-twitter-actions').style.display = tw ? 'flex' : 'none';
@@ -1821,9 +1821,9 @@ const Game = (() => {
       } else {
         adminSec.style.display = 'none';
       }
-      
+
       document.getElementById('modal-public-profile').classList.add('active');
-    } catch(e) {
+    } catch (e) {
       console.warn("Error fetching public profile:", e);
     }
   }
@@ -1839,20 +1839,20 @@ const Game = (() => {
 
     const tw = document.getElementById('pub-admin-twitter').value.trim();
     const tg = document.getElementById('pub-admin-telegram').value.trim();
-    
+
     const btn = document.getElementById('pub-admin-save');
     const orig = btn.textContent;
     btn.disabled = true; btn.textContent = 'Saving...';
-    
+
     try {
       // Update cloud directly for the target user
       await setDoc(doc(db, 'users', targetAddr), {
         profile: { socials: { twitter: tw, telegram: tg } }
       }, { merge: true });
-      
+
       showToast('User socials updated by Admin!');
       showPublicProfile(targetAddr); // refresh
-    } catch(e) {
+    } catch (e) {
       console.error(e);
       alert('Admin save failed: ' + e.message);
     } finally {
@@ -1868,7 +1868,7 @@ const Game = (() => {
 
     const input = document.getElementById('admin-user-search-input');
     const queryStr = (input?.value || '').trim().toLowerCase();
-    
+
     if (!queryStr) {
       // If empty, reset filter and show all
       window._adminSearchFilter = null;
@@ -1896,9 +1896,9 @@ const Game = (() => {
         const cleanHandle = queryStr.startsWith('@') ? queryStr : '@' + queryStr;
         const qTwitter = query(collection(db, 'users'), where('profile.socials.twitter', '==', cleanHandle), limit(1));
         const qTelegram = query(collection(db, 'users'), where('profile.socials.telegram', '==', cleanHandle), limit(1));
-        
+
         const [snapTw, snapTg] = await Promise.all([getDocs(qTwitter), getDocs(qTelegram)]);
-        
+
         if (!snapTw.empty) foundAddr = snapTw.docs[0].id;
         else if (!snapTg.empty) foundAddr = snapTg.docs[0].id;
       }
@@ -1909,7 +1909,7 @@ const Game = (() => {
       } else {
         showToast('User not found!');
       }
-    } catch(e) {
+    } catch (e) {
       console.error("Admin search error:", e);
       alert("Search failed: " + e.message);
     } finally {
@@ -1921,7 +1921,7 @@ const Game = (() => {
   async function resetGlobalLeaderboard() {
     const addr = Web3.getConnectedAddress();
     if (!isAdminWallet(addr)) return;
-    
+
     if (!confirm("⚠️ CAUTION: This will RESET ALL GLOBAL RANKINGS to 0 for everyone. This action cannot be undone. Are you absolutely sure?")) return;
     if (!confirm("FINAL CONFIRMATION: Wipe all global scores now?")) return;
 
@@ -1938,13 +1938,13 @@ const Game = (() => {
           profile: { topScore: 0, cumulativeScore: 0 }
         }, { merge: true }));
       });
-      
+
       await Promise.all(promises);
       alert('Global rankings have been reset successfully!');
       renderLeaderboard();
       btn.textContent = origText;
       btn.disabled = false;
-    } catch(e) {
+    } catch (e) {
       console.error(e);
       alert('Reset failed: ' + e.message);
     }
@@ -1957,19 +1957,19 @@ const Game = (() => {
 
       const title = lbMode === 'score' ? 'TOP SCORE RANKINGS' : 'TOP POINTS RANKINGS';
       let text = `🏆 MEME SMASH - ${title}\n(Fetched: ${new Date().toLocaleString()})\n\n`;
-      
+
       board.forEach((entry, i) => {
         const val = lbMode === 'score' ? entry.topScore : entry.points;
-        text += `${i+1} - ${entry.name} - address(${entry.address}) - ${val}\n`;
+        text += `${i + 1} - ${entry.name} - address(${entry.address}) - ${val}\n`;
       });
 
       await navigator.clipboard.writeText(text);
-      
+
       const btn = document.querySelector('#admin-lb-controls button:first-child');
       const orig = btn.textContent;
       btn.textContent = '✅ Copied!';
       setTimeout(() => btn.textContent = orig, 2000);
-    } catch(e) {
+    } catch (e) {
       console.error(e);
       alert('Copy failed: ' + e.message);
     }
@@ -1979,15 +1979,15 @@ const Game = (() => {
      UTILS
   ═══════════════════════════════════════════ */
   function escHtml(s) {
-    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
 
   function lighten(hex, amount) {
-    let c = hex.replace('#','');
-    if (c.length === 3) c = c.split('').map(x=>x+x).join('');
-    const r = Math.min(255, parseInt(c.slice(0,2),16)+amount);
-    const g = Math.min(255, parseInt(c.slice(2,4),16)+amount);
-    const b = Math.min(255, parseInt(c.slice(4,6),16)+amount);
+    let c = hex.replace('#', '');
+    if (c.length === 3) c = c.split('').map(x => x + x).join('');
+    const r = Math.min(255, parseInt(c.slice(0, 2), 16) + amount);
+    const g = Math.min(255, parseInt(c.slice(2, 4), 16) + amount);
+    const b = Math.min(255, parseInt(c.slice(4, 6), 16) + amount);
     return `rgb(${r},${g},${b})`;
   }
 
@@ -2027,7 +2027,7 @@ const Game = (() => {
 
   function getCheckinStatus(address) {
     const today = getUtcDayNumber();
-    const data  = getCheckinData(address);
+    const data = getCheckinData(address);
     const alreadyCheckedIn = data.lastDay === today;
     // Streak continues only if last check-in was YESTERDAY; otherwise broken
     const streakAlive = data.lastDay === (today - 1);
@@ -2047,7 +2047,7 @@ const Game = (() => {
     const h = Math.floor(totalSec / 3600);
     const m = Math.floor((totalSec % 3600) / 60);
     const s = totalSec % 60;
-    return `${String(h).padStart(2,'0')}h ${String(m).padStart(2,'0')}m ${String(s).padStart(2,'0')}s`;
+    return `${String(h).padStart(2, '0')}h ${String(m).padStart(2, '0')}m ${String(s).padStart(2, '0')}s`;
   }
 
   function showCheckinModal() {
@@ -2081,10 +2081,10 @@ const Game = (() => {
     if (!grid) return;
     grid.innerHTML = '';
     for (let i = 0; i < 7; i++) {
-      const dayNum   = i + 1;
-      const reward   = CHECKIN_REWARDS[i];
-      const isDone   = i < currentStreak;
-      const isToday  = i === currentStreak && canCheckin;
+      const dayNum = i + 1;
+      const reward = CHECKIN_REWARDS[i];
+      const isDone = i < currentStreak;
+      const isToday = i === currentStreak && canCheckin;
       const isFuture = !isDone && !isToday;
 
       const tile = document.createElement('div');
@@ -2110,7 +2110,7 @@ const Game = (() => {
 
     // Countdown / CTA
     const btnEl = document.getElementById('ci-btn');
-    const cdEl  = document.getElementById('ci-countdown');
+    const cdEl = document.getElementById('ci-countdown');
     const rewardEl = document.getElementById('ci-next-reward');
     if (currentStreak >= 7 && !canCheckin) {
       // Full cycle done, show restart info
@@ -2191,18 +2191,18 @@ const Game = (() => {
 
   const PAYOUT_MIN_USD = 5.0;
   const REF_TIER_DEFS = [
-    { label: 'Active',  min: 0,   rate: 0.10, color: '#4CAF50' },
-    { label: 'Pro',     min: 10,  rate: 0.15, color: '#FF8C00' },
-    { label: 'Elite',   min: 50,  rate: 0.30, color: '#FF3DAE' },
-    { label: 'Legend',  min: 100, rate: 0.40, color: '#9B3BDB' },
-    { label: 'Mythic',  min: 500, rate: 0.50, color: '#FFD700' },
+    { label: 'Active', min: 0, rate: 0.10, color: '#4CAF50' },
+    { label: 'Pro', min: 10, rate: 0.15, color: '#FF8C00' },
+    { label: 'Elite', min: 50, rate: 0.30, color: '#FF3DAE' },
+    { label: 'Legend', min: 100, rate: 0.40, color: '#9B3BDB' },
+    { label: 'Mythic', min: 500, rate: 0.50, color: '#FFD700' },
   ];
 
   function isAdminWallet(addr) {
     return addr && addr.toLowerCase() === ADMIN_WALLET.toLowerCase();
   }
   function escHtml(s) {
-    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
   function formatUSD(val) {
     if (!val || isNaN(val)) return '0.00';
@@ -2212,7 +2212,7 @@ const Game = (() => {
   /* ── Deterministic Codes & Links (no backend needed) ── */
   function getMyRefCode(addr) {
     if (!addr || addr.length < 10) return '';
-    return 'MS' + addr.slice(2,6).toUpperCase() + addr.slice(-4).toUpperCase();
+    return 'MS' + addr.slice(2, 6).toUpperCase() + addr.slice(-4).toUpperCase();
   }
   function getMyRefLink(addr) {
     if (!addr) return '';
@@ -2265,7 +2265,7 @@ const Game = (() => {
     return REF_TIER_DEFS[0];
   }
   function computeTierFillPct(validCount) {
-    const segs = [{f:0,t:10},{f:10,t:50},{f:50,t:100},{f:100,t:500}];
+    const segs = [{ f: 0, t: 10 }, { f: 10, t: 50 }, { f: 50, t: 100 }, { f: 100, t: 500 }];
     if (validCount >= 500) return 100;
     for (let i = 0; i < segs.length; i++) {
       if (validCount < segs[i].t) {
@@ -2280,8 +2280,8 @@ const Game = (() => {
     if (!addr) return;
     const fs = getFeeStats(addr);
     fs.totalUSD = (fs.totalUSD || 0) + amountUSD;
-    if (type === 'submit')  fs.gamesSubmitted = (fs.gamesSubmitted || 0) + 1;
-    if (type === 'revive')  fs.revives  = (fs.revives  || 0) + 1;
+    if (type === 'submit') fs.gamesSubmitted = (fs.gamesSubmitted || 0) + 1;
+    if (type === 'revive') fs.revives = (fs.revives || 0) + 1;
     if (type === 'checkin') fs.checkins = (fs.checkins || 0) + 1;
     fs.txHistory.push({ type, amountUSD, ts: Date.now() });
     saveFeeStats(addr, fs);
@@ -2302,31 +2302,33 @@ const Game = (() => {
     let ref = rd.referrals.find(r => r.addr.toLowerCase() === refereeAddr.toLowerCase());
     if (!ref) {
       const p = getProfileData(refereeAddr);
-      ref = { addr: refereeAddr.toLowerCase(), name: p.name || 'Unknown', status: 'pending',
-               gamesSubmitted: 0, feesUSD: 0, earnedUSD: 0, boundAt: Date.now() };
+      ref = {
+        addr: refereeAddr.toLowerCase(), name: p.name || 'Unknown', status: 'pending',
+        gamesSubmitted: 0, feesUSD: 0, earnedUSD: 0, boundAt: Date.now()
+      };
       rd.referrals.push(ref);
     }
-    
+
     ref.feesUSD = (ref.feesUSD || 0) + amountUSD;
     ref.gamesSubmitted = gamesSubmitted;
-    
+
     let newlyValid = false;
     // Promote to valid after 10 game submissions
     if (gamesSubmitted >= 10 && ref.status === 'pending') {
       ref.status = 'valid';
       newlyValid = true;
     }
-    
+
     // Only earn from valid referrals
     if (ref.status === 'valid') {
       const validCount = rd.referrals.filter(r => r.status === 'valid').length;
       const rate = getRefTier(validCount).rate;
-      
+
       // If they just became valid, credit ALL historical fees they spent. Otherwise, just credit the current amount.
       const amountToCredit = newlyValid ? (ref.feesUSD * rate) : (amountUSD * rate);
-      
+
       ref.earnedUSD = (ref.earnedUSD || 0) + amountToCredit;
-      rd.pendingUSD = (rd.pendingUSD   || 0) + amountToCredit;
+      rd.pendingUSD = (rd.pendingUSD || 0) + amountToCredit;
       rd.lifetimeUSD = (rd.lifetimeUSD || 0) + amountToCredit;
     }
     saveRefData(referrerAddr, rd);
@@ -2344,7 +2346,7 @@ const Game = (() => {
         if (!localStorage.getItem(key)) {
           localStorage.setItem(key, JSON.stringify({ ...req, status: 'pending' }));
         }
-      } catch(e) {}
+      } catch (e) { }
     }
     // Handle referral link
     const refAddr = params.get('ref');
@@ -2379,8 +2381,10 @@ const Game = (() => {
     const rd = getRefData(referrerAddr);
     if (!rd.referrals.find(r => r.addr.toLowerCase() === userAddr.toLowerCase())) {
       const p = getProfileData(userAddr);
-      rd.referrals.push({ addr: userAddr.toLowerCase(), name: p.name || 'Unknown',
-        status: 'pending', gamesSubmitted: 0, feesUSD: 0, earnedUSD: 0, boundAt: Date.now() });
+      rd.referrals.push({
+        addr: userAddr.toLowerCase(), name: p.name || 'Unknown',
+        status: 'pending', gamesSubmitted: 0, feesUSD: 0, earnedUSD: 0, boundAt: Date.now()
+      });
       saveRefData(referrerAddr, rd);
     }
     return true;
@@ -2391,7 +2395,7 @@ const Game = (() => {
     if (!addr) { alert('Connect wallet first!'); return; }
     if (getRefBinding(addr)) { alert('You already have a referral binding.'); return; }
 
-    const code    = (document.getElementById('manual-ref-code-input')?.value || '').trim().toUpperCase();
+    const code = (document.getElementById('manual-ref-code-input')?.value || '').trim().toUpperCase();
     const refAddr = (document.getElementById('manual-ref-addr-input')?.value || '').trim().toLowerCase();
     if (!code && !refAddr) { alert('Enter a referral code or referrer wallet address.'); return; }
 
@@ -2410,13 +2414,13 @@ const Game = (() => {
         for (const u of allUsers) {
           if (getMyRefCode(u.addr) === code) { finalAddr = u.addr.toLowerCase(); break; }
         }
-        
+
         if (!finalAddr) {
           alert('Referral Code not found globally!\nPlease double check the code or use their 0x wallet address instead.');
           return;
         }
       } else { alert('Enter a valid code or wallet address.'); return; }
-    } catch(e) {
+    } catch (e) {
       console.error("DB Query error:", e);
       alert('Network error while searching for code.');
       return;
@@ -2440,7 +2444,7 @@ const Game = (() => {
         alert('Referral bound locally!');
       }
       renderRefModal();
-    } catch(e) {
+    } catch (e) {
       console.error(e);
       _doBindReferral(addr, finalAddr, 'manual');
       alert('On-chain bind failed. Saved locally instead.');
@@ -2474,7 +2478,7 @@ const Game = (() => {
       if (b) { b.onchain = true; saveRefBinding(addr, b); }
       alert('Referral bound permanently on-chain!');
       renderRefModal();
-    } catch(e) {
+    } catch (e) {
       console.error(e);
       alert('On-chain bind failed or was rejected. ' + e.message);
     }
@@ -2496,9 +2500,11 @@ const Game = (() => {
       alert('Error creating request.'); return;
     }
     const profile = getProfileData(addr);
-    const req = { addr: addr.toLowerCase(), name: profile.name || 'Unknown',
-                   amountUSD: rd.pendingUSD, requestedAt: reqId, status: 'pending' };
-    
+    const req = {
+      addr: addr.toLowerCase(), name: profile.name || 'Unknown',
+      amountUSD: rd.pendingUSD, requestedAt: reqId, status: 'pending'
+    };
+
     rd.pendingUSD = 0; // Reset active queue so new batch starts
     saveRefData(addr, rd);
 
@@ -2507,7 +2513,7 @@ const Game = (() => {
     // Generate shareable URL for cross-device admin import
     const reqUrl = window.location.href.split('?')[0] + '?payreq=' + btoa(JSON.stringify(req));
     alert(`Payout request of $${formatUSD(req.amountUSD)} submitted!\nYour earnings are reset to 0 for the next batch.\n\nShare this link with admin if they are on a different device:\n${reqUrl}\n\n(Link copied to clipboard)`);
-    try { navigator.clipboard.writeText(reqUrl); } catch(e) {}
+    try { navigator.clipboard.writeText(reqUrl); } catch (e) { }
     renderRefModal();
   }
 
@@ -2527,7 +2533,7 @@ const Game = (() => {
     navigator.clipboard.writeText(getMyRefCode(addr)).then(() => {
       const b = document.getElementById('ref-copy-code-btn');
       if (b) { b.textContent = 'Copied!'; setTimeout(() => b.textContent = 'Copy Code', 1500); }
-    }).catch(() => {});
+    }).catch(() => { });
   }
   function copyRefLink() {
     const addr = Web3.getConnectedAddress();
@@ -2535,14 +2541,14 @@ const Game = (() => {
     navigator.clipboard.writeText(getMyRefLink(addr)).then(() => {
       const b = document.getElementById('ref-copy-link-btn');
       if (b) { b.textContent = 'Copied!'; setTimeout(() => b.textContent = 'Copy Referral Link', 1500); }
-    }).catch(() => {});
+    }).catch(() => { });
   }
 
   function showFullRefsModal(filterType = 'all') {
     const addr = Web3.getConnectedAddress();
     if (!addr) return;
     const rd = getRefData(addr);
-    
+
     // Sync names & Filter & Sort
     rd.referrals.forEach(r => {
       const p = getProfileData(r.addr);
@@ -2553,7 +2559,7 @@ const Game = (() => {
     if (filterType === 'valid') filteredRefs = filteredRefs.filter(r => r.status === 'valid');
     if (filterType === 'pending') filteredRefs = filteredRefs.filter(r => r.status !== 'valid');
 
-    const sortedRefs = filteredRefs.sort((a,b) => (b.earnedUSD || 0) - (a.earnedUSD || 0));
+    const sortedRefs = filteredRefs.sort((a, b) => (b.earnedUSD || 0) - (a.earnedUSD || 0));
 
     // Update active tab UI
     document.querySelectorAll('#modal-full-refs .admin-tab').forEach(b => {
@@ -2568,7 +2574,7 @@ const Game = (() => {
         listEl.innerHTML = sortedRefs.map((r, index) => `
           <div class="ref-item">
             <div class="ref-item-info">
-              <span class="ref-item-name" style="cursor:pointer;" title="View Profile" onclick="Game.showPublicProfile('${r.addr}')">${index+1}. ${escHtml(r.name || 'Unknown')}</span>
+              <span class="ref-item-name" style="cursor:pointer;" title="View Profile" onclick="Game.showPublicProfile('${r.addr}')">${index + 1}. ${escHtml(r.name || 'Unknown')}</span>
             </div>
             <div class="ref-item-right">
               <span class="ref-item-status ${r.status}">${r.status === 'valid' ? 'Valid' : `Pending (${r.gamesSubmitted}/10)`}</span>
@@ -2598,15 +2604,15 @@ const Game = (() => {
     let needsSave = false;
     const validCountTemp = rd.referrals.filter(r => r.status === 'valid').length;
     const currentRate = getRefTier(validCountTemp).rate > 0 ? getRefTier(validCountTemp).rate : 0.10;
-    
+
     rd.referrals.forEach(r => {
-       if (r.status === 'valid' && r.feesUSD > 0 && (r.earnedUSD === undefined || r.earnedUSD < 0.0001)) {
-           const missedEarnings = r.feesUSD * currentRate;
-           r.earnedUSD = missedEarnings;
-           rd.pendingUSD = (rd.pendingUSD || 0) + missedEarnings;
-           rd.lifetimeUSD = (rd.lifetimeUSD || 0) + missedEarnings;
-           needsSave = true;
-       }
+      if (r.status === 'valid' && r.feesUSD > 0 && (r.earnedUSD === undefined || r.earnedUSD < 0.0001)) {
+        const missedEarnings = r.feesUSD * currentRate;
+        r.earnedUSD = missedEarnings;
+        rd.pendingUSD = (rd.pendingUSD || 0) + missedEarnings;
+        rd.lifetimeUSD = (rd.lifetimeUSD || 0) + missedEarnings;
+        needsSave = true;
+      }
     });
     if (needsSave) saveRefData(addr, rd);
     // ---------------------------------------------------
@@ -2629,7 +2635,7 @@ const Game = (() => {
       if (binding) {
         const method = binding.onchain ? 'Permanent Onchain' : binding.method;
         bindEl.innerHTML = `<div class="ref-binding-badge">
-          Referred by <code>${binding.referrerAddr.slice(0,8)}...${binding.referrerAddr.slice(-6)}</code>
+          Referred by <code>${binding.referrerAddr.slice(0, 8)}...${binding.referrerAddr.slice(-6)}</code>
           <span class="ref-binding-method">${method}</span></div>`;
         if (manualSec) manualSec.style.display = 'none';
       } else {
@@ -2653,8 +2659,8 @@ const Game = (() => {
           const p = getProfileData(r.addr);
           if (p && p.name) r.name = p.name;
         });
-        const sortedRefs = [...rd.referrals].sort((a,b) => (b.earnedUSD || 0) - (a.earnedUSD || 0));
-        
+        const sortedRefs = [...rd.referrals].sort((a, b) => (b.earnedUSD || 0) - (a.earnedUSD || 0));
+
         let html = sortedRefs.slice(0, 3).map((r, index) => `
           <div class="ref-item">
             <div class="ref-item-info">
@@ -2675,21 +2681,21 @@ const Game = (() => {
         html += `<div style="text-align:center; padding-top:6px; font-size:10px; color:var(--text-mid); opacity:0.6;">
           Leaderboard and earnings update daily at 11:30 PM UTC
         </div>`;
-        
+
         listEl.innerHTML = html;
       }
     }
 
     // Earnings
     const pct = Math.min(100, (rd.pendingUSD / PAYOUT_MIN_USD) * 100);
-    const lifeEl   = document.getElementById('ref-lifetime');
-    const pendEl   = document.getElementById('ref-pending');
-    const fillEl   = document.getElementById('ref-payout-fill');
+    const lifeEl = document.getElementById('ref-lifetime');
+    const pendEl = document.getElementById('ref-pending');
+    const fillEl = document.getElementById('ref-payout-fill');
     const barLabel = document.getElementById('ref-bar-label');
     const claimBtn = document.getElementById('ref-claim-btn');
-    if (lifeEl)   lifeEl.textContent = `$${formatUSD(rd.lifetimeUSD)}`;
-    if (pendEl)   pendEl.textContent = `$${formatUSD(rd.pendingUSD)}`;
-    if (fillEl)   fillEl.style.width = pct + '%';
+    if (lifeEl) lifeEl.textContent = `$${formatUSD(rd.lifetimeUSD)}`;
+    if (pendEl) pendEl.textContent = `$${formatUSD(rd.pendingUSD)}`;
+    if (fillEl) fillEl.style.width = pct + '%';
     if (barLabel) barLabel.textContent = `$${formatUSD(rd.pendingUSD)} / $${formatUSD(PAYOUT_MIN_USD)} min`;
     if (claimBtn) {
       claimBtn.disabled = rd.pendingUSD < PAYOUT_MIN_USD;
@@ -2702,7 +2708,7 @@ const Game = (() => {
     const rateEl = document.getElementById('ref-rate-hint');
     if (rateEl) {
       rateEl.textContent = tier.rate > 0
-        ? `Current boost: ${(tier.rate*100).toFixed(0)}% of friends' fees — ${tier.label} tier`
+        ? `Current boost: ${(tier.rate * 100).toFixed(0)}% of friends' fees — ${tier.label} tier`
         : 'Get 10 valid referrals to start earning boost rewards';
     }
 
@@ -2713,21 +2719,21 @@ const Game = (() => {
       for (let i = 0; i < localStorage.length; i++) {
         const k = localStorage.key(i);
         if (k && k.startsWith(`meme_smash_payout_req_${addr.toLowerCase()}_`)) {
-          try { myReqs.push(JSON.parse(localStorage.getItem(k))); } catch(e) {}
+          try { myReqs.push(JSON.parse(localStorage.getItem(k))); } catch (e) { }
         }
       }
-      myReqs.sort((a,b) => b.requestedAt - a.requestedAt);
+      myReqs.sort((a, b) => b.requestedAt - a.requestedAt);
       if (myReqs.length === 0) {
         orderList.innerHTML = '';
       } else {
-        orderList.innerHTML = `<div class="ref-section-label" style="margin-top:10px;">Your Payout Orders</div>` + 
+        orderList.innerHTML = `<div class="ref-section-label" style="margin-top:10px;">Your Payout Orders</div>` +
           myReqs.map(r => `
             <div class="ref-item" style="border:1.5px dashed rgba(155,59,219,0.22); margin-bottom:5px;">
               <div class="ref-item-info">
                 <span class="ref-item-name">$${formatUSD(r.amountUSD)} <span style="font-size:10px;font-style:italic;color:var(--text-mid);font-weight:700;">— ${new Date(r.requestedAt).toLocaleDateString()}</span></span>
               </div>
               <div class="ref-item-right">
-                 <span class="ref-item-status ${r.status==='paid'?'valid':'pending'}">${r.status.charAt(0).toUpperCase() + r.status.slice(1)}</span>
+                 <span class="ref-item-status ${r.status === 'paid' ? 'valid' : 'pending'}">${r.status.charAt(0).toUpperCase() + r.status.slice(1)}</span>
               </div>
             </div>
           `).join('');
@@ -2752,7 +2758,7 @@ const Game = (() => {
         <div class="tier-info">
           <div class="tier-lbl">${t.label}</div>
           <div class="tier-min">${t.min === 0 ? 'Start' : t.min + '+'}</div>
-          <div class="tier-rate">${t.rate > 0 ? (t.rate*100).toFixed(0)+'%' : '—'}</div>
+          <div class="tier-rate">${t.rate > 0 ? (t.rate * 100).toFixed(0) + '%' : '—'}</div>
         </div></div>`;
     });
     el.innerHTML = html;
@@ -2784,7 +2790,7 @@ const Game = (() => {
       const out = [];
       snap.forEach(doc => out.push(doc.data()));
       return out;
-    } catch(e) { console.warn(e); return []; }
+    } catch (e) { console.warn(e); return []; }
   }
 
   async function _getAllUsers() {
@@ -2793,10 +2799,10 @@ const Game = (() => {
       const out = [];
       snap.forEach(doc => {
         const d = doc.data();
-        out.push({ addr: doc.id, profile: d.profile||{}, fees: d.fees||{}, binding: d.binding||null, refData: d.refData||{} });
+        out.push({ addr: doc.id, profile: d.profile || {}, fees: d.fees || {}, binding: d.binding || null, refData: d.refData || {} });
       });
       return out;
-    } catch(e) { console.warn(e); return []; }
+    } catch (e) { console.warn(e); return []; }
   }
 
   async function adminMarkPaid(userAddr, reqTime) {
@@ -2817,14 +2823,14 @@ const Game = (() => {
       // Save locally & cloud
       req.status = 'paid'; req.paidAt = Date.now();
       localStorage.setItem(key, JSON.stringify(req));
-      setDoc(doc(db, 'payoutRequests', key), req).catch(e=>console.warn(e));
+      setDoc(doc(db, 'payoutRequests', key), req).catch(e => console.warn(e));
 
       const rd = getRefData(userAddr);
       rd.paidOutUSD = (rd.paidOutUSD || 0) + req.amountUSD;
       rd.payoutHistory.push({ amount: req.amountUSD, paidAt: Date.now() });
       saveRefData(userAddr, rd);
       alert(`Marked paid! $${formatUSD(req.amountUSD)} sent to ${userAddr}`);
-    } catch(e) {
+    } catch (e) {
       console.error(e);
       alert('Wallet payment failed or was rejected. Keeping as Pending.');
     } finally {
@@ -2846,15 +2852,15 @@ const Game = (() => {
     if (qEl && _adminTab === 'queue') {
       const all = await _getAllPayoutReqs();
       const pending = all.filter(r => r.status === 'pending');
-      const paid    = all.filter(r => r.status === 'paid');
+      const paid = all.filter(r => r.status === 'paid');
       let html = '';
       if (!pending.length) html += '<div class="admin-empty">No pending payout requests on this device</div>';
       pending.forEach(r => {
         html += `<div class="admin-req-card">
           <div class="admin-req-main">
-            <div class="admin-req-name">${escHtml(r.name||'Unknown')}</div>
+            <div class="admin-req-name">${escHtml(r.name || 'Unknown')}</div>
             <a class="admin-req-addr" href="https://basescan.org/address/${r.addr}" target="_blank" rel="noopener">
-              ${r.addr.slice(0,10)}...${r.addr.slice(-8)} ↗</a>
+              ${r.addr.slice(0, 10)}...${r.addr.slice(-8)} ↗</a>
             <div class="admin-req-amount">$${formatUSD(r.amountUSD)}</div>
             <div class="admin-req-date">${new Date(r.requestedAt).toLocaleDateString()}</div>
           </div>
@@ -2865,13 +2871,13 @@ const Game = (() => {
       });
       if (paid.length) {
         html += `<div class="admin-sec-lbl">Completed (${paid.length})</div>`;
-        paid.slice(0,15).forEach(r => {
+        paid.slice(0, 15).forEach(r => {
           html += `<div class="admin-req-card paid">
             <div class="admin-req-main">
-              <div class="admin-req-name">${escHtml(r.name||'Unknown')}</div>
+              <div class="admin-req-name">${escHtml(r.name || 'Unknown')}</div>
               <a class="admin-req-addr" href="https://basescan.org/address/${r.addr}" target="_blank" rel="noopener">
-                ${r.addr.slice(0,10)}...${r.addr.slice(-8)} ↗</a>
-              <div class="admin-req-amount">$${formatUSD(r.amountUSD)} — Paid ${new Date(r.paidAt||r.requestedAt).toLocaleDateString()}</div>
+                ${r.addr.slice(0, 10)}...${r.addr.slice(-8)} ↗</a>
+              <div class="admin-req-amount">$${formatUSD(r.amountUSD)} — Paid ${new Date(r.paidAt || r.requestedAt).toLocaleDateString()}</div>
             </div></div>`;
         });
       }
@@ -2880,7 +2886,7 @@ const Game = (() => {
 
     if (uEl && _adminTab === 'users') {
       let users = await _getAllUsers();
-      
+
       if (filterAddr) {
         users = users.filter(u => u.addr.toLowerCase() === filterAddr.toLowerCase());
       }
@@ -2888,9 +2894,9 @@ const Game = (() => {
       // Render Summary if filtering
       if (filterAddr && users.length > 0 && summaryEl) {
         const u = users[0];
-        const valids = (u.refData?.referrals||[]).filter(r=>r.status==='valid').length;
-        const overallRefVolume = (u.refData?.referrals||[]).reduce((sum, r) => sum + (r.feesUSD || 0), 0);
-        
+        const valids = (u.refData?.referrals || []).filter(r => r.status === 'valid').length;
+        const overallRefVolume = (u.refData?.referrals || []).reduce((sum, r) => sum + (r.feesUSD || 0), 0);
+
         summaryEl.innerHTML = `
           <div class="admin-summary-card">
             <div class="summary-header">
@@ -2900,7 +2906,7 @@ const Game = (() => {
             <div class="summary-grid">
               <div class="summary-item">
                 <div class="summary-label">Total Spent Fees</div>
-                <div class="summary-value highlight">$${(u.fees?.totalUSD||0).toFixed(3)}</div>
+                <div class="summary-value highlight">$${(u.fees?.totalUSD || 0).toFixed(3)}</div>
               </div>
               <div class="summary-item">
                 <div class="summary-label">Total Referral Volume</div>
@@ -2908,11 +2914,11 @@ const Game = (() => {
               </div>
               <div class="summary-item">
                 <div class="summary-label">Total Invites / Valid</div>
-                <div class="summary-value">${(u.refData?.referrals||[]).length} / ${valids}</div>
+                <div class="summary-value">${(u.refData?.referrals || []).length} / ${valids}</div>
               </div>
               <div class="summary-item" style="opacity:0.6;">
                 <div class="summary-label">Total Games Played</div>
-                <div class="summary-value">${u.fees?.gamesSubmitted||0}</div>
+                <div class="summary-value">${u.fees?.gamesSubmitted || 0}</div>
               </div>
             </div>
             <div style="font-size:10px; color:#666; margin-top:10px; font-family:monospace; line-height:1.4;">
@@ -2930,28 +2936,28 @@ const Game = (() => {
       if (!users.length) {
         uEl.innerHTML = '<div class="admin-empty">' + (filterAddr ? 'User history not found' : 'No user profiles found') + '</div>';
       } else {
-        uEl.innerHTML = users.map(({addr, profile, fees, binding, refData}) => {
-          const valids = (refData?.referrals||[]).filter(r=>r.status==='valid').length;
-          const txRows = (fees?.txHistory||[]).slice(-15).reverse()
-            .map(t=>`<span class="admin-tx">${t.type} $${formatUSD(t.amountUSD)} · ${new Date(t.ts).toLocaleDateString()}</span>`).join('');
+        uEl.innerHTML = users.map(({ addr, profile, fees, binding, refData }) => {
+          const valids = (refData?.referrals || []).filter(r => r.status === 'valid').length;
+          const txRows = (fees?.txHistory || []).slice(-15).reverse()
+            .map(t => `<span class="admin-tx">${t.type} $${formatUSD(t.amountUSD)} · ${new Date(t.ts).toLocaleDateString()}</span>`).join('');
           return `<div class="admin-user-card">
             <div class="admin-user-hdr">
-              <span class="admin-user-name">${escHtml(profile.name||'Unnamed')}</span>
+              <span class="admin-user-name">${escHtml(profile.name || 'Unnamed')}</span>
               <a class="admin-user-scan" href="https://basescan.org/address/${addr}" target="_blank" rel="noopener">
-                ${addr.slice(2,8)}...${addr.slice(-6)} ↗</a>
+                ${addr.slice(2, 8)}...${addr.slice(-6)} ↗</a>
             </div>
             <div class="admin-user-stats">
-              <span>Games: ${fees?.gamesSubmitted||0}</span>
-              <span>Spent: $${(fees?.totalUSD||0).toFixed(3)}</span>
-              <span>MP: ${profile.cumulativeScore||0}</span>
-              <span>Refs: ${(refData?.referrals||[]).length} (${valids} valid)</span>
-              <span>Revives: ${fees?.revives||0}</span>
-              <span>Check-ins: ${fees?.checkins||0}</span>
+              <span>Games: ${fees?.gamesSubmitted || 0}</span>
+              <span>Spent: $${(fees?.totalUSD || 0).toFixed(3)}</span>
+              <span>MP: ${profile.cumulativeScore || 0}</span>
+              <span>Refs: ${(refData?.referrals || []).length} (${valids} valid)</span>
+              <span>Revives: ${fees?.revives || 0}</span>
+              <span>Check-ins: ${fees?.checkins || 0}</span>
             </div>
             ${binding ? `<div class="admin-user-ref">Referred by:
               <a href="https://basescan.org/address/${binding.referrerAddr}" target="_blank" rel="noopener">
-                ${binding.referrerAddr.slice(0,8)}...${binding.referrerAddr.slice(-6)} ↗
-              </a> <em>${binding.method}${binding.onchain?' (onchain)':''}</em></div>` : ''}
+                ${binding.referrerAddr.slice(0, 8)}...${binding.referrerAddr.slice(-6)} ↗
+              </a> <em>${binding.method}${binding.onchain ? ' (onchain)' : ''}</em></div>` : ''}
             <div class="admin-tx-hist">${txRows}</div>
           </div>`;
         }).join('');
@@ -2963,14 +2969,14 @@ const Game = (() => {
      DAILY TASKS LOGIC
   ═══════════════════════════════════════════ */
   const TASK_DEFS = {
-    'daily-play-1':   { type: 'daily',  qty: 1,   reward: 100,  label: 'Daily Ninja', desc: 'Play 1 submitted game' },
-    'daily-play-5':   { type: 'daily',  qty: 5,   reward: 500,  label: 'Meme Warrior', desc: 'Play 5 submitted games' },
-    'daily-revive-1': { type: 'daily',  qty: 1,   reward: 300,  label: 'Survivor', desc: 'Revive 1 time in a game' },
-    'daily-revive-5': { type: 'daily',  qty: 5,   reward: 1000, label: 'Immortal', desc: 'Revive 5 times total' },
-    'weekly-streak-7':{ type: 'streak', qty: 7,   reward: 1000, label: 'Loyal Legend', desc: '7-Day Check-in Streak' },
-    'ref-1':          { type: 'ref',    qty: 1,   reward: 100,  label: 'Social Ninja', desc: 'Invite 1 friend' },
-    'ref-10':         { type: 'ref',    qty: 10,  reward: 1000, label: 'Team Leader', desc: 'Invite 10 friends' },
-    'ref-100':        { type: 'ref',    qty: 100, reward: 10000,label: 'Community King', desc: 'Invite 100+ friends' },
+    'daily-play-1': { type: 'daily', qty: 1, reward: 100, label: 'Daily Ninja', desc: 'Play 1 submitted game' },
+    'daily-play-5': { type: 'daily', qty: 5, reward: 500, label: 'Meme Warrior', desc: 'Play 5 submitted games' },
+    'daily-revive-1': { type: 'daily', qty: 1, reward: 300, label: 'Survivor', desc: 'Revive 1 time in a game' },
+    'daily-revive-5': { type: 'daily', qty: 5, reward: 1000, label: 'Immortal', desc: 'Revive 5 times total' },
+    'weekly-streak-7': { type: 'streak', qty: 7, reward: 1000, label: 'Loyal Legend', desc: '7-Day Check-in Streak' },
+    'ref-1': { type: 'ref', qty: 1, reward: 100, label: 'Invite 1 valid Friend', desc: 'Invite 1 friend' },
+    'ref-10': { type: 'ref', qty: 10, reward: 1000, label: 'Invite 10 Valid Freinds', desc: 'Invite 10 friends' },
+    'ref-100': { type: 'ref', qty: 100, reward: 10000, label: 'Invite 100 Valid Freinds', desc: 'Invite 100+ friends' },
   };
 
   /** Task reset (daily) logic */
@@ -2984,7 +2990,7 @@ const Game = (() => {
       profile.taskStats.dailyRevives = 0;
       profile.taskStats.lastResetDay = today;
       // Wipe daily claims so they can be re-earned tomorrow
-      for (let id in (profile.taskStats.claims||{})) {
+      for (let id in (profile.taskStats.claims || {})) {
         if (TASK_DEFS[id] && TASK_DEFS[id].type === 'daily') {
           delete profile.taskStats.claims[id];
         }
@@ -3009,8 +3015,8 @@ const Game = (() => {
     if (!def) return 0;
 
     if (def.type === 'daily') {
-      if (id.includes('play')) return (profile.taskStats||{}).dailyPlays || 0;
-      if (id.includes('revive')) return (profile.taskStats||{}).dailyRevives || 0;
+      if (id.includes('play')) return (profile.taskStats || {}).dailyPlays || 0;
+      if (id.includes('revive')) return (profile.taskStats || {}).dailyRevives || 0;
     }
     if (def.type === 'streak') {
       return getCheckinStatus(addr).currentStreak || 0;
@@ -3024,7 +3030,7 @@ const Game = (() => {
   function showTasksModal() {
     const addr = Web3.getConnectedAddress();
     if (!addr) { showToast("Connect wallet to view tasks!", "⚠️"); return; }
-    
+
     let profile = getProfileData(addr);
     profile = _ensureTaskStats(profile);
     saveProfileData(addr, profile);
@@ -3039,21 +3045,21 @@ const Game = (() => {
     if (!list || !addr) return;
 
     const profile = getProfileData(addr);
-    const claims = (profile.taskStats||{}).claims || {};
-    
+    const claims = (profile.taskStats || {}).claims || {};
+
     let html = '';
     let totalClaimable = 0;
 
     // Categories
     const categories = {
       'daily': { label: 'Daily Missions', icon: '⚡' },
-      'streak':{ label: 'Consistency Goals', icon: '🔥' },
-      'ref':   { label: 'Expansion Tasks', icon: '🌍' }
+      'streak': { label: 'Maintain Streaks', icon: '🔥' },
+      'ref': { label: 'Referral Tasks', icon: '💜' }
     };
 
     for (let cat in categories) {
       html += `<div class="task-section-title">${categories[cat].icon} ${categories[cat].label}</div>`;
-      
+
       for (let id in TASK_DEFS) {
         const def = TASK_DEFS[id];
         if (def.type !== cat) continue;
@@ -3070,8 +3076,8 @@ const Game = (() => {
         const actionHtml = isClaimed
           ? '<div class="task-done-badge">✅ Done</div>'
           : (isComplete
-              ? `<button class="btn btn-primary btn-task-claim" onclick="Game.doTaskClaim(['${id}'])">Claim</button>`
-              : '<button class="btn btn-secondary btn-task-claim" disabled style="opacity:0.45;">🔒</button>');
+            ? `<button class="btn btn-primary btn-task-claim" onclick="Game.doTaskClaim(['${id}'])">Claim</button>`
+            : '<button class="btn btn-secondary btn-task-claim" disabled style="opacity:0.45;">🔒</button>');
 
         html += `
           <div class="task-card">
@@ -3094,9 +3100,9 @@ const Game = (() => {
     }
 
     list.innerHTML = html;
-    
+
     const batchStats = document.getElementById('batch-stats');
-    const batchBtn   = document.getElementById('btn-batch-claim');
+    const batchBtn = document.getElementById('btn-batch-claim');
 
     if (batchStats) batchStats.textContent = `Total Claimable: ${totalClaimable} Meme Points`;
     if (batchBtn) {
@@ -3108,18 +3114,18 @@ const Game = (() => {
   async function doTaskClaim(ids) {
     const addr = Web3.getConnectedAddress();
     if (!addr) return;
-    
+
     let totalReward = 0;
     ids.forEach(id => { totalReward += TASK_DEFS[id].reward; });
     if (totalReward <= 0) return;
 
     try {
       // Corrected: use standard receiver address to avoid simulation failure
-      await Web3.sendETH(Web3.RECEIVER_ADDRESS, 0.01); 
+      await Web3.sendETH(Web3.RECEIVER_ADDRESS, 0.01);
 
       const profile = getProfileData(addr);
       profile.cumulativeScore = (profile.cumulativeScore || 0) + totalReward;
-      
+
       // Mark claimed
       if (!profile.taskStats.claims) profile.taskStats.claims = {};
       ids.forEach(id => {
@@ -3130,7 +3136,7 @@ const Game = (() => {
       refreshProfileUI(addr);
       showToast(`${totalReward} Meme Points Claimed!`, "🏆");
       renderTasksModal();
-    } catch(e) {
+    } catch (e) {
       console.error(e);
       showToast("Claim failed. Please try again.", "❌");
     }
@@ -3139,9 +3145,9 @@ const Game = (() => {
   function doBatchClaim() {
     const addr = Web3.getConnectedAddress();
     if (!addr) return;
-    
+
     const profile = getProfileData(addr);
-    const claims = (profile.taskStats||{}).claims || {};
+    const claims = (profile.taskStats || {}).claims || {};
     let toClaim = [];
 
     for (let id in TASK_DEFS) {
@@ -3158,15 +3164,15 @@ const Game = (() => {
      EXPORT PUBLIC API
   ═══════════════════════════════════════════ */
 
-  return { 
-    init, 
-    startGame, 
-    restartGame, 
-    showLeaderboard, 
-    goHome, 
-    toggleSettings, 
-    resumeGame, 
-    toggleMute, 
+  return {
+    init,
+    startGame,
+    restartGame,
+    showLeaderboard,
+    goHome,
+    toggleSettings,
+    resumeGame,
+    toggleMute,
     goHomeFromPause,
     handleWalletAction,
     updatePlayButtonState,
@@ -3207,9 +3213,9 @@ const Game = (() => {
     toggleRefInfo,
     resetGlobalLeaderboard,
     copyLeaderboardData,
-    showTasksModal: function() { return showTasksModal(); },
-    doTaskClaim: function(ids) { return doTaskClaim(ids); },
-    doBatchClaim: function() { return doBatchClaim(); },
+    showTasksModal: function () { return showTasksModal(); },
+    doTaskClaim: function (ids) { return doTaskClaim(ids); },
+    doBatchClaim: function () { return doBatchClaim(); },
   };
 
 })();
