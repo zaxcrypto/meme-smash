@@ -66,6 +66,13 @@ body {
   overflow: hidden;
   touch-action: none;
   font-family: 'Nunito', sans-serif;
+  background: linear-gradient(180deg,
+      #5BC8F5 0%,
+      #82D9F7 25%,
+      #AAE8FA 55%,
+      #CCF2FF 80%,
+      #E4F9FF 100%);
+  position: relative;
 }
 
 body {
@@ -86,13 +93,10 @@ body::before {
   inset: 0;
   z-index: 0;
   background:
-    radial-gradient(ellipse 240px 95px at 8% 7%, rgba(255, 255, 255, 0.95) 0%, transparent 65%),
-    radial-gradient(ellipse 160px 65px at 92% 5%, rgba(255, 255, 255, 0.90) 0%, transparent 65%),
-    radial-gradient(ellipse 300px 110px at 55% 12%, rgba(255, 255, 255, 0.80) 0%, transparent 65%),
-    radial-gradient(ellipse 140px 55px at 25% 20%, rgba(255, 255, 255, 0.75) 0%, transparent 65%),
-    radial-gradient(ellipse 190px 75px at 80% 18%, rgba(255, 255, 255, 0.70) 0%, transparent 65%);
+    radial-gradient(ellipse 260px 90px at 7% 6%, rgba(255, 255, 255, 0.92) 0%, transparent 70%),
+    radial-gradient(ellipse 160px 60px at 90% 5%, rgba(255, 255, 255, 0.88) 0%, transparent 70%),
+    radial-gradient(ellipse 200px 75px at 52% 13%, rgba(255, 255, 255, 0.72) 0%, transparent 70%);
   pointer-events: none;
-  animation: cloud-drift 22s ease-in-out infinite alternate;
 }
 
 @keyframes cloud-drift {
@@ -109,19 +113,23 @@ body::before {
 body::after {
   content: '';
   position: fixed;
-  bottom: -58vw;
+  bottom: -52vw;
   left: 50%;
   transform: translateX(-50%);
-  width: 185vw;
-  height: 185vw;
+  width: 175vw;
+  height: 175vw;
   border-radius: 50%;
-  border: 32px solid rgba(255, 255, 255, 0.92);
+  background: radial-gradient(circle at 50% 50%,
+      #ffffff 0%,
+      #f4fbff 55%,
+      rgba(210, 242, 255, 0.6) 80%,
+      transparent 100%);
   box-shadow:
-    0 0 0 56px rgba(255, 255, 255, 0.75),
-    0 0 0 90px rgba(255, 255, 255, 0.58),
-    0 0 0 124px rgba(255, 255, 255, 0.42),
-    0 0 0 158px rgba(255, 255, 255, 0.28),
-    0 0 0 192px rgba(255, 255, 255, 0.16);
+    0 0 0 18px rgba(255, 255, 255, 0.70),
+    0 0 0 40px rgba(255, 255, 255, 0.45),
+    0 0 0 68px rgba(255, 255, 255, 0.25),
+    0 0 0 100px rgba(255, 255, 255, 0.12),
+    0 -20px 80px rgba(180, 230, 255, 0.35);
   pointer-events: none;
   z-index: 0;
 }
