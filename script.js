@@ -3229,6 +3229,9 @@ const Game = (() => {
     if (preview) preview.style.display = 'none';
     const input = document.getElementById('chat-text-input');
     if (input) input.value = '';
+    // Always hide FAB when chat is open
+    const fab = document.getElementById('live-support-fab');
+    if (fab) fab.style.display = 'none';
     document.getElementById('modal-live-chat').classList.add('active');
     await loadUserChatMessages();
   }
@@ -3236,6 +3239,8 @@ const Game = (() => {
   function closeLiveChat() {
     document.getElementById('modal-live-chat').classList.remove('active');
     _chatImageData = null;
+    // Restore FAB only if back on home screen
+    updateFabVisibility();
   }
 
   async function loadUserChatMessages() {
