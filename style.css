@@ -54,7 +54,12 @@
 /* ══════════════════════════════════════
    BODY & ANIMATED SKY BACKGROUND
 ══════════════════════════════════════ */
-html,
+html {
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
 body {
   width: 100%;
   height: 100%;
@@ -64,27 +69,27 @@ body {
 }
 
 body {
-  background: linear-gradient(180deg,
-      #5BC8F5 0%,
-      #7DD3FC 30%,
-      #A8E6FF 60%,
-      #C8F0FF 80%,
-      #E8F8FF 100%);
+  background:
+    radial-gradient(ellipse 140% 80% at 50% -20%, rgba(138, 43, 226, 0.55) 0%, transparent 60%),
+    radial-gradient(ellipse 80% 60% at 0% 100%, rgba(79, 70, 229, 0.45) 0%, transparent 55%),
+    radial-gradient(ellipse 80% 60% at 100% 100%, rgba(236, 72, 153, 0.35) 0%, transparent 55%),
+    linear-gradient(160deg, #0a0519 0%, #130a2e 25%, #1e0a3e 50%, #2a0d57 75%, #3b1278 100%);
   position: relative;
 }
 
-/* Animated gradient orbs for depth */
+/* Glowing orbs */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
   z-index: 0;
   background:
-    radial-gradient(ellipse 80% 50% at 10% 20%, rgba(255, 180, 255, 0.22) 0%, transparent 70%),
-    radial-gradient(ellipse 60% 40% at 90% 80%, rgba(120, 200, 255, 0.25) 0%, transparent 60%),
-    radial-gradient(ellipse 50% 60% at 50% 50%, rgba(255, 255, 200, 0.10) 0%, transparent 70%);
+    radial-gradient(ellipse 600px 400px at 15% 25%, rgba(168, 85, 247, 0.22) 0%, transparent 70%),
+    radial-gradient(ellipse 500px 350px at 85% 75%, rgba(99, 102, 241, 0.2) 0%, transparent 70%),
+    radial-gradient(ellipse 400px 300px at 60% 10%, rgba(236, 72, 153, 0.18) 0%, transparent 70%),
+    radial-gradient(ellipse 350px 250px at 30% 80%, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
   pointer-events: none;
-  animation: orb-drift 12s ease-in-out infinite alternate;
+  animation: orb-drift 14s ease-in-out infinite alternate;
 }
 
 @keyframes orb-drift {
@@ -97,31 +102,36 @@ body::before {
   }
 }
 
-/* Floating cloud blobs */
+/* Star field + subtle grid */
 body::after {
   content: '';
   position: fixed;
   inset: 0;
   z-index: 0;
-  background:
-    radial-gradient(ellipse 220px 90px at 12% 12%, rgba(255, 255, 255, 0.7) 0%, transparent 70%),
-    radial-gradient(ellipse 180px 70px at 85% 8%, rgba(255, 255, 255, 0.65) 0%, transparent 70%),
-    radial-gradient(ellipse 260px 100px at 60% 22%, rgba(255, 255, 255, 0.55) 0%, transparent 70%),
-    radial-gradient(ellipse 150px 60px at 30% 35%, rgba(255, 255, 255, 0.45) 0%, transparent 70%),
-    radial-gradient(ellipse 200px 80px at 75% 55%, rgba(255, 255, 255, 0.40) 0%, transparent 70%);
+  background-image:
+    radial-gradient(circle 1px at 10% 15%, rgba(255,255,255,0.6) 0%, transparent 100%),
+    radial-gradient(circle 1.5px at 25% 40%, rgba(255,255,255,0.5) 0%, transparent 100%),
+    radial-gradient(circle 1px at 45% 20%, rgba(255,255,255,0.7) 0%, transparent 100%),
+    radial-gradient(circle 1px at 65% 8%, rgba(255,255,255,0.5) 0%, transparent 100%),
+    radial-gradient(circle 2px at 80% 30%, rgba(255,255,255,0.6) 0%, transparent 100%),
+    radial-gradient(circle 1px at 92% 55%, rgba(255,255,255,0.5) 0%, transparent 100%),
+    radial-gradient(circle 1.5px at 15% 70%, rgba(255,255,255,0.4) 0%, transparent 100%),
+    radial-gradient(circle 1px at 55% 75%, rgba(255,255,255,0.5) 0%, transparent 100%),
+    radial-gradient(circle 1px at 35% 90%, rgba(255,255,255,0.6) 0%, transparent 100%),
+    radial-gradient(circle 1.5px at 75% 88%, rgba(255,255,255,0.4) 0%, transparent 100%),
+    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%,
+                   100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%,
+                   80px 80px, 80px 80px;
   pointer-events: none;
-  animation: cloud-shift 18s ease-in-out infinite alternate;
+  animation: star-twinkle 20s ease-in-out infinite alternate;
 }
 
-@keyframes cloud-shift {
-  from {
-    background-position: 0 0;
-    transform: translateX(0);
-  }
-
-  to {
-    transform: translateX(30px);
-  }
+@keyframes star-twinkle {
+  0%   { opacity: 0.7; transform: scale(1); }
+  50%  { opacity: 1; }
+  100% { opacity: 0.8; transform: scale(1.02); }
 }
 
 /* ── Canvas ── */
@@ -3391,10 +3401,10 @@ body::after {
 
 /* ── Floating Action Button ── */
 .live-support-fab {
-  position: fixed;
-  bottom: 24px;
-  right: 18px;
-  z-index: 500;
+  position: fixed !important;
+  bottom: 28px;
+  right: 20px;
+  z-index: 9999 !important;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -3404,9 +3414,11 @@ body::after {
   border-radius: 52px;
   padding: 13px 16px 11px;
   cursor: pointer;
-  box-shadow: 0 4px 20px rgba(124,58,237,0.55), 0 2px 8px rgba(0,0,0,0.25);
+  box-shadow: 0 4px 20px rgba(124,58,237,0.65), 0 2px 8px rgba(0,0,0,0.35);
   animation: fabPulse 3s ease-in-out infinite;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  will-change: transform;
+  isolation: isolate;
 }
 .live-support-fab:hover, .live-support-fab:active {
   transform: scale(1.08);

@@ -3512,12 +3512,13 @@ const Game = (() => {
       const messages = data.messages || [];
 
       const msgsHtml = messages.map(msg => {
-        const isAdmin = msg.sender === 'admin';
+        const isAdminMsg = msg.sender === 'admin';
         const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        // Admin perspective: admin replies = RIGHT (user class/purple), user messages = LEFT (admin class/white)
         return `
-          <div class="chat-msg-wrap ${isAdmin ? 'admin' : 'user'}">
-            ${isAdmin ? '<div class="chat-msg-avatar">🎧</div>' : ''}
-            <div class="chat-bubble ${isAdmin ? 'admin-bubble' : 'user-bubble'}">
+          <div class="chat-msg-wrap ${isAdminMsg ? 'user' : 'admin'}">
+            ${!isAdminMsg ? `<div class="chat-msg-avatar" style="background:linear-gradient(135deg,#e05f00,#ff9c2a);font-size:13px;">👤</div>` : ''}
+            <div class="chat-bubble ${isAdminMsg ? 'user-bubble' : 'admin-bubble'}">
               ${msg.imageBase64 ? `<img src="${msg.imageBase64}" class="chat-bubble-img" alt="attachment"/>` : ''}
               ${msg.text ? `<div class="chat-bubble-text">${escHtml(msg.text)}</div>` : ''}
               <div class="chat-bubble-time">${time}</div>
