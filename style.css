@@ -3399,7 +3399,7 @@ body::after {
   bottom: 28px;
   right: 20px;
   z-index: 9999 !important;
-  display: flex;
+  display: none; /* JS-controlled: only shows on home screen */
   flex-direction: column;
   align-items: center;
   gap: 5px;

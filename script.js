@@ -273,7 +273,19 @@ const Game = (() => {
     if (el) {
       el.classList.add('active');
     }
+
+    // 3. FAB only visible on home screen
+    updateFabVisibility();
   }
+
+  function updateFabVisibility() {
+    const fab = document.getElementById('live-support-fab');
+    if (!fab) return;
+    const onHome = document.getElementById('screen-home')?.classList.contains('active');
+    const popupOpen = document.getElementById('support-popup')?.style.display === 'flex';
+    fab.style.display = (onHome && !popupOpen) ? 'flex' : 'none';
+  }
+
 
   function showToast(msg, icon = '💡') {
     let container = document.querySelector('.toast-container');
@@ -3198,11 +3210,16 @@ const Game = (() => {
   function showSupportPopup() {
     const popup = document.getElementById('support-popup');
     if (popup) popup.style.display = 'flex';
+    // Hide FAB while popup is open
+    const fab = document.getElementById('live-support-fab');
+    if (fab) fab.style.display = 'none';
   }
 
   function closeSupportPopup() {
     const popup = document.getElementById('support-popup');
     if (popup) popup.style.display = 'none';
+    // Restore FAB only if we're on home screen
+    updateFabVisibility();
   }
 
   async function openLiveChat() {
