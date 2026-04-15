@@ -2,7 +2,7 @@
 
 import * as Web3 from './web3.js';
 import { db } from './firebase.js';
-import { doc, getDoc, setDoc, collection, getDocs, query, orderBy, limit, where } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+import { doc, getDoc, setDoc, collection, getDocs, query, orderBy, limit, where, deleteDoc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 
 const Game = (() => {
 
@@ -2780,8 +2780,13 @@ const Game = (() => {
     _adminTab = tab;
     document.getElementById('admin-pane-queue').style.display = tab === 'queue' ? 'block' : 'none';
     document.getElementById('admin-pane-users').style.display = tab === 'users' ? 'block' : 'none';
-    document.querySelectorAll('.admin-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
-    renderAdminPanel();
+    document.getElementById('admin-pane-chats').style.display = tab === 'chats' ? 'block' : 'none';
+    document.querySelectorAll('#modal-admin .admin-tabs .admin-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+    if (tab === 'chats') {
+      renderAdminChats();
+    } else {
+      renderAdminPanel();
+    }
   }
 
   async function _getAllPayoutReqs() {
@@ -3161,6 +3166,430 @@ const Game = (() => {
   }
 
   /* ═══════════════════════════════════════════
+     LIVE SUPPORT CHAT SYSTEM
+  ═══════════════════════════════════════════ */
+
+  let _chatImageData = null;
+  let _adminViewingChatId = null;
+  let _adminChatFilter = 'all';
+  let _adminSelectedChats = new Set();
+
+  function getSupportChatId() {
+    const addr = Web3.getConnectedAddress();
+    if (addr) return addr.toLowerCase();
+    let sessionId = localStorage.getItem('meme_smash_support_session');
+    if (!sessionId) {
+      sessionId = 'guest_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      localStorage.setItem('meme_smash_support_session', sessionId);
+    }
+    return sessionId;
+  }
+
+  function getSupportUserName() {
+    const addr = Web3.getConnectedAddress();
+    if (addr) {
+      const profile = getProfileData(addr);
+      if (profile.name) return profile.name;
+      return addr.slice(0, 6) + '...' + addr.slice(-4);
+    }
+    return 'Guest User';
+  }
+
+  function showSupportPopup() {
+    const popup = document.getElementById('support-popup');
+    if (popup) popup.style.display = 'flex';
+  }
+
+  function closeSupportPopup() {
+    const popup = document.getElementById('support-popup');
+    if (popup) popup.style.display = 'none';
+  }
+
+  async function openLiveChat() {
+    closeSupportPopup();
+    _chatImageData = null;
+    const preview = document.getElementById('chat-image-preview');
+    if (preview) preview.style.display = 'none';
+    const input = document.getElementById('chat-text-input');
+    if (input) input.value = '';
+    document.getElementById('modal-live-chat').classList.add('active');
+    await loadUserChatMessages();
+  }
+
+  function closeLiveChat() {
+    document.getElementById('modal-live-chat').classList.remove('active');
+    _chatImageData = null;
+  }
+
+  async function loadUserChatMessages() {
+    const chatId = getSupportChatId();
+    const messagesEl = document.getElementById('user-chat-messages');
+    if (!messagesEl) return;
+    messagesEl.innerHTML = '<div style="text-align:center;padding:20px;color:#999;font-size:13px;">Loading...</div>';
+    try {
+      const snap = await getDoc(doc(db, 'supportChats', chatId));
+      if (snap.exists()) {
+        renderUserChatMessages(snap.data().messages || []);
+      } else {
+        renderUserChatMessages([]);
+      }
+    } catch (e) {
+      console.warn('Chat load error:', e);
+      renderUserChatMessages([]);
+    }
+  }
+
+  function renderUserChatMessages(messages) {
+    const messagesEl = document.getElementById('user-chat-messages');
+    if (!messagesEl) return;
+    if (messages.length === 0) {
+      messagesEl.innerHTML = `
+        <div class="chat-welcome">
+          <div class="chat-welcome-icon">🎧</div>
+          <div class="chat-welcome-text">Hi! How can we help?</div>
+          <div class="chat-welcome-sub">Send us a message and we'll reply soon.🌟</div>
+        </div>`;
+      return;
+    }
+    messagesEl.innerHTML = messages.map(msg => {
+      const isAdmin = msg.sender === 'admin';
+      const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      return `
+        <div class="chat-msg-wrap ${isAdmin ? 'admin' : 'user'}">
+          ${isAdmin ? '<div class="chat-msg-avatar">🎧</div>' : ''}
+          <div class="chat-bubble ${isAdmin ? 'admin-bubble' : 'user-bubble'}">
+            ${msg.imageBase64 ? `<img src="${msg.imageBase64}" class="chat-bubble-img" alt="attachment"/>` : ''}
+            ${msg.text ? `<div class="chat-bubble-text">${escHtml(msg.text)}</div>` : ''}
+            <div class="chat-bubble-time">${time}</div>
+          </div>
+        </div>`;
+    }).join('');
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  async function sendSupportMessage() {
+    const text = (document.getElementById('chat-text-input')?.value || '').trim();
+    const imageData = _chatImageData;
+    if (!text && !imageData) return;
+
+    const sendBtn = document.querySelector('#modal-live-chat .chat-send-btn');
+    if (sendBtn) sendBtn.disabled = true;
+
+    try {
+      const chatId = getSupportChatId();
+      const userName = getSupportUserName();
+      const now = Date.now();
+      const newMsg = { id: now, text, imageBase64: imageData || null, sender: 'user', timestamp: now, senderName: userName };
+
+      const snap = await getDoc(doc(db, 'supportChats', chatId));
+      const existingData = snap.exists() ? snap.data() : null;
+      const existingMessages = existingData?.messages || [];
+      const isFirstMessage = existingMessages.length === 0;
+
+      const updatedMessages = [...existingMessages, newMsg];
+
+      if (isFirstMessage) {
+        updatedMessages.push({
+          id: now + 1,
+          text: "Thanks for reaching me out 😊, feel free to say your problem and I recommend to contact me on twitter 🐦",
+          imageBase64: null,
+          sender: 'admin',
+          timestamp: now + 1,
+          senderName: 'Support'
+        });
+      }
+
+      await setDoc(doc(db, 'supportChats', chatId), {
+        chatId,
+        userId: chatId,
+        userName,
+        lastMessage: text || '[Image]',
+        lastMessageAt: now,
+        unreadForAdmin: true,
+        archived: existingData?.archived || false,
+        messages: updatedMessages
+      });
+
+      document.getElementById('chat-text-input').value = '';
+      _chatImageData = null;
+      const preview = document.getElementById('chat-image-preview');
+      if (preview) preview.style.display = 'none';
+      const fileInput = document.getElementById('chat-image-input');
+      if (fileInput) fileInput.value = '';
+
+      renderUserChatMessages(updatedMessages);
+    } catch (e) {
+      console.error('Send message error:', e);
+      showToast('Failed to send message. Please try again.', '❌');
+    } finally {
+      if (sendBtn) sendBtn.disabled = false;
+    }
+  }
+
+  function handleChatImageSelect(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    if (file.size > 800 * 1024) {
+      showToast('Image too large. Max 800KB.', '⚠️');
+      event.target.value = '';
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      _chatImageData = e.target.result;
+      const preview = document.getElementById('chat-image-preview');
+      if (preview) {
+        preview.style.display = 'block';
+        preview.innerHTML = `
+          <div class="chat-img-preview-wrap">
+            <img src="${_chatImageData}" class="chat-preview-img" alt="preview"/>
+            <button class="chat-img-remove-btn" onclick="Game.removeChatImage()">✕</button>
+          </div>`;
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function removeChatImage() {
+    _chatImageData = null;
+    const preview = document.getElementById('chat-image-preview');
+    if (preview) preview.style.display = 'none';
+    const input = document.getElementById('chat-image-input');
+    if (input) input.value = '';
+  }
+
+  /* ── Admin Chat Functions ── */
+
+  async function renderAdminChats() {
+    const viewerAddr = Web3.getConnectedAddress();
+    if (!isAdminWallet(viewerAddr)) return;
+    const pane = document.getElementById('admin-pane-chats');
+    if (!pane) return;
+    pane.innerHTML = '<div class="admin-empty">⏳ Loading chats...</div>';
+
+    try {
+      const snap = await getDocs(query(collection(db, 'supportChats'), orderBy('lastMessageAt', 'desc')));
+      const chats = [];
+      snap.forEach(d => chats.push(d.data()));
+
+      let filtered = chats;
+      if (_adminChatFilter === 'unread') filtered = chats.filter(c => c.unreadForAdmin && !c.archived);
+      else if (_adminChatFilter === 'read') filtered = chats.filter(c => !c.unreadForAdmin && !c.archived);
+      else if (_adminChatFilter === 'archived') filtered = chats.filter(c => c.archived);
+      else filtered = chats.filter(c => !c.archived);
+
+      const unreadCount = chats.filter(c => c.unreadForAdmin && !c.archived).length;
+
+      let html = `
+        <div class="chat-admin-filter-row">
+          ${['all','unread','read','archived'].map(f => `
+            <button class="chat-filter-tab ${_adminChatFilter === f ? 'active' : ''}" onclick="Game.adminSetChatFilter('${f}')">
+              ${f.charAt(0).toUpperCase() + f.slice(1)}${f==='unread'&&unreadCount>0?` <span class="chat-unread-badge">${unreadCount}</span>`:''}
+            </button>`).join('')}
+        </div>
+        <div class="admin-chat-batch-bar">
+          <button class="admin-chat-select-all-btn" onclick="Game.adminToggleSelectAllChats()">Select All</button>
+          <button class="admin-chat-batch-delete-btn" id="admin-batch-delete-btn" style="display:none;" onclick="Game.adminBatchDeleteChats()">🗑️ Delete Selected</button>
+        </div>`;
+
+      if (filtered.length === 0) {
+        html += '<div class="admin-empty">No chats found</div>';
+      } else {
+        html += '<div class="admin-chat-list">';
+        filtered.forEach(chat => {
+          const time = chat.lastMessageAt
+            ? new Date(chat.lastMessageAt).toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' '
+              + new Date(chat.lastMessageAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            : '';
+          const isUnread = chat.unreadForAdmin && !chat.archived;
+          const initials = (chat.userName || '?')[0].toUpperCase();
+          html += `
+            <div class="admin-chat-item ${isUnread ? 'unread' : ''}" data-chatid="${chat.chatId}">
+              <input type="checkbox" class="admin-chat-checkbox" id="chk-${chat.chatId}"
+                onchange="Game.adminToggleChatSelect('${chat.chatId}', this.checked)"
+                onclick="event.stopPropagation()"/>
+              <div class="admin-chat-item-content" onclick="Game.adminOpenChat('${chat.chatId}')">
+                <div class="admin-chat-item-left">
+                  <div class="admin-chat-avatar">${initials}</div>
+                  ${isUnread ? '<div class="admin-unread-dot"></div>' : ''}
+                </div>
+                <div class="admin-chat-item-body">
+                  <div class="admin-chat-item-header">
+                    <span class="admin-chat-name">${escHtml(chat.userName || 'Unknown')}</span>
+                    <span class="admin-chat-time">${time}</span>
+                  </div>
+                  <div class="admin-chat-preview">${escHtml((chat.lastMessage || '').slice(0, 55))}${(chat.lastMessage||'').length > 55 ? '...' : ''}</div>
+                  <div class="admin-chat-id-small">${(chat.chatId||'').slice(0, 20)}...</div>
+                </div>
+              </div>
+              <div class="admin-chat-actions">
+                ${!chat.archived ? `<button class="admin-chat-action-btn" title="Archive" onclick="event.stopPropagation();Game.adminArchiveChat('${chat.chatId}')">📁</button>` : ''}
+                <button class="admin-chat-action-btn delete-btn" title="Delete" onclick="event.stopPropagation();Game.adminDeleteChat('${chat.chatId}')">🗑️</button>
+              </div>
+            </div>`;
+        });
+        html += '</div>';
+      }
+      pane.innerHTML = html;
+    } catch (e) {
+      console.error('Render admin chats error:', e);
+      pane.innerHTML = '<div class="admin-empty">❌ Error loading chats</div>';
+    }
+  }
+
+  function adminSetChatFilter(filter) {
+    _adminChatFilter = filter;
+    _adminSelectedChats.clear();
+    renderAdminChats();
+  }
+
+  function adminToggleChatSelect(chatId, checked) {
+    if (checked) _adminSelectedChats.add(chatId);
+    else _adminSelectedChats.delete(chatId);
+    const btn = document.getElementById('admin-batch-delete-btn');
+    if (btn) btn.style.display = _adminSelectedChats.size > 0 ? 'inline-flex' : 'none';
+  }
+
+  function adminToggleSelectAllChats() {
+    const checkboxes = document.querySelectorAll('.admin-chat-checkbox');
+    const allChecked = checkboxes.length > 0 && [...checkboxes].every(c => c.checked);
+    checkboxes.forEach(c => {
+      c.checked = !allChecked;
+      const chatId = c.id.replace('chk-', '');
+      if (!allChecked) _adminSelectedChats.add(chatId);
+      else _adminSelectedChats.delete(chatId);
+    });
+    const btn = document.getElementById('admin-batch-delete-btn');
+    if (btn) btn.style.display = _adminSelectedChats.size > 0 ? 'inline-flex' : 'none';
+  }
+
+  async function adminBatchDeleteChats() {
+    if (_adminSelectedChats.size === 0) return;
+    if (!confirm(`Delete ${_adminSelectedChats.size} chat(s) permanently from database?`)) return;
+    const ids = [..._adminSelectedChats];
+    try {
+      await Promise.all(ids.map(id => deleteDoc(doc(db, 'supportChats', id))));
+      _adminSelectedChats.clear();
+      showToast(`${ids.length} chat(s) deleted`, '🗑️');
+      renderAdminChats();
+    } catch (e) {
+      console.error(e);
+      showToast('Delete failed', '❌');
+    }
+  }
+
+  async function adminDeleteChat(chatId) {
+    if (!confirm('Delete this chat permanently from database?')) return;
+    try {
+      await deleteDoc(doc(db, 'supportChats', chatId));
+      if (_adminViewingChatId === chatId) { _adminViewingChatId = null; }
+      showToast('Chat deleted', '🗑️');
+      renderAdminChats();
+    } catch (e) {
+      console.error(e);
+      showToast('Failed to delete', '❌');
+    }
+  }
+
+  async function adminArchiveChat(chatId) {
+    try {
+      await setDoc(doc(db, 'supportChats', chatId), { archived: true }, { merge: true });
+      showToast('Chat archived', '📁');
+      renderAdminChats();
+    } catch (e) { console.error(e); }
+  }
+
+  async function adminOpenChat(chatId) {
+    _adminViewingChatId = chatId;
+    const pane = document.getElementById('admin-pane-chats');
+    if (!pane) return;
+    pane.innerHTML = '<div class="admin-empty">⏳ Loading conversation...</div>';
+    try {
+      await setDoc(doc(db, 'supportChats', chatId), { unreadForAdmin: false }, { merge: true });
+      const snap = await getDoc(doc(db, 'supportChats', chatId));
+      if (!snap.exists()) { renderAdminChats(); return; }
+      const data = snap.data();
+      const messages = data.messages || [];
+
+      const msgsHtml = messages.map(msg => {
+        const isAdmin = msg.sender === 'admin';
+        const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        return `
+          <div class="chat-msg-wrap ${isAdmin ? 'admin' : 'user'}">
+            ${isAdmin ? '<div class="chat-msg-avatar">🎧</div>' : ''}
+            <div class="chat-bubble ${isAdmin ? 'admin-bubble' : 'user-bubble'}">
+              ${msg.imageBase64 ? `<img src="${msg.imageBase64}" class="chat-bubble-img" alt="attachment"/>` : ''}
+              ${msg.text ? `<div class="chat-bubble-text">${escHtml(msg.text)}</div>` : ''}
+              <div class="chat-bubble-time">${time}</div>
+            </div>
+          </div>`;
+      }).join('');
+
+      pane.innerHTML = `
+        <div class="admin-chat-view">
+          <div class="admin-chat-view-header">
+            <button class="admin-chat-back-btn" onclick="Game.closeAdminChatView()">← Back</button>
+            <div style="flex:1; min-width:0;">
+              <div class="admin-chat-view-name">${escHtml(data.userName || 'Unknown')}</div>
+              <div class="admin-chat-view-id">${chatId.slice(0, 22)}...</div>
+            </div>
+            <button class="admin-chat-action-btn delete-btn" title="Delete Chat" onclick="Game.adminDeleteChat('${chatId}')" style="font-size:18px;">🗑️</button>
+          </div>
+          <div class="admin-chat-view-messages" id="admin-chat-view-messages">${msgsHtml || '<div class="chat-welcome" style="min-height:80px;"><div class="chat-welcome-text" style="font-size:13px;">No messages yet</div></div>'}</div>
+          <div class="admin-chat-reply-area">
+            <div class="chat-input-row" style="background:#f3f4f6;">
+              <textarea id="admin-reply-input" class="chat-text-input" placeholder="Type your reply..." rows="2"
+                onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();Game.adminSendReply('${chatId}');}"></textarea>
+              <button class="chat-send-btn" onclick="Game.adminSendReply('${chatId}')">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none"><path d="M22 2L11 13" stroke="white" stroke-width="2.5" stroke-linecap="round"/><path d="M22 2L15 22 11 13 2 9l20-7z" fill="white"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>`;
+
+      const msgEl = document.getElementById('admin-chat-view-messages');
+      if (msgEl) msgEl.scrollTop = msgEl.scrollHeight;
+    } catch (e) {
+      console.error('Admin open chat error:', e);
+      pane.innerHTML = '<div class="admin-empty">❌ Error loading conversation</div>';
+    }
+  }
+
+  function closeAdminChatView() {
+    _adminViewingChatId = null;
+    renderAdminChats();
+  }
+
+  async function adminSendReply(chatId) {
+    const input = document.getElementById('admin-reply-input');
+    const text = (input?.value || '').trim();
+    if (!text) return;
+    const btn = document.querySelector('#admin-pane-chats .chat-send-btn');
+    if (btn) btn.disabled = true;
+    try {
+      const snap = await getDoc(doc(db, 'supportChats', chatId));
+      if (!snap.exists()) return;
+      const data = snap.data();
+      const now = Date.now();
+      const replyMsg = { id: now, text, imageBase64: null, sender: 'admin', timestamp: now, senderName: 'Support' };
+      const updatedMessages = [...(data.messages || []), replyMsg];
+      await setDoc(doc(db, 'supportChats', chatId), {
+        messages: updatedMessages,
+        lastMessage: text,
+        lastMessageAt: now,
+        unreadForAdmin: false
+      }, { merge: true });
+      if (input) input.value = '';
+      await adminOpenChat(chatId);
+    } catch (e) {
+      console.error('Admin reply error:', e);
+      showToast('Failed to send reply', '❌');
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  }
+
+  /* ═══════════════════════════════════════════
      EXPORT PUBLIC API
   ═══════════════════════════════════════════ */
 
@@ -3216,6 +3645,23 @@ const Game = (() => {
     showTasksModal: function () { return showTasksModal(); },
     doTaskClaim: function (ids) { return doTaskClaim(ids); },
     doBatchClaim: function () { return doBatchClaim(); },
+    // Live Support Chat
+    showSupportPopup,
+    closeSupportPopup,
+    openLiveChat,
+    closeLiveChat,
+    sendSupportMessage,
+    handleChatImageSelect,
+    removeChatImage,
+    adminSetChatFilter,
+    adminToggleChatSelect,
+    adminToggleSelectAllChats,
+    adminBatchDeleteChats,
+    adminDeleteChat,
+    adminArchiveChat,
+    adminOpenChat,
+    closeAdminChatView,
+    adminSendReply,
   };
 
 })();

@@ -810,6 +810,7 @@
       <div class="admin-tabs">
         <button class="admin-tab active" data-tab="queue" onclick="Game.adminSwitchTab('queue')">Payout Queue</button>
         <button class="admin-tab" data-tab="users" onclick="Game.adminSwitchTab('users')">All Users</button>
+        <button class="admin-tab" data-tab="chats" onclick="Game.adminSwitchTab('chats')">💬 Chats</button>
       </div>
 
       <div id="admin-pane-queue">
@@ -826,6 +827,8 @@
         <div id="admin-user-summary"></div>
         <div id="admin-users-list"></div>
       </div>
+
+      <div id="admin-pane-chats" style="display:none; max-height: 500px; overflow-y: auto;"></div>
 
       <button onclick="Game.closeAdminPanel()" class="btn btn-secondary"
         style="margin-top:10px;margin-bottom:0;">Close</button>
@@ -950,6 +953,77 @@
   </div>
 
   <script type="module" src="script.js?v=7"></script>
+
+  <!-- ═══ LIVE SUPPORT FAB ═══ -->
+  <div id="live-support-fab" class="live-support-fab" onclick="Game.showSupportPopup()">
+    <svg class="fab-headphone-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M20 6C11.716 6 5 12.716 5 21v7a5 5 0 0 0 5 5h2.5A2.5 2.5 0 0 0 15 30.5v-7A2.5 2.5 0 0 0 12.5 21H9v-0.5a11 11 0 0 1 22 0V21h-3.5A2.5 2.5 0 0 0 25 23.5v7a2.5 2.5 0 0 0 2.5 2.5H30a5 5 0 0 0 5-5v-7C35 12.716 28.284 6 20 6z" fill="white"/>
+      <circle cx="20" cy="37" r="3" fill="rgba(255,255,255,0.7)"/>
+      <rect x="17" y="34" width="6" height="3" fill="rgba(255,255,255,0.7)"/>
+    </svg>
+    <span class="fab-label">Support</span>
+  </div>
+
+  <!-- ═══ SUPPORT OPTIONS POPUP ═══ -->
+  <div id="support-popup" class="support-popup-overlay" onclick="Game.closeSupportPopup()">
+    <div class="support-popup-card" onclick="event.stopPropagation()">
+      <button class="support-popup-close" onclick="Game.closeSupportPopup()">✕</button>
+      <div class="support-popup-icon">🎧</div>
+      <div class="support-popup-title">Need Help?</div>
+      <div class="support-popup-sub">Choose how you'd like to reach us</div>
+      <div class="support-options">
+        <button class="support-option-btn chat-option" id="btn-live-chat-option" onclick="Game.openLiveChat()">
+          <span class="support-option-icon">💬</span>
+          <div class="support-option-info">
+            <div class="support-option-name">Live Chat</div>
+            <div class="support-option-desc">Send message with images</div>
+          </div>
+          <svg class="support-option-arrow" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+        </button>
+        <button class="support-option-btn twitter-option" onclick="window.open('https://x.com/0x_zax','_blank'); Game.closeSupportPopup();">
+          <span class="support-option-icon" style="font-size:20px; font-weight:900; font-family:sans-serif;">𝕏</span>
+          <div class="support-option-info">
+            <div class="support-option-name">Contact on Twitter</div>
+            <div class="support-option-desc">@0x_zax — quick response</div>
+          </div>
+          <svg class="support-option-arrow" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ USER LIVE CHAT MODAL ═══ -->
+  <div id="modal-live-chat" class="screen" style="z-index:310; padding:0;">
+    <div class="screen-card chat-modal-card">
+      <div class="chat-header-bar">
+        <div class="chat-header-avatar-wrap">
+          <div class="chat-header-avatar">🎧</div>
+          <div class="chat-online-dot"></div>
+        </div>
+        <div class="chat-header-info">
+          <div class="chat-header-name">Live Support</div>
+          <div class="chat-header-status">● Online — replies instantly</div>
+        </div>
+        <button class="chat-close-btn" onclick="Game.closeLiveChat()">✕</button>
+      </div>
+      <div id="user-chat-messages" class="chat-messages-area"></div>
+      <div class="chat-input-area">
+        <div class="chat-image-preview" id="chat-image-preview" style="display:none;"></div>
+        <div class="chat-input-row">
+          <label class="chat-attach-btn" for="chat-image-input" title="Attach Image">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </label>
+          <input type="file" id="chat-image-input" accept="image/*" style="display:none;" onchange="Game.handleChatImageSelect(event)"/>
+          <textarea id="chat-text-input" class="chat-text-input" placeholder="Type your message..." rows="1"
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();Game.sendSupportMessage();}"></textarea>
+          <button class="chat-send-btn" onclick="Game.sendSupportMessage()">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none"><path d="M22 2L11 13" stroke="white" stroke-width="2.5" stroke-linecap="round"/><path d="M22 2L15 22 11 13 2 9l20-7z" fill="white"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </body>
 
 </html>
