@@ -565,7 +565,7 @@
           onclick="Game.reviveMenu()">Revive ($0.05 ETH)</button>
         <button id="btn-submit-score" class="btn btn-primary"
           style="background: linear-gradient(180deg, #FFD700 0%, #FFA500 100%); color: #2D1060; border-bottom: 3px solid #B8860B; margin-bottom: 0;"
-          onclick="Game.submitScoreMenu()">Submit Score ($0.01 ETH)</button>
+          onclick="Game.submitScoreMenu()">Submit Score Onchain</button>
 
         <button class="btn btn-secondary" style="margin-bottom: 0;" onclick="Game.restartGame()">Play Again</button>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
@@ -943,8 +943,7 @@
 
       <div class="batch-claim-footer">
         <div id="batch-stats" class="batch-info">Total Claimable: 0 Meme Points</div>
-        <button id="btn-batch-claim" class="btn btn-primary"
-          onclick="Game.doBatchClaim()">Batch Claim All</button>
+        <button id="btn-batch-claim" class="btn btn-primary" onclick="Game.doBatchClaim()">Batch Claim All</button>
         <button class="btn btn-secondary" onclick="Game.goHome()">🏠 Home</button>
       </div>
     </div>
