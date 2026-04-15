@@ -2969,11 +2969,11 @@ const Game = (() => {
      DAILY TASKS LOGIC
   ═══════════════════════════════════════════ */
   const TASK_DEFS = {
-    'daily-play-1': { type: 'daily', qty: 1, reward: 100, label: 'Daily Ninja', desc: 'Play 1 submitted game' },
-    'daily-play-5': { type: 'daily', qty: 5, reward: 500, label: 'Meme Warrior', desc: 'Play 5 submitted games' },
-    'daily-revive-1': { type: 'daily', qty: 1, reward: 300, label: 'Survivor', desc: 'Revive 1 time in a game' },
-    'daily-revive-5': { type: 'daily', qty: 5, reward: 1000, label: 'Immortal', desc: 'Revive 5 times total' },
-    'weekly-streak-7': { type: 'streak', qty: 7, reward: 1000, label: 'Loyal Legend', desc: '7-Day Check-in Streak' },
+    'daily-play-1': { type: 'daily', qty: 1, reward: 100, label: 'Play 1 submitted game', desc: 'Play 1 submitted game' },
+    'daily-play-5': { type: 'daily', qty: 5, reward: 500, label: 'PlayRe 5 submitted games', desc: 'Play 5 submitted games' },
+    'daily-revive-1': { type: 'daily', qty: 1, reward: 300, label: 'Revive 1 time in game', desc: 'Revive 1 time in a game' },
+    'daily-revive-5': { type: 'daily', qty: 5, reward: 1000, label: 'Revive 5 times total', desc: 'Revive 5 times total' },
+    'weekly-streak-7': { type: 'streak', qty: 7, reward: 1000, label: '7-Day Check-in Streak', desc: '7-Day Check-in Streak' },
     'ref-1': { type: 'ref', qty: 1, reward: 100, label: 'Invite 1 valid Friend', desc: 'Invite 1 friend' },
     'ref-10': { type: 'ref', qty: 10, reward: 1000, label: 'Invite 10 Valid Freinds', desc: 'Invite 10 friends' },
     'ref-100': { type: 'ref', qty: 100, reward: 10000, label: 'Invite 100 Valid Freinds', desc: 'Invite 100+ friends' },
