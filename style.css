@@ -52,7 +52,7 @@
 }
 
 /* ══════════════════════════════════════
-   BODY & ANIMATED SKY BACKGROUND
+   BODY & SKY BACKGROUND
 ══════════════════════════════════════ */
 html {
   width: 100%;
@@ -79,33 +79,7 @@ body {
   position: relative;
 }
 
-/* Bright white cloud puffs */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  background:
-    radial-gradient(ellipse 240px 95px at 8% 7%, rgba(255, 255, 255, 0.95) 0%, transparent 65%),
-    radial-gradient(ellipse 160px 65px at 92% 5%, rgba(255, 255, 255, 0.90) 0%, transparent 65%),
-    radial-gradient(ellipse 300px 110px at 55% 12%, rgba(255, 255, 255, 0.80) 0%, transparent 65%),
-    radial-gradient(ellipse 140px 55px at 25% 20%, rgba(255, 255, 255, 0.75) 0%, transparent 65%),
-    radial-gradient(ellipse 190px 75px at 80% 18%, rgba(255, 255, 255, 0.70) 0%, transparent 65%);
-  pointer-events: none;
-  animation: cloud-drift 22s ease-in-out infinite alternate;
-}
-
-@keyframes cloud-drift {
-  from {
-    transform: translateX(0);
-  }
-
-  to {
-    transform: translateX(20px);
-  }
-}
-
-/* Crisp white arch rings — portal/tunnel effect */
+/* Bright arch rings — portal/tunnel effect with image brightness */
 body::after {
   content: '';
   position: fixed;
@@ -115,13 +89,15 @@ body::after {
   width: 185vw;
   height: 185vw;
   border-radius: 50%;
-  border: 32px solid rgba(255, 255, 255, 0.92);
+  border: 28px solid rgba(255, 255, 255, 1);
   box-shadow:
-    0 0 0 56px rgba(255, 255, 255, 0.75),
-    0 0 0 90px rgba(255, 255, 255, 0.58),
-    0 0 0 124px rgba(255, 255, 255, 0.42),
-    0 0 0 158px rgba(255, 255, 255, 0.28),
-    0 0 0 192px rgba(255, 255, 255, 0.16);
+    0 0 0 52px rgba(255, 255, 255, 0.88),
+    0 0 0 84px rgba(255, 255, 255, 0.72),
+    0 0 0 116px rgba(255, 255, 255, 0.55),
+    0 0 0 148px rgba(255, 255, 255, 0.38),
+    0 0 0 180px rgba(255, 255, 255, 0.22),
+    0 0 0 210px rgba(255, 255, 255, 0.12);
+  filter: brightness(1.08);
   pointer-events: none;
   z-index: 0;
 }
