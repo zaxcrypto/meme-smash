@@ -70,62 +70,57 @@ body {
 
 body {
   background: linear-gradient(180deg,
-    #5BC8F5 0%,
-    #70D4F8 20%,
-    #90DFFB 45%,
-    #B8EEFF 70%,
-    #D6F5FF 85%,
-    #EAF9FF 100%);
+    #1DB8F0 0%,
+    #35C5F5 15%,
+    #55CFF7 35%,
+    #82DDFB 55%,
+    #AAEBFF 75%,
+    #C8F3FF 100%);
   position: relative;
 }
 
-/* Cloud puffs at top corners */
+/* Bright white cloud puffs */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
   z-index: 0;
   background:
-    radial-gradient(ellipse 220px 90px at 10% 8%,  rgba(255,255,255,0.85) 0%, transparent 70%),
-    radial-gradient(ellipse 180px 75px at 88% 6%,  rgba(255,255,255,0.80) 0%, transparent 70%),
-    radial-gradient(ellipse 260px 100px at 55% 14%, rgba(255,255,255,0.65) 0%, transparent 70%),
-    radial-gradient(ellipse 150px 60px  at 28% 22%, rgba(255,255,255,0.55) 0%, transparent 70%),
-    radial-gradient(ellipse 200px 80px  at 78% 20%, rgba(255,255,255,0.50) 0%, transparent 70%),
-    radial-gradient(ellipse 80%  50%    at 50% -10%,rgba(180,230,255,0.30) 0%, transparent 60%);
+    radial-gradient(ellipse 240px 95px  at 8%  7%,  rgba(255,255,255,0.95) 0%, transparent 65%),
+    radial-gradient(ellipse 160px 65px  at 92% 5%,  rgba(255,255,255,0.90) 0%, transparent 65%),
+    radial-gradient(ellipse 300px 110px at 55% 12%, rgba(255,255,255,0.80) 0%, transparent 65%),
+    radial-gradient(ellipse 140px 55px  at 25% 20%, rgba(255,255,255,0.75) 0%, transparent 65%),
+    radial-gradient(ellipse 190px 75px  at 80% 18%, rgba(255,255,255,0.70) 0%, transparent 65%);
   pointer-events: none;
-  animation: cloud-drift 20s ease-in-out infinite alternate;
+  animation: cloud-drift 22s ease-in-out infinite alternate;
 }
 
 @keyframes cloud-drift {
   from { transform: translateX(0); }
-  to   { transform: translateX(18px); }
+  to   { transform: translateX(20px); }
 }
 
-/* Large white arch rings at bottom — portal/tunnel effect */
+/* Crisp white arch rings — portal/tunnel effect */
 body::after {
   content: '';
   position: fixed;
-  bottom: -62vw;
+  bottom: -58vw;
   left: 50%;
   transform: translateX(-50%);
-  width: 190vw;
-  height: 190vw;
+  width: 185vw;
+  height: 185vw;
   border-radius: 50%;
-  border: 28px solid rgba(255, 255, 255, 0.72);
+  border: 32px solid rgba(255, 255, 255, 0.92);
   box-shadow:
-    0 0 0  52px rgba(255, 255, 255, 0.52),
-    0 0 0  80px rgba(255, 255, 255, 0.38),
-    0 0 0 108px rgba(255, 255, 255, 0.26),
-    0 0 0 136px rgba(255, 255, 255, 0.16),
-    0 0 0 164px rgba(255, 255, 255, 0.09);
+    0 0 0  56px rgba(255, 255, 255, 0.75),
+    0 0 0  90px rgba(255, 255, 255, 0.58),
+    0 0 0 124px rgba(255, 255, 255, 0.42),
+    0 0 0 158px rgba(255, 255, 255, 0.28),
+    0 0 0 192px rgba(255, 255, 255, 0.16);
   pointer-events: none;
   z-index: 0;
 }
 
-@keyframes orb-drift {
-  from { transform: scale(1) translateX(0); }
-  to   { transform: scale(1.08) translateX(20px); }
-}
 
 
 /* ── Canvas ── */
