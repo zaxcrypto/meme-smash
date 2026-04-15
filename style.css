@@ -2989,7 +2989,7 @@ body::after {
 }
 
 /* ══════════════════════════════════════
-   DAILY TASKS SYSTEM
+   DAILY TASKS SYSTEM — COMPACT ROW
 ══════════════════════════════════════ */
 .btn-tasks {
   background: linear-gradient(180deg, #FF8C00 0%, #E67E22 100%);
@@ -3002,132 +3002,153 @@ body::after {
 .tasks-container {
   display: flex;
   flex-direction: column;
-  gap: 15px;
-  max-height: 65vh;
+  gap: 4px;
   overflow-y: auto;
-  padding-right: 5px;
   text-align: left;
 }
 
 .task-section-title {
-  font-size: 13px;
+  font-size: 10px;
   font-weight: 900;
   color: var(--text-mid);
   text-transform: uppercase;
-  letter-spacing: 1px;
-  margin: 10px 0 5px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.task-card {
-  background: white;
-  border-radius: 18px;
-  padding: 16px;
-  border: 1.5px solid rgba(0,0,0,0.06);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.task-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-}
-
-.task-info {
-  display: flex;
-  flex-direction: column;
-}
-
-.task-name {
-  font-weight: 800;
-  font-size: 15px;
-  color: var(--text-dark);
-}
-
-.task-reward {
-  font-size: 12px;
-  font-weight: 800;
-  color: var(--hot-pink);
-  margin-top: 2px;
-}
-
-.task-progress-container {
-  background: #f0f0f0;
-  height: 10px;
-  border-radius: 5px;
-  width: 100%;
-  overflow: hidden;
-  position: relative;
-}
-
-.task-progress-bar {
-  height: 100%;
-  background: linear-gradient(90deg, #7FE82A, #4CAF50);
-  transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.task-progress-text {
-  font-size: 11px;
-  font-weight: 800;
-  color: #888;
-  align-self: flex-end;
-}
-
-.btn-task-claim {
-  padding: 8px 16px;
-  font-size: 13px;
-  min-width: 90px;
-  margin-bottom: 0;
-}
-
-.task-done-badge {
-  background: #E8F8FF;
-  color: #00C8FF;
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 900;
+  letter-spacing: 0.8px;
+  margin: 8px 0 3px;
   display: flex;
   align-items: center;
   gap: 5px;
 }
 
-.batch-claim-footer {
-  margin-top: auto;
-  padding-top: 15px;
-  border-top: 2px dashed #ddd;
+/* ── Compact single-line task row ── */
+.task-card {
+  background: rgba(255,255,255,0.85);
+  border-radius: 10px;
+  padding: 7px 10px;
+  border: 1.5px solid rgba(0,0,0,0.06);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.task-left {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 3px;
+}
+
+.task-top-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.task-name {
+  font-weight: 800;
+  font-size: 12px;
+  color: var(--text-dark);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.task-reward {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--hot-pink);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.task-progress-container {
+  background: #eee;
+  height: 5px;
+  border-radius: 3px;
+  width: 100%;
+  overflow: hidden;
+}
+
+.task-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #7FE82A, #4CAF50);
+  transition: width 0.5s ease;
+}
+
+.task-progress-text {
+  font-size: 9px;
+  font-weight: 800;
+  color: #aaa;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* right-side action */
+.task-action {
+  flex-shrink: 0;
+}
+
+.btn-task-claim {
+  padding: 5px 11px;
+  font-size: 11px;
+  min-width: 64px;
+  margin-bottom: 0;
+  border-radius: 30px;
+}
+
+.task-done-badge {
+  background: #E8F8FF;
+  color: #00C8FF;
+  padding: 4px 9px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  white-space: nowrap;
+}
+
+/* ── Footer ── */
+.batch-claim-footer {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1.5px dashed #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   background: white;
   z-index: 10;
+}
+
+.batch-claim-footer .btn {
+  padding: 10px 16px !important;
+  font-size: 14px !important;
+  margin-bottom: 0 !important;
 }
 
 #screen-tasks .screen-card {
   display: flex;
   flex-direction: column;
-  max-height: 85vh;
-  padding-bottom: 20px;
+  max-height: 88vh;
+  padding: 28px 22px 18px;
 }
 
 #screen-tasks .tasks-container {
   flex: 1;
   overflow-y: auto;
-  margin-bottom: 15px;
-  max-height: none; /* Let the card flex define the height */
+  margin-bottom: 10px;
+  max-height: none;
 }
 
 .batch-info {
-  font-size: 12px;
+  font-size: 11px;
   text-align: center;
-  color: #666;
+  color: #888;
   font-weight: 700;
-  margin-bottom: 5px;
+  margin-bottom: 2px;
 }
 /* ══════════════════════════════════════
    ADMIN SEARCH & SUMMARY UPGRADE

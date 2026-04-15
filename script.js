@@ -3067,25 +3067,27 @@ const Game = (() => {
           totalClaimable += def.reward;
         }
 
+        const actionHtml = isClaimed
+          ? '<div class="task-done-badge">✅ Done</div>'
+          : (isComplete
+              ? `<button class="btn btn-primary btn-task-claim" onclick="Game.doTaskClaim(['${id}'])">Claim</button>`
+              : '<button class="btn btn-secondary btn-task-claim" disabled style="opacity:0.45;">🔒</button>');
+
         html += `
           <div class="task-card">
-            <div class="task-header">
-              <div class="task-info">
+            <div class="task-left">
+              <div class="task-top-row">
                 <span class="task-name">${def.label}</span>
-                <span class="task-reward">+${def.reward} Meme Points</span>
+                <span class="task-reward">+${def.reward} MP</span>
               </div>
-              ${isClaimed ? 
-                '<div class="task-done-badge">✅ Claimed</div>' : 
-                (isComplete ? 
-                  `<button class="btn btn-primary btn-task-claim" onclick="Game.doTaskClaim(['${id}'])">Claim</button>` : 
-                  '<button class="btn btn-secondary btn-task-claim" disabled>Locked</button>')
-              }
+              <div style="display:flex;align-items:center;gap:5px;">
+                <div class="task-progress-container" style="flex:1;">
+                  <div class="task-progress-bar" style="width:${fillPct}%"></div>
+                </div>
+                <span class="task-progress-text">${progress}/${def.qty}</span>
+              </div>
             </div>
-            <p style="font-size:11px; color:#777; margin:0 0 5px 0;">${def.desc}</p>
-            <div class="task-progress-container">
-              <div class="task-progress-bar" style="width: ${fillPct}%"></div>
-            </div>
-            <span class="task-progress-text">${progress} / ${def.qty}</span>
+            <div class="task-action">${actionHtml}</div>
           </div>
         `;
       }

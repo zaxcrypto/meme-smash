@@ -404,7 +404,8 @@
 
         <div class="home-grid-row">
           <button id="btn-checkin-home" class="btn btn-checkin" onclick="Game.showCheckinModal()">📅 Check-In</button>
-          <button id="btn-tasks" class="btn btn-tasks" onclick="Game.showTasksModal()" style="display:none;">Daily Tasks</button>
+          <button id="btn-tasks" class="btn btn-tasks" onclick="Game.showTasksModal()" style="display:none;">Daily
+            Tasks</button>
         </div>
 
         <div class="home-grid-row">
@@ -816,10 +817,10 @@
       </div>
       <div id="admin-pane-users" style="display:none;">
         <div class="admin-search-wrap" style="margin-bottom:12px; display:flex; gap:8px;">
-          <input id="admin-user-search-input" class="name-input" 
-            style="font-size:12px; padding:10px 14px; margin-bottom:0;" 
-            placeholder="Wallet, @Twitter, or Telegram..." autocomplete="off" />
-          <button class="btn btn-primary" onclick="Game.adminSearchUser()" 
+          <input id="admin-user-search-input" class="name-input"
+            style="font-size:12px; padding:10px 14px; margin-bottom:0;" placeholder="Wallet, @Twitter, or Telegram..."
+            autocomplete="off" />
+          <button class="btn btn-primary" onclick="Game.adminSearchUser()"
             style="width:auto; padding:8px 15px; margin-bottom:0; font-size:14px; background:var(--sky); border-bottom:3px solid #0099cc;">Search</button>
         </div>
         <div id="admin-user-summary"></div>
@@ -928,12 +929,12 @@
   <div id="screen-tasks" class="screen">
     <div class="screen-card">
       <button onclick="Game.goHome()" class="ci-close-btn" aria-label="Close">✕</button>
-      <div class="lb-title-row">
-        <h2 class="lb-title" style="color: #FF8C00;">DAILY TASKS</h2>
+      <div class="lb-title-row" style="margin-bottom:8px;">
+        <h2 class="lb-title" style="color: #FF8C00; font-size:20px;">DAILY TASKS</h2>
       </div>
 
-      <p style="font-size: 13px; color: #666; font-weight: 700; margin-bottom: 20px; text-align: center;">
-        Complete missions to earn massive Meme Points! 🚀
+      <p style="font-size: 11px; color: #888; font-weight: 700; margin-bottom: 8px; text-align: center;">
+        Complete missions to earn Meme Points! 🚀
       </p>
 
       <div id="tasks-list" class="tasks-container">
@@ -942,9 +943,9 @@
 
       <div class="batch-claim-footer">
         <div id="batch-stats" class="batch-info">Total Claimable: 0 Meme Points</div>
-        <button id="btn-batch-claim" class="btn btn-primary" style="margin-bottom: 10px;"
+        <button id="btn-batch-claim" class="btn btn-primary"
           onclick="Game.doBatchClaim()">Batch Claim All</button>
-        <button class="btn btn-secondary" onclick="Game.goHome()">Back to Home</button>
+        <button class="btn btn-secondary" onclick="Game.goHome()">🏠 Home</button>
       </div>
     </div>
   </div>
