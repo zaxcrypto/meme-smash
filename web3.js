@@ -10,7 +10,7 @@ import { createWalletClient, custom, parseEther } from 'viem';
 import { base } from 'viem/chains';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-export const RECEIVER_ADDRESS = '0x3b305a5c77d0274BCDDD9013C80113Ea1D698061';
+export const RECEIVER_ADDRESS = '0x067d353042E52169a52524c578D23921CABA25A1';
 const BUILDER_CODE     = 'bc_sjkexp2o';
 
 // ─── ETH Price Oracle ─────────────────────────────────────────────────────────
