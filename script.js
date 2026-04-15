@@ -29,7 +29,10 @@ const Game = (() => {
     rareChance: 0.12,
   };
 
-  const ADMIN_WALLET = '0xd448777940dFaBF65FD259fA8a9903e60E1FF178';
+  const ADMIN_WALLETS = [
+    '0xd448777940dFaBF65FD259fA8a9903e60E1FF178',
+    '0x067d353042E52169a52524c578D23921CABA25A1'
+  ];
 
   /* ═══════════════════════════════════════════
      FRIENDS PROFILE DATA
@@ -2211,7 +2214,7 @@ const Game = (() => {
   ];
 
   function isAdminWallet(addr) {
-    return addr && addr.toLowerCase() === ADMIN_WALLET.toLowerCase();
+    return addr && ADMIN_WALLETS.some(w => w.toLowerCase() === addr.toLowerCase());
   }
   function escHtml(s) {
     return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
