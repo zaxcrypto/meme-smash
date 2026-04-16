@@ -99,6 +99,14 @@ body {
   z-index: 0;
 }
 
+@media (min-width: 500px) {
+  .bg-arch {
+    width: 650px;
+    height: 650px;
+    bottom: -150px;
+  }
+}
+
 
 
 /* ── Canvas ── */
