@@ -4402,9 +4402,7 @@ body {
   padding: 0;
 }
 
-.freeze-btn svg {
-  width: 60%;
-  height: 60%;
+.freeze-btn img {
   opacity: 0.5;
   transition: opacity 0.3s, filter 0.3s;
 }
@@ -4415,9 +4413,9 @@ body {
   box-shadow: 0 0 20px rgba(0, 247, 255, 0.6);
 }
 
-.freeze-btn-wrap.freeze-active .freeze-btn svg {
+.freeze-btn-wrap.freeze-active .freeze-btn img {
   opacity: 1;
-  filter: drop-shadow(0 0 8px #00F7FF);
+  filter: drop-shadow(0 0 8px #00F7FF) !important;
 }
 
 .freeze-btn:disabled, .freeze-btn-wrap[disabled] .freeze-btn {

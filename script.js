@@ -129,8 +129,16 @@ const Game = (() => {
       o.start(); o.stop(audioCtx.currentTime + duration);
     } catch (e) { }
   }
-  function sfxSlice() {
+  function sfxSlice(isPlayingFrozen = false) {
     if (isMuted) return;
+    
+    if (isPlayingFrozen && icecrackAudioEl) {
+      const clone = icecrackAudioEl.cloneNode();
+      clone.volume = 0.8;
+      clone.play().catch(e => playTone(1200, 'sawtooth', 0.15, 0.15));
+      return;
+    }
+    
     if (weeeAudioEl) {
       const clone = weeeAudioEl.cloneNode();
       clone.volume = 0.5;
@@ -145,6 +153,7 @@ const Game = (() => {
   // Sounds
   let bombAudioEl = null;
   let weeeAudioEl = null;
+  let icecrackAudioEl = null;
 
   function initAudio() {
     ensureAudio();
@@ -155,6 +164,9 @@ const Game = (() => {
 
       weeeAudioEl = new Audio('/weee.mp3');
       weeeAudioEl.volume = 0.5;
+      
+      icecrackAudioEl = new Audio('/icecrack.mp3');
+      icecrackAudioEl.volume = 0.8;
     } catch (e) {
       console.warn("Audio load error:", e);
     }
@@ -1216,7 +1228,7 @@ const Game = (() => {
     }
     
     updateHUD();
-    sfxSlice();
+    sfxSlice(isFrozen);
     if (o.pts > 1) sfxScore();
     spawnParticles(o.x, o.y, o.coin.color, CFG.particleCount);
     spawnHalves(o);
