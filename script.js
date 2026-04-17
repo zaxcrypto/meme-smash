@@ -817,7 +817,21 @@ const Game = (() => {
     missedCoins = 0;
     bombStrikes = 0;
 
-    // If times was up, reset it. If bombs were up, keep the same time.
+    // Reset power-ups on revive to prevent being stuck in a freeze
+    freezeTimeLeft = 0;
+    isFrozen = false;
+    const freezeDisplay = document.getElementById('freeze-countdown-display');
+    if (freezeDisplay) freezeDisplay.style.display = 'none';
+    updateFreezeUI();
+
+    blastTimer = 0;
+    isBlasting = false;
+    hasAlarmed = false;
+    const overlay = document.getElementById('red-alarm-overlay');
+    if (overlay) overlay.classList.remove('alarming');
+    updateBlastUI();
+
+    // If time was up, reset it. If bombs were up, keep the same time.
     if (timeLeft <= 0) {
       timeLeft = gameDuration;
     }
@@ -906,6 +920,8 @@ const Game = (() => {
     freezeTimeLeft = 0;
     isFrozen = false;
     freezeCharges = 0;
+    const freezeDisplay = document.getElementById('freeze-countdown-display');
+    if (freezeDisplay) freezeDisplay.style.display = 'none';
     updateFreezeUI();
 
     blastProgress = 0;
@@ -1191,7 +1207,15 @@ const Game = (() => {
 
     // Game Timer
     if (isPlaying && !isPaused && !isFrozen) {
+      const oldSecs = Math.floor(timeLeft);
       timeLeft -= dt;
+      const newSecs = Math.floor(timeLeft);
+      
+      // Update HUD timer every second to keep it in sync without overkill
+      if (oldSecs !== newSecs || timeLeft <= 0) {
+        updateHUD();
+      }
+
       if (timeLeft <= 0) {
         timeLeft = 0;
         updateHUD();
