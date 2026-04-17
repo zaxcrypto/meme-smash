@@ -85,9 +85,10 @@ const Game = (() => {
   let totalPauseTime = 0;
   let isMuted = false;
 
-  let freezeProgress = 0; // max 50
+  let freezeProgress = 0; // max 20
   let freezeTimeLeft = 0; // ms
   let isFrozen = false;
+  let freezeCharges = 0;
 
   const objects = [];       // live coins + bombs
   const halves = [];       // sliced halves
@@ -830,6 +831,7 @@ const Game = (() => {
     freezeProgress = 0;
     freezeTimeLeft = 0;
     isFrozen = false;
+    freezeCharges = 0;
     updateFreezeUI();
 
     // Reset spawning queue
@@ -846,26 +848,32 @@ const Game = (() => {
     const wrap = document.getElementById('freeze-btn-wrap');
     const ring = document.getElementById('freeze-ring');
     const btn = document.getElementById('freeze-btn');
+    const badge = document.getElementById('freeze-badge');
     if (!wrap || !ring || !btn) return;
     
     // Progress calculation
-    const pct = Math.min(100, (freezeProgress / 50) * 100);
+    const pct = Math.min(100, (freezeProgress / 20) * 100);
     
-    if (freezeProgress >= 50) {
+    if (freezeCharges > 0) {
       wrap.classList.add('freeze-active');
       btn.disabled = false;
       ring.style.background = ''; // Use CSS animation instead
+      if (badge) {
+        badge.style.display = 'flex';
+        badge.textContent = freezeCharges;
+      }
     } else {
       wrap.classList.remove('freeze-active');
       btn.disabled = true;
       ring.style.background = `conic-gradient(#00F7FF ${pct}%, rgba(255,255,255,0.2) ${pct}%)`;
+      if (badge) badge.style.display = 'none';
     }
   }
 
   function triggerFreeze() {
-    if (freezeProgress >= 50 && freezeTimeLeft <= 0) {
+    if (freezeCharges > 0 && freezeTimeLeft <= 0) {
       freezeTimeLeft = 5000;
-      freezeProgress = 0;
+      freezeCharges--;
       updateFreezeUI();
     }
   }
@@ -1222,8 +1230,12 @@ const Game = (() => {
     o.sliced = true;
     score += o.pts;
     
-    if (freezeTimeLeft <= 0 && freezeProgress < 50) {
-      freezeProgress = Math.min(50, freezeProgress + 1);
+    if (freezeTimeLeft <= 0) {
+      freezeProgress++;
+      if (freezeProgress >= 20) {
+        freezeCharges++;
+        freezeProgress = 0;
+      }
       updateFreezeUI();
     }
     

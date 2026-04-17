@@ -4421,3 +4421,23 @@ body {
 .freeze-btn:disabled, .freeze-btn-wrap[disabled] .freeze-btn {
   cursor: not-allowed;
 }
+
+.freeze-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #FF3DAE;
+  color: #fff;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 14px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+  z-index: 10;
+}
