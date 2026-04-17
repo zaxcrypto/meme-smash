@@ -2346,17 +2346,15 @@ const Game = (() => {
   function startCheckinCountdown(addr) {
     if (checkinCountdownTimer) clearInterval(checkinCountdownTimer);
     checkinCountdownTimer = setInterval(() => {
-      renderCheckinModal(addr);
+      updateCheckinCountdown(addr);
     }, 1000);
   }
 
   function renderCheckinModal(addr) {
     const { today, alreadyCheckedIn, currentStreak, lastDay } = getCheckinStatus(addr);
-    const nextDayIndex = Math.min(currentStreak, 6); // which reward comes next (0-indexed)
-    const msLeft = msUntilNextCheckin();
     const canCheckin = !alreadyCheckedIn;
 
-    // Render day tiles
+    // Render day tiles (ONLY ONCE or on status change)
     const grid = document.getElementById('checkin-day-grid');
     if (!grid) return;
     grid.innerHTML = '';
@@ -2388,26 +2386,38 @@ const Game = (() => {
       }
     }
 
-    // Countdown / CTA
+    updateCheckinCountdown(addr);
+  }
+
+  function updateCheckinCountdown(addr) {
+    const { alreadyCheckedIn, currentStreak } = getCheckinStatus(addr);
+    const msLeft = msUntilNextCheckin();
+    const canCheckin = !alreadyCheckedIn;
     const btnEl = document.getElementById('ci-btn');
     const cdEl = document.getElementById('ci-countdown');
     const rewardEl = document.getElementById('ci-next-reward');
+
+    if (!btnEl || !cdEl) return;
+
     if (currentStreak >= 7 && !canCheckin) {
-      // Full cycle done, show restart info
       if (rewardEl) rewardEl.textContent = `Next streak starts tomorrow — Day 1 (7 MP)`;
-      if (cdEl) cdEl.textContent = formatCountdown(msLeft);
-      if (btnEl) { btnEl.disabled = true; btnEl.textContent = 'Full Streak Complete!'; }
+      cdEl.textContent = formatCountdown(msLeft);
+      btnEl.disabled = true;
+      btnEl.textContent = 'Full Streak Complete!';
     } else if (canCheckin) {
       const idx = Math.min(currentStreak, 6);
       if (rewardEl) rewardEl.textContent = `Today's reward: ${CHECKIN_REWARDS[idx]} Meme Points`;
-      if (cdEl) cdEl.textContent = '';
-      if (btnEl) { btnEl.disabled = false; btnEl.textContent = 'Click to Check-In'; }
+      cdEl.textContent = '';
+      btnEl.disabled = false;
+      btnEl.textContent = 'Click to Check-In';
     } else {
       const idx = Math.min(currentStreak, 6);
       if (rewardEl) rewardEl.textContent = `Next: Day ${currentStreak + 1} — ${CHECKIN_REWARDS[idx]} Meme Points`;
-      if (cdEl) cdEl.textContent = `Next check-in in: ${formatCountdown(msLeft)}`;
-      if (btnEl) { btnEl.disabled = true; btnEl.textContent = 'Checked In Today!'; }
+      cdEl.textContent = `Next check-in in: ${formatCountdown(msLeft)}`;
+      btnEl.disabled = true;
+      btnEl.textContent = 'Checked In Today!';
     }
+  }
   }
 
   async function doCheckin() {

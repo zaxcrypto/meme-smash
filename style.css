@@ -3471,6 +3471,15 @@ body {
   isolation: isolate;
 }
 
+@media (max-width: 600px) {
+  .live-support-fab {
+    bottom: auto;
+    top: 85px;
+    right: 15px;
+    padding: 10px 12px 8px; /* Slightly smaller on mobile to fit nicely */
+  }
+}
+
 .live-support-fab:hover,
 .live-support-fab:active {
   transform: scale(1.08);
