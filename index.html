@@ -193,6 +193,14 @@
       <path d="M22,8 L13,17 L3,17 L3,20 L22,20 Z" fill="rgba(255,255,255,0.5)" />
     </symbol>
 
+    <!-- ── ICE / FREEZE ── -->
+    <symbol id="ico-ice" viewBox="0 0 48 48">
+      <path d="M24 2 v11 M24 35 v11 M2 24 h11 M35 24 h11 M10 10 l8 8 M38 38 l-8 -8 M38 10 l-8 8 M10 38 l8 -8" stroke="#E0F7FA" stroke-width="4" stroke-linecap="round" />
+      <circle cx="24" cy="24" r="5" fill="#E0F7FA" />
+      <path d="M21 7 l3 -5 l3 5 M21 41 l3 5 l3 -5 M7 21 l-5 3 l5 3 M41 21 l5 3 l-5 3" fill="none" stroke="#E0F7FA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M12 15 l-3 -3 l5 1 M36 15 l3 -3 l-5 1 M12 33 l-3 3 l5 -1 M36 33 l3 3 l-5 -1" fill="none" stroke="#E0F7FA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+    </symbol>
+
     <!-- ── COIN ── -->
     <symbol id="ico-coin" viewBox="0 0 48 48">
       <circle cx="24" cy="27" r="21" fill="#6B4C00" opacity="0.35" />
@@ -545,6 +553,22 @@
         </div>
         <div id="bomb-strikes" class="strikes-container"></div>
       </div>
+    </div>
+    
+    <!-- FREEZE BUTTON -->
+    <div id="freeze-btn-wrap" class="freeze-btn-wrap" onclick="Game.triggerFreeze()">
+      <div class="freeze-ring" id="freeze-ring"></div>
+      <button class="freeze-btn" id="freeze-btn" disabled>
+        <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" width="32" height="32">
+          <use href="#ico-ice" />
+        </svg>
+      </button>
+    </div>
+    
+    <!-- FREEZE COUNTDOWN OVERLAY -->
+    <div id="freeze-countdown-display" style="display:none; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); text-align:center; pointer-events:none; z-index: 100;">
+      <div style="font-family:'Orbitron', sans-serif; font-weight:900; font-size:48px; color:#00F7FF; text-shadow:0 0 20px #00F7FF, 0 0 40px #0088FF; letter-spacing:4px; margin-bottom:10px;">FREEZED</div>
+      <div id="freeze-countdown-val" style="font-family:'Orbitron', sans-serif; font-weight:900; font-size:72px; color:#FFFFFF; text-shadow:0 0 20px #00F7FF; line-height:1;">5</div>
     </div>
   </div>
 

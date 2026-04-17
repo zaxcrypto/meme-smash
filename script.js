@@ -85,6 +85,10 @@ const Game = (() => {
   let totalPauseTime = 0;
   let isMuted = false;
 
+  let freezeProgress = 0; // max 50
+  let freezeTimeLeft = 0; // ms
+  let isFrozen = false;
+
   const objects = [];       // live coins + bombs
   const halves = [];       // sliced halves
   const particles = [];       // burst particles
@@ -810,6 +814,11 @@ const Game = (() => {
     isGameOver = false;
     hasSubmittedRunScore = false;
     shakeFrames = 0;
+    
+    freezeProgress = 0;
+    freezeTimeLeft = 0;
+    isFrozen = false;
+    updateFreezeUI();
 
     // Reset spawning queue
     coinQueue = [];
@@ -819,6 +828,34 @@ const Game = (() => {
     if (rb) rb.style.display = 'block';
 
     updateHUD();
+  }
+
+  function updateFreezeUI() {
+    const wrap = document.getElementById('freeze-btn-wrap');
+    const ring = document.getElementById('freeze-ring');
+    const btn = document.getElementById('freeze-btn');
+    if (!wrap || !ring || !btn) return;
+    
+    // Progress calculation
+    const pct = Math.min(100, (freezeProgress / 50) * 100);
+    
+    if (freezeProgress >= 50) {
+      wrap.classList.add('freeze-active');
+      btn.disabled = false;
+      ring.style.background = ''; // Use CSS animation instead
+    } else {
+      wrap.classList.remove('freeze-active');
+      btn.disabled = true;
+      ring.style.background = `conic-gradient(#00F7FF ${pct}%, rgba(255,255,255,0.2) ${pct}%)`;
+    }
+  }
+
+  function triggerFreeze() {
+    if (freezeProgress >= 50 && freezeTimeLeft <= 0) {
+      freezeTimeLeft = 5000;
+      freezeProgress = 0;
+      updateFreezeUI();
+    }
   }
 
   function gameOver(isTimeout = false) {
@@ -947,8 +984,25 @@ const Game = (() => {
      UPDATE
   ═══════════════════════════════════════════ */
   function update(dt, now) {
+    if (freezeTimeLeft > 0) {
+      freezeTimeLeft -= dt * 1000;
+      const display = document.getElementById('freeze-countdown-display');
+      if (freezeTimeLeft <= 0) {
+        freezeTimeLeft = 0;
+        isFrozen = false;
+        if (display) display.style.display = 'none';
+      } else {
+        isFrozen = true;
+        if (display) {
+          display.style.display = 'block';
+          const s = Math.ceil(freezeTimeLeft / 1000);
+          document.getElementById('freeze-countdown-val').textContent = s;
+        }
+      }
+    }
+
     // Game Timer
-    if (isPlaying && !isPaused) {
+    if (isPlaying && !isPaused && !isFrozen) {
       timeLeft -= dt;
       if (timeLeft <= 0) {
         timeLeft = 0;
@@ -972,13 +1026,14 @@ const Game = (() => {
       document.getElementById('hud-level').textContent = diffLevel;
     }
 
-    // Spawn
-    if (now >= nextSpawnTime) {
+    // Spawn (paused if frozen)
+    if (now >= nextSpawnTime && !isFrozen) {
       nextSpawnTime = now + spawnInterval + (Math.random() - 0.5) * spawnInterval * 0.4;
       spawnWave();
     }
 
     // Physics: objects
+    if (!isFrozen) {
     for (let i = objects.length - 1; i >= 0; i--) {
       const o = objects[i];
       o.vy += CFG.gravity * dt;
@@ -1018,28 +1073,32 @@ const Game = (() => {
         objects.splice(i, 1);
       }
     }
-
-
-
-    // Halves physics
-    for (let i = halves.length - 1; i >= 0; i--) {
-      const h = halves[i];
-      h.vy += CFG.gravity * 1.2 * dt;
-      h.x += h.vx * dt;
-      h.y += h.vy * dt;
-      h.angle += h.spin * dt;
-      h.life -= dt;
-      if (h.life <= 0 || h.y > H + 120) halves.splice(i, 1);
     }
 
-    // Particles
-    for (let i = particles.length - 1; i >= 0; i--) {
-      const p = particles[i];
-      p.vy += 600 * dt;
-      p.x += p.vx * dt;
-      p.y += p.vy * dt;
-      p.life -= dt;
-      if (p.life <= 0) particles.splice(i, 1);
+    // Halves physics
+    if (!isFrozen) {
+      for (let i = halves.length - 1; i >= 0; i--) {
+        const h = halves[i];
+        h.vy += CFG.gravity * 1.2 * dt;
+        h.x += h.vx * dt;
+        h.y += h.vy * dt;
+        h.angle += h.spin * dt;
+        h.life -= dt;
+        if (h.life <= 0 || h.y > H + 120) halves.splice(i, 1);
+      }
+    }
+
+    // Particles (we allow particles to move even if frozen, looks cool, or pause them?)
+    // Let's pause particles for full freeze effect
+    if (!isFrozen) {
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.vy += 600 * dt;
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        p.life -= dt;
+        if (p.life <= 0) particles.splice(i, 1);
+      }
     }
 
     // Shake decay
@@ -1150,6 +1209,12 @@ const Game = (() => {
     // Coin sliced!
     o.sliced = true;
     score += o.pts;
+    
+    if (freezeTimeLeft <= 0 && freezeProgress < 50) {
+      freezeProgress = Math.min(50, freezeProgress + 1);
+      updateFreezeUI();
+    }
+    
     updateHUD();
     sfxSlice();
     if (o.pts > 1) sfxScore();
@@ -1394,6 +1459,18 @@ const Game = (() => {
     } else {
       drawCoin(o, now);
     }
+    
+    if (isFrozen) {
+      const r = o.radius;
+      ctx.beginPath();
+      ctx.arc(0, 0, r + 1, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(0, 247, 255, 0.4)';
+      ctx.fill();
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+      ctx.stroke();
+    }
+
     ctx.restore();
   }
 
@@ -1559,6 +1636,11 @@ const Game = (() => {
     juice.addColorStop(1, 'rgba(255,200,0,0)');
     ctx.fillStyle = juice;
     ctx.fillRect(-r, -r, r * 2, r * 2);
+
+    if (isFrozen) {
+      ctx.fillStyle = 'rgba(0, 247, 255, 0.4)';
+      ctx.fillRect(-r, -r, r * 2, r * 2);
+    }
 
     ctx.restore();
     ctx.globalAlpha = 1;
@@ -3689,6 +3771,7 @@ const Game = (() => {
     adminOpenChat,
     closeAdminChatView,
     adminSendReply,
+    triggerFreeze,
   };
 
 })();
