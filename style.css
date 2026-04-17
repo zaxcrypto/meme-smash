@@ -1595,6 +1595,32 @@ body {
   align-items: flex-end;
 }
 
+.admin-pill-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.admin-pill-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #ff4444;
+  color: white;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: 10px;
+  font-weight: 900;
+  display: none; /* Hidden by default */
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid #000;
+  box-shadow: 0 0 10px rgba(255, 68, 68, 0.4);
+  z-index: 5;
+  pointer-events: none;
+  font-family: 'Nunito', sans-serif;
+}
+
 .btn-admin-pill {
   background: linear-gradient(180deg, #333 0%, #000 100%) !important;
   color: white !important;
@@ -3474,17 +3500,18 @@ body {
 @media (max-width: 600px) {
   .live-support-fab {
     bottom: auto;
-    top: 72px; /* Move up to clear the H1 title */
+    top: 68px; /* Slightly higher to avoid title */
     right: 18px;
-    padding: 8px 10px 6px; /* Shrink overall size */
-    gap: 2px;
+    padding: 7px 9px 5px; /* Shrunk even further */
+    gap: 1px;
   }
   .live-support-fab .fab-headphone-icon {
-    width: 20px; /* Smaller icon */
-    height: 20px;
+    width: 16px; /* Tiny icon for ultra-clean look */
+    height: 16px;
   }
   .live-support-fab .fab-label {
-    font-size: 7px; /* Smaller label */
+    font-size: 6px; /* Tiny label */
+    letter-spacing: 0.4px;
   }
 }
 

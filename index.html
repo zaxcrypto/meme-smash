@@ -377,8 +377,11 @@
       <div class="home-top-bar">
         <div class="top-bar-left"></div>
         <div class="top-bar-mid">
-          <button class="btn-admin-pill" id="btn-admin-pill" onclick="Game.showAdminPanel()" title="Admin Panel"
-            style="display:none;">⚙ Admin</button>
+          <div class="admin-pill-wrap">
+            <button class="btn-admin-pill" id="btn-admin-pill" onclick="Game.showAdminPanel()" title="Admin Panel"
+              style="display:none;">⚙ ADMIN</button>
+            <div id="admin-unread-badge" class="admin-pill-badge">0</div>
+          </div>
         </div>
         <div class="top-bar-right">
           <div id="wallet-pill-wrap">
@@ -1075,6 +1078,27 @@
           </button>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- ═══ CHAT IMAGE ERROR MODAL ═══ -->
+  <div id="modal-chat-error-size" class="screen" style="z-index: 10000; background: rgba(10, 5, 25, 0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+    <div class="screen-card" style="max-width:320px; padding:30px 20px;">
+      <div style="font-size:40px; margin-bottom:15px;">⚠️</div>
+      <h3 style="color:#FFF; font-family:'Orbitron', sans-serif; font-size:18px; margin-bottom:15px;">Image Too Large</h3>
+      <p style="color:var(--text-mid); font-size:14px; line-height:1.6; margin-bottom:20px;">
+        Photos must be under <b>500KB</b> for quick sending.<br><br>
+        Please compress your image or reach out directly on Twitter:
+      </p>
+      
+      <a href="https://x.com/0x_zax" target="_blank" class="btn btn-secondary" style="display:flex; align-items:center; justify-content:center; gap:10px; padding:12px; margin-bottom:15px; text-decoration:none; background:rgba(255,255,255,0.05);">
+        <svg viewBox="0 0 24 24" style="width:20px; height:20px; fill:currentColor;">
+          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path>
+        </svg>
+        <span>@0x_zax</span>
+      </a>
+
+      <button class="btn btn-primary" onclick="document.getElementById('modal-chat-error-size').classList.remove('active')">Got it</button>
     </div>
   </div>
 

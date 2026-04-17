@@ -193,14 +193,14 @@ const Game = (() => {
   }
   function sfxSlice(isPlayingFrozen = false) {
     if (isMuted) return;
-    
+
     if (isPlayingFrozen && icecrackAudioEl) {
       const clone = icecrackAudioEl.cloneNode();
       clone.volume = 0.8;
       clone.play().catch(e => playTone(1200, 'sawtooth', 0.15, 0.15));
       return;
     }
-    
+
     if (weeeAudioEl) {
       const clone = weeeAudioEl.cloneNode();
       clone.volume = 0.5;
@@ -227,7 +227,7 @@ const Game = (() => {
 
       weeeAudioEl = new Audio('/weee.mp3');
       weeeAudioEl.volume = 0.5;
-      
+
       icecrackAudioEl = new Audio('/icecrack.mp3');
       icecrackAudioEl.volume = 0.8;
 
@@ -433,8 +433,35 @@ const Game = (() => {
 
     // Auto-Connect previously approved wallets
     Web3.autoConnectWallet().then(addr => {
-      if (addr) updatePlayButtonState();
+      if (addr) {
+        updatePlayButtonState();
+        if (isAdminWallet(addr)) initAdminChatMonitor();
+      }
     });
+  }
+
+  /* ── ADMIN UNREAD MONITOR ── */
+  let _adminUnreadListener = null;
+  function initAdminChatMonitor() {
+    if (_adminUnreadListener) return; // Already listening
+
+    const db = firebase.firestore();
+    // Monitor for all unread chats for admin
+    _adminUnreadListener = db.collection('chats')
+      .where('unreadForAdmin', '==', true)
+      .where('archived', '==', false)
+      .onSnapshot(snapshot => {
+        const count = snapshot.size;
+        const badge = document.getElementById('admin-unread-badge');
+        if (badge) {
+          if (count > 0) {
+            badge.textContent = count;
+            badge.style.display = 'flex';
+          } else {
+            badge.style.display = 'none';
+          }
+        }
+      }, err => console.error('Admin unread listener error:', err));
   }
 
   function resize() {
@@ -915,7 +942,7 @@ const Game = (() => {
     isGameOver = false;
     hasSubmittedRunScore = false;
     shakeFrames = 0;
-    
+
     freezeProgress = 0;
     freezeTimeLeft = 0;
     isFrozen = false;
@@ -949,10 +976,10 @@ const Game = (() => {
     const btn = document.getElementById('freeze-btn');
     const badge = document.getElementById('freeze-badge');
     if (!wrap || !ring || !btn) return;
-    
+
     // Progress calculation
     const pct = Math.min(100, (freezeProgress / 20) * 100);
-    
+
     if (freezeCharges > 0) {
       wrap.classList.add('freeze-active');
       btn.disabled = false;
@@ -975,10 +1002,10 @@ const Game = (() => {
     const btn = document.getElementById('blast-btn');
     const badge = document.getElementById('blast-badge');
     if (!wrap || !ring || !btn) return;
-    
+
     // Progress calculation
     const pct = Math.min(100, (blastProgress / 30) * 100);
-    
+
     if (blastCharges > 0) {
       wrap.classList.add('blast-active');
       btn.disabled = false;
@@ -1009,7 +1036,7 @@ const Game = (() => {
       hasAlarmed = false;
       blastCharges--;
       updateBlastUI();
-      
+
       // Play blast sequence audio immediately (first 1.5s is alarm, next 1.5s is boom)
       if (!isMuted && blastSpecialAudioEl) {
         const clone = blastSpecialAudioEl.cloneNode();
@@ -1165,7 +1192,7 @@ const Game = (() => {
     if (blastTimer > 0) {
       const overlay = document.getElementById('red-alarm-overlay');
       blastTimer -= dt * 1000;
-      
+
       if (blastTimer > 1500) {
         if (!hasAlarmed) {
           hasAlarmed = true;
@@ -1175,7 +1202,7 @@ const Game = (() => {
         // We just crossed from >1500 to <= 1500 -> THE BLAST!
         hasAlarmed = false;
         if (overlay) overlay.classList.remove('alarming');
-        
+
         // Execute the blast: clear all objects and give score
         for (let i = objects.length - 1; i >= 0; i--) {
           const o = objects[i];
@@ -1189,7 +1216,7 @@ const Game = (() => {
           }
         }
         objects.length = 0;
-        
+
         // Wipe halves as well
         for (let i = halves.length - 1; i >= 0; i--) {
           spawnParticles(halves[i].x, halves[i].y, '#FFA500', CFG.particleCount);
@@ -1199,7 +1226,7 @@ const Game = (() => {
         triggerShake(20, 20); // big shake
         updateHUD();
       }
-      
+
       if (blastTimer <= 0) {
         blastTimer = 0;
       }
@@ -1210,7 +1237,7 @@ const Game = (() => {
       const oldSecs = Math.floor(timeLeft);
       timeLeft -= dt;
       const newSecs = Math.floor(timeLeft);
-      
+
       // Update HUD timer every second to keep it in sync without overkill
       if (oldSecs !== newSecs || timeLeft <= 0) {
         updateHUD();
@@ -1246,45 +1273,45 @@ const Game = (() => {
 
     // Physics: objects
     if (!isFrozen) {
-    for (let i = objects.length - 1; i >= 0; i--) {
-      const o = objects[i];
-      o.vy += CFG.gravity * dt;
-      o.x += o.vx * dt;
-      o.y += o.vy * dt;
-      o.angle += o.spin * dt;
+      for (let i = objects.length - 1; i >= 0; i--) {
+        const o = objects[i];
+        o.vy += CFG.gravity * dt;
+        o.x += o.vx * dt;
+        o.y += o.vy * dt;
+        o.angle += o.spin * dt;
 
-      // Wall Bouncing: Ensure items stay within the visible frame (4-Way Bouncing)
+        // Wall Bouncing: Ensure items stay within the visible frame (4-Way Bouncing)
 
-      // Left/Right
-      if (o.x < o.radius) {
-        o.x = o.radius;
-        o.vx = Math.abs(o.vx) * 0.85; // slightly higher bounce for more life
-      } else if (o.x > W - o.radius) {
-        o.x = W - o.radius;
-        o.vx = -Math.abs(o.vx) * 0.85;
+        // Left/Right
+        if (o.x < o.radius) {
+          o.x = o.radius;
+          o.vx = Math.abs(o.vx) * 0.85; // slightly higher bounce for more life
+        } else if (o.x > W - o.radius) {
+          o.x = W - o.radius;
+          o.vx = -Math.abs(o.vx) * 0.85;
+        }
+
+        // Top/Bottom (Full Frame Containment)
+        if (o.y < o.radius) {
+          o.y = o.radius;
+          o.vy = Math.abs(o.vy) * 0.8; // bounce down
+        } else if (o.y > H - o.radius) {
+          // Instead of falling off, items now bounce back up!
+          o.y = H - o.radius;
+          o.vy = -Math.abs(o.vy) * 0.85;
+
+          // Slightly nudge VX to keep it dynamic
+          o.vx += (Math.random() - 0.5) * 60;
+        }
+
+
+        // Age-based removal to prevent overcrowding since they never "fall off"
+        // Reduced from 15s to 5s at user request
+        o.age = (o.age || 0) + dt;
+        if (o.age > 5) {
+          objects.splice(i, 1);
+        }
       }
-
-      // Top/Bottom (Full Frame Containment)
-      if (o.y < o.radius) {
-        o.y = o.radius;
-        o.vy = Math.abs(o.vy) * 0.8; // bounce down
-      } else if (o.y > H - o.radius) {
-        // Instead of falling off, items now bounce back up!
-        o.y = H - o.radius;
-        o.vy = -Math.abs(o.vy) * 0.85;
-
-        // Slightly nudge VX to keep it dynamic
-        o.vx += (Math.random() - 0.5) * 60;
-      }
-
-
-      // Age-based removal to prevent overcrowding since they never "fall off"
-      // Reduced from 15s to 5s at user request
-      o.age = (o.age || 0) + dt;
-      if (o.age > 5) {
-        objects.splice(i, 1);
-      }
-    }
     }
 
     // Halves physics
@@ -1421,7 +1448,7 @@ const Game = (() => {
     // Coin sliced!
     o.sliced = true;
     score += o.pts;
-    
+
     if (freezeTimeLeft <= 0) {
       freezeProgress++;
       if (freezeProgress >= 20) {
@@ -1431,7 +1458,7 @@ const Game = (() => {
       }
       updateFreezeUI();
     }
-    
+
     // Blast logic doesn't charge during the active blast or freeze, only during normal gameplay or freeze
     // Wait, let's charge it during freeze too since it's fun! 
     if (blastTimer <= 0) {
@@ -1443,7 +1470,7 @@ const Game = (() => {
       }
       updateBlastUI();
     }
-    
+
     updateHUD();
     sfxSlice(isFrozen);
     if (o.pts > 1) sfxScore();
@@ -1689,7 +1716,7 @@ const Game = (() => {
     } else {
       drawCoin(o, now);
     }
-    
+
     if (isFrozen) {
       const r = o.radius;
       ctx.beginPath();
@@ -3590,7 +3617,7 @@ const Game = (() => {
       if (isFirstMessage) {
         updatedMessages.push({
           id: now + 1,
-          text: "Thanks for reaching me out 😊, feel free to say your problem and I recommend to contact me on twitter: @0x_zax",
+          text: "Thanks for reaching me out 😊, feel free to say your thoughts and I recommend to contact me on twitter: @0x_zax",
           imageBase64: null,
           sender: 'admin',
           timestamp: now + 1,
@@ -3628,8 +3655,10 @@ const Game = (() => {
   function handleChatImageSelect(event) {
     const file = event.target.files[0];
     if (!file) return;
-    if (file.size > 800 * 1024) {
-      showToast('Image too large. Max 800KB.', '⚠️');
+    
+    // Size limit check (500KB requested)
+    if (file.size > 500 * 1024) {
+      document.getElementById('modal-chat-error-size').classList.add('active');
       event.target.value = '';
       return;
     }
