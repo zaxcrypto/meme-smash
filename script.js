@@ -3317,7 +3317,7 @@ const Game = (() => {
       if (isFirstMessage) {
         updatedMessages.push({
           id: now + 1,
-          text: "Thanks for reaching me out 😊, feel free to say your problem and I recommend to contact me on twitter 🐦",
+          text: "Thanks for reaching me out 😊, feel free to say your problem and I recommend to contact me on twitter: @0x_zax",
           imageBase64: null,
           sender: 'admin',
           timestamp: now + 1,
@@ -3408,9 +3408,9 @@ const Game = (() => {
 
       let html = `
         <div class="chat-admin-filter-row">
-          ${['all','unread','read','archived'].map(f => `
+          ${['all', 'unread', 'read', 'archived'].map(f => `
             <button class="chat-filter-tab ${_adminChatFilter === f ? 'active' : ''}" onclick="Game.adminSetChatFilter('${f}')">
-              ${f.charAt(0).toUpperCase() + f.slice(1)}${f==='unread'&&unreadCount>0?` <span class="chat-unread-badge">${unreadCount}</span>`:''}
+              ${f.charAt(0).toUpperCase() + f.slice(1)}${f === 'unread' && unreadCount > 0 ? ` <span class="chat-unread-badge">${unreadCount}</span>` : ''}
             </button>`).join('')}
         </div>
         <div class="admin-chat-batch-bar">
@@ -3425,7 +3425,7 @@ const Game = (() => {
         filtered.forEach(chat => {
           const time = chat.lastMessageAt
             ? new Date(chat.lastMessageAt).toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' '
-              + new Date(chat.lastMessageAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            + new Date(chat.lastMessageAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             : '';
           const isUnread = chat.unreadForAdmin && !chat.archived;
           const initials = (chat.userName || '?')[0].toUpperCase();
@@ -3444,8 +3444,8 @@ const Game = (() => {
                     <span class="admin-chat-name">${escHtml(chat.userName || 'Unknown')}</span>
                     <span class="admin-chat-time">${time}</span>
                   </div>
-                  <div class="admin-chat-preview">${escHtml((chat.lastMessage || '').slice(0, 55))}${(chat.lastMessage||'').length > 55 ? '...' : ''}</div>
-                  <div class="admin-chat-id-small">${(chat.chatId||'').slice(0, 20)}...</div>
+                  <div class="admin-chat-preview">${escHtml((chat.lastMessage || '').slice(0, 55))}${(chat.lastMessage || '').length > 55 ? '...' : ''}</div>
+                  <div class="admin-chat-id-small">${(chat.chatId || '').slice(0, 20)}...</div>
                 </div>
               </div>
               <div class="admin-chat-actions">
