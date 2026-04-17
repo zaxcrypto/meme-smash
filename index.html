@@ -569,7 +569,20 @@
       <div style="font-family:'Orbitron', sans-serif; font-weight:900; font-size:48px; color:#00F7FF; text-shadow:0 0 20px #00F7FF, 0 0 40px #0088FF; letter-spacing:4px; margin-bottom:10px;">FREEZED</div>
       <div id="freeze-countdown-val" style="font-family:'Orbitron', sans-serif; font-weight:900; font-size:72px; color:#FFFFFF; text-shadow:0 0 20px #00F7FF; line-height:1;">5</div>
     </div>
+    
+    <!-- BLAST BUTTON -->
+    <div id="blast-btn-wrap" class="blast-btn-wrap" onclick="Game.triggerBlast()">
+      <div class="blast-ring" id="blast-ring"></div>
+      <button class="blast-btn" id="blast-btn" disabled>
+        <img src="bomb.png" alt="Blast" style="width: 55%; height: 55%; object-fit: contain; filter: drop-shadow(0 0 4px rgba(255,100,0,0.6));" />
+      </button>
+      <div id="blast-badge" class="blast-badge" style="display:none;">0</div>
+    </div>
+
   </div>
+
+  <!-- RED ALARM OVERLAY -->
+  <div id="red-alarm-overlay" style="display:none; position:fixed; inset:0; background:rgba(255,0,0,0.4); z-index: 15; pointer-events:none;"></div>
 
   <!-- ═══════════════ GAME OVER ═══════════════ -->
   <div id="screen-gameover" class="screen">

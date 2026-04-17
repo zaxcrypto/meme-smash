@@ -168,9 +168,19 @@ const Game = (() => {
       
       icecrackAudioEl = new Audio('/icecrack.mp3');
       icecrackAudioEl.volume = 0.8;
+
+      blastSpecialAudioEl = new Audio('/bomb.mp3');
+      blastSpecialAudioEl.volume = 1.0;
     } catch (e) {
       console.warn("Audio load error:", e);
     }
+  }
+
+  function playPowerupReadySound() {
+    if (isMuted) return;
+    // Fast double beep for power-up ready
+    playTone(1600, 'square', 0.1, 0.1);
+    setTimeout(() => playTone(2000, 'square', 0.15, 0.15), 150);
   }
 
   function sfxBomb() {
@@ -870,11 +880,53 @@ const Game = (() => {
     }
   }
 
+  function updateBlastUI() {
+    const wrap = document.getElementById('blast-btn-wrap');
+    const ring = document.getElementById('blast-ring');
+    const btn = document.getElementById('blast-btn');
+    const badge = document.getElementById('blast-badge');
+    if (!wrap || !ring || !btn) return;
+    
+    // Progress calculation
+    const pct = Math.min(100, (blastProgress / 30) * 100);
+    
+    if (blastCharges > 0) {
+      wrap.classList.add('blast-active');
+      btn.disabled = false;
+      ring.style.background = ''; // Use CSS animation instead
+      if (badge) {
+        badge.style.display = 'flex';
+        badge.textContent = blastCharges;
+      }
+    } else {
+      wrap.classList.remove('blast-active');
+      btn.disabled = true;
+      ring.style.background = `conic-gradient(#FF4500 ${pct}%, rgba(255,255,255,0.2) ${pct}%)`;
+      if (badge) badge.style.display = 'none';
+    }
+  }
+
   function triggerFreeze() {
     if (freezeCharges > 0 && freezeTimeLeft <= 0) {
       freezeTimeLeft = 5000;
       freezeCharges--;
       updateFreezeUI();
+    }
+  }
+
+  function triggerBlast() {
+    if (blastCharges > 0 && blastTimer <= 0) {
+      blastTimer = 3000; // 3 seconds total sequence
+      hasAlarmed = false;
+      blastCharges--;
+      updateBlastUI();
+      
+      // Play blast sequence audio immediately (first 1.5s is alarm, next 1.5s is boom)
+      if (!isMuted && blastSpecialAudioEl) {
+        const clone = blastSpecialAudioEl.cloneNode();
+        clone.volume = 1.0;
+        clone.play().catch(e => { console.warn("Blast audio failed", e); });
+      }
     }
   }
 
@@ -1018,6 +1070,49 @@ const Game = (() => {
           const s = Math.ceil(freezeTimeLeft / 1000);
           document.getElementById('freeze-countdown-val').textContent = s;
         }
+      }
+    }
+
+    if (blastTimer > 0) {
+      const overlay = document.getElementById('red-alarm-overlay');
+      blastTimer -= dt * 1000;
+      
+      if (blastTimer > 1500) {
+        if (!hasAlarmed) {
+          hasAlarmed = true;
+          if (overlay) overlay.classList.add('alarming');
+        }
+      } else if (hasAlarmed) {
+        // We just crossed from >1500 to <= 1500 -> THE BLAST!
+        hasAlarmed = false;
+        if (overlay) overlay.classList.remove('alarming');
+        
+        // Execute the blast: clear all objects and give score
+        for (let i = objects.length - 1; i >= 0; i--) {
+          const o = objects[i];
+          if (o.type !== 'bomb') {
+            score += o.pts;
+            spawnParticles(o.x, o.y, '#FF4500', CFG.particleCount * 2);
+            showFloatingScore(o.x, o.y, o.pts);
+          } else {
+            // Unsafely "defuse" bomb and create huge explosion
+            spawnParticles(o.x, o.y, '#FF0000', CFG.particleCount * 3);
+          }
+        }
+        objects.length = 0;
+        
+        // Wipe halves as well
+        for (let i = halves.length - 1; i >= 0; i--) {
+          spawnParticles(halves[i].x, halves[i].y, '#FFA500', CFG.particleCount);
+        }
+        halves.length = 0;
+
+        triggerShake(20, 20); // big shake
+        updateHUD();
+      }
+      
+      if (blastTimer <= 0) {
+        blastTimer = 0;
       }
     }
 
@@ -1235,8 +1330,21 @@ const Game = (() => {
       if (freezeProgress >= 20) {
         freezeCharges++;
         freezeProgress = 0;
+        playPowerupReadySound();
       }
       updateFreezeUI();
+    }
+    
+    // Blast logic doesn't charge during the active blast or freeze, only during normal gameplay or freeze
+    // Wait, let's charge it during freeze too since it's fun! 
+    if (blastTimer <= 0) {
+      blastProgress++;
+      if (blastProgress >= 30) {
+        blastCharges++;
+        blastProgress = 0;
+        playPowerupReadySound();
+      }
+      updateBlastUI();
     }
     
     updateHUD();
@@ -3796,6 +3904,7 @@ const Game = (() => {
     closeAdminChatView,
     adminSendReply,
     triggerFreeze,
+    triggerBlast,
   };
 
 })();

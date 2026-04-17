@@ -4441,3 +4441,113 @@ body {
   box-shadow: 0 2px 5px rgba(0,0,0,0.3);
   z-index: 10;
 }
+
+/* ══════════════════════════════════════
+   BLAST MECHANIC
+══════════════════════════════════════ */
+.blast-btn-wrap {
+  position: absolute;
+  top: calc(50% + 75px);
+  right: 20px;
+  transform: translateY(-50%);
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  pointer-events: all;
+  cursor: pointer;
+}
+
+@media (max-width: 600px) {
+  .blast-btn-wrap {
+    top: 165px; /* Below the freeze-btn-wrap */
+    right: 15px;
+    transform: none;
+    width: 50px;
+    height: 50px;
+  }
+}
+
+.blast-ring {
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: conic-gradient(rgba(255,255,255,0.2) 0deg, rgba(255,255,255,0.2) 360deg);
+  mask: radial-gradient(transparent 58%, black 60%);
+  -webkit-mask: radial-gradient(transparent 58%, black 60%);
+  pointer-events: none;
+  transition: background 0.3s linear;
+}
+
+.blast-btn-wrap.blast-active .blast-ring {
+  background: conic-gradient(#FF4500, #FF8C00, #FF4500);
+  animation: spin-ring 2s linear infinite;
+  box-shadow: 0 0 15px #FF4500, inset 0 0 15px #FF4500;
+}
+
+.blast-btn {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 69, 0, 0.3);
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  padding: 0;
+}
+
+.blast-btn img {
+  opacity: 0.5;
+  transition: opacity 0.3s, filter 0.3s;
+}
+
+.blast-btn-wrap.blast-active .blast-btn {
+  background: rgba(255, 69, 0, 0.3);
+  border-color: #FF4500;
+  box-shadow: 0 0 20px rgba(255, 69, 0, 0.6);
+}
+
+.blast-btn-wrap.blast-active .blast-btn img {
+  opacity: 1;
+  filter: drop-shadow(0 0 8px #FF4500) !important;
+}
+
+.blast-btn:disabled, .blast-btn-wrap[disabled] .blast-btn {
+  cursor: not-allowed;
+}
+
+.blast-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #FF4500;
+  color: #fff;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 14px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+  z-index: 10;
+}
+
+@keyframes flash-alarm {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 0.7; }
+}
+
+.alarming {
+  display: block !important;
+  animation: flash-alarm 0.5s ease-in-out infinite;
+}
