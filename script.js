@@ -90,6 +90,12 @@ const Game = (() => {
   let isFrozen = false;
   let freezeCharges = 0;
 
+  let blastProgress = 0; // max 30
+  let blastCharges = 0;
+  let blastTimer = 0; // ms
+  let isBlasting = false;
+  let hasAlarmed = false;
+
   const objects = [];       // live coins + bombs
   const halves = [];       // sliced halves
   const particles = [];       // burst particles
@@ -843,6 +849,15 @@ const Game = (() => {
     isFrozen = false;
     freezeCharges = 0;
     updateFreezeUI();
+
+    blastProgress = 0;
+    blastCharges = 0;
+    blastTimer = 0;
+    isBlasting = false;
+    hasAlarmed = false;
+    const overlay = document.getElementById('red-alarm-overlay');
+    if (overlay) overlay.classList.remove('alarming');
+    updateBlastUI();
 
     // Reset spawning queue
     coinQueue = [];
