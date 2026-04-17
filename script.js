@@ -38,15 +38,16 @@ const Game = (() => {
      FRIENDS PROFILE DATA
   ═══════════════════════════════════════════ */
   const PROFILE_IMAGES = [
-    'aashir.jpg', 'abdul.jpg', 'abhay.jpg', 'abiiix.jpg', 'acolous.jpg', 'akash.jpg', 'alvin.jpg',
-    'amelia.jpg', 'ankit.jpg', 'anya.jpg', 'beamnxw.jpg', 'bigbella.jpg', 'biswa.jpg', 'bitbull.jpg',
-    'blurryface.jpg', 'cantonboy.jpg', 'cipherr.jpg', 'cj.jpg', 'danny.jpg', 'dex.jpg', 'elora.jpg',
-    'finopps.jpg', 'harry.jpg', 'hush.jpg', 'jay.jpg', 'karakot.jpg', 'kingsman.jpg', 'krishna.jpg',
-    'leoo.jpg', 'leviop.jpg', 'licht.jpg', 'luka.jpg', 'malewicz.jpg', 'mayank.jpg', 'nobita.jpg',
-    'numaa.jpg', 'prakash.jpg', 'prashant.jpg', 'prateek.jpg', 'prithboy.jpg', 'prity.jpg', 'rahul.jpg',
-    'reeb.jpg', 'rio.jpg', 'riyaz.jpg', 'rjjax.jpg', 'rosaa.jpg', 'sakuna.jpg', 'shux.jpg', 'siluu.jpg', 'somrat.jpg',
-    'starfish.jpg', 'sukanto.jpg', 'suraj.jpg', 'susmita.jpg', 'timister.jpg', 'toji.jpg', 'trung.jpg', 'virus.jpg', 'yakson.jpg',
-    'comrade.jpg', 'fluxio.jpg', '0x_art.jpg', 'hash.jpg', 'maddy.jpg', 'raj.jpg'
+    '0x_art.jpg', 'aashir.jpg', 'abdul.jpg', 'abhay.jpg', 'abiiix.jpg', 'acolous.jpg', 'agoraz.jpg',
+    'akash.jpg', 'alvin.jpg', 'amelia.jpg', 'ankit.jpg', 'anya.jpg', 'beamnxw.jpg', 'bigbella.jpg',
+    'biswa.jpg', 'bitbull.jpg', 'blurryface.jpg', 'cantonboy.jpg', 'cipherr.jpg', 'cj.jpg', 'comrade.jpg',
+    'danny.jpg', 'dex.jpg', 'elora.jpg', 'finopps.jpg', 'fluxio.jpg', 'hamid.jpg', 'harry.jpg', 'hash.jpg',
+    'hog.jpg', 'hush.jpg', 'jay.jpg', 'karakot.jpg', 'kingsman.jpg', 'krishna.jpg', 'leoo.jpg', 'leviop.jpg',
+    'licht.jpg', 'lion.jpg', 'luka.jpg', 'maddy.jpg', 'malewicz.jpg', 'mayank.jpg', 'nobita.jpg', 'numaa.jpg',
+    'prakash.jpg', 'prashant.jpg', 'prateek.jpg', 'prithboy.jpg', 'prity.jpg', 'rahul.jpg', 'raj.jpg',
+    'reeb.jpg', 'rio.jpg', 'riyaz.jpg', 'rjjax.jpg', 'rosaa.jpg', 'sakuna.jpg', 'sheri.jpg', 'shux.jpg',
+    'siluu.jpg', 'somrat.jpg', 'starfish.jpg', 'sukanto.jpg', 'suraj.jpg', 'susmita.jpg', 'timister.jpg',
+    'toji.jpg', 'trung.jpg', 'tusher.jpg', 'tzo.jpg', 'virus.jpg', 'yakson.jpg'
   ];
 
   const FALLBACK_COINS = PROFILE_IMAGES.map(name => ({
