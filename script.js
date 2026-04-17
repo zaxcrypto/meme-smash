@@ -161,6 +161,7 @@ const Game = (() => {
   let bombAudioEl = null;
   let weeeAudioEl = null;
   let icecrackAudioEl = null;
+  let blastSpecialAudioEl = null;
 
   function initAudio() {
     ensureAudio();
@@ -177,6 +178,7 @@ const Game = (() => {
 
       blastSpecialAudioEl = new Audio('/bomb.mp3');
       blastSpecialAudioEl.volume = 1.0;
+      blastSpecialAudioEl.load(); // Explicitly load 
     } catch (e) {
       console.warn("Audio load error:", e);
     }
