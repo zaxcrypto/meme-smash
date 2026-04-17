@@ -3474,9 +3474,17 @@ body {
 @media (max-width: 600px) {
   .live-support-fab {
     bottom: auto;
-    top: 85px;
-    right: 15px;
-    padding: 10px 12px 8px; /* Slightly smaller on mobile to fit nicely */
+    top: 72px; /* Move up to clear the H1 title */
+    right: 18px;
+    padding: 8px 10px 6px; /* Shrink overall size */
+    gap: 2px;
+  }
+  .live-support-fab .fab-headphone-icon {
+    width: 20px; /* Smaller icon */
+    height: 20px;
+  }
+  .live-support-fab .fab-label {
+    font-size: 7px; /* Smaller label */
   }
 }
 
