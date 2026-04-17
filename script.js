@@ -2418,7 +2418,6 @@ const Game = (() => {
       btnEl.textContent = 'Checked In Today!';
     }
   }
-  }
 
   async function doCheckin() {
     const addr = Web3.getConnectedAddress();
