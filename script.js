@@ -116,6 +116,61 @@ const Game = (() => {
   let recentSliceTimes = [];   // timestamps of recent coin slices
   let comboBannerTimer = null;
 
+  // OFFSCREEN CACHING for Performance
+  const cache = {
+    rareGlow: null,
+    iceOverlay: null,
+    bombPulse: null,
+    cloudBlob: null,
+    skyGradient: null,
+    lastH: 0
+  };
+
+  function initCache() {
+    // Rare Glow Stamp
+    cache.rareGlow = document.createElement('canvas');
+    cache.rareGlow.width = cache.rareGlow.height = 120;
+    const rc = cache.rareGlow.getContext('2d');
+    const rg = rc.createRadialGradient(60, 60, 0, 60, 60, 60);
+    rg.addColorStop(0, 'rgba(255, 215, 0, 0.8)');
+    rg.addColorStop(0.5, 'rgba(255, 215, 0, 0.3)');
+    rg.addColorStop(1, 'rgba(255, 215, 0, 0)');
+    rc.fillStyle = rg;
+    rc.fillRect(0, 0, 120, 120);
+
+    // Ice Overlay Stamp
+    cache.iceOverlay = document.createElement('canvas');
+    cache.iceOverlay.width = cache.iceOverlay.height = 100;
+    const ic = cache.iceOverlay.getContext('2d');
+    ic.fillStyle = 'rgba(0, 247, 255, 0.4)';
+    ic.beginPath(); ic.arc(50, 50, 40, 0, Math.PI * 2); ic.fill();
+    ic.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+    ic.lineWidth = 3; ic.stroke();
+
+    // Bomb Pulse Stamp
+    cache.bombPulse = document.createElement('canvas');
+    cache.bombPulse.width = cache.bombPulse.height = 120;
+    const bc = cache.bombPulse.getContext('2d');
+    const bg = bc.createRadialGradient(60, 60, 0, 60, 60, 60);
+    bg.addColorStop(0, 'rgba(255, 32, 32, 0.6)');
+    bg.addColorStop(1, 'rgba(255, 32, 32, 0)');
+    bc.fillStyle = bg; bc.fillRect(0, 0, 120, 120);
+
+    // Cloud Blob Stamp (saves dozens of arc calls)
+    cache.cloudBlob = document.createElement('canvas');
+    cache.cloudBlob.width = cache.cloudBlob.height = 200;
+    const cl = cache.cloudBlob.getContext('2d');
+    cl.fillStyle = '#ffffff';
+    const r = 50;
+    const x = 100, y = 100;
+    cl.beginPath();
+    cl.arc(x, y, r, 0, Math.PI * 2);
+    cl.arc(x + r * 0.6, y + r * 0.15, r * 0.75, 0, Math.PI * 2);
+    cl.arc(x - r * 0.55, y + r * 0.12, r * 0.65, 0, Math.PI * 2);
+    cl.arc(x + r * 0.3, y - r * 0.4, r * 0.6, 0, Math.PI * 2);
+    cl.fill();
+  }
+
   /* ═══════════════════════════════════════════
      AUDIO (simple Web Audio beeps)
   ═══════════════════════════════════════════ */
@@ -356,6 +411,7 @@ const Game = (() => {
     resize();
     window.addEventListener('resize', resize);
     initAudio();
+    initCache();
     tryAutoBindFromURL(); // Check for ?ref= URL param
 
     drawLoadingScreen();
@@ -1507,13 +1563,16 @@ const Game = (() => {
       ctx.translate(sx, sy);
     }
 
-    // Bright Sky gradient (No Green)
-    const bg = ctx.createLinearGradient(0, 0, 0, H);
-    bg.addColorStop(0, '#38bdf8');   // deep sky
-    bg.addColorStop(0.45, '#7dd3fc');   // light sky
-    bg.addColorStop(0.75, '#bae6fd');   // lighter sky
-    bg.addColorStop(1, '#e0f2fe');   // very light horizon
-    ctx.fillStyle = bg;
+    // Bright Sky gradient (No Green) - Pre-rendered on resize
+    if (!cache.skyGradient || cache.lastH !== H) {
+      cache.skyGradient = ctx.createLinearGradient(0, 0, 0, H);
+      cache.skyGradient.addColorStop(0, '#38bdf8');   // deep sky
+      cache.skyGradient.addColorStop(0.45, '#7dd3fc');   // light sky
+      cache.skyGradient.addColorStop(0.75, '#bae6fd');   // lighter sky
+      cache.skyGradient.addColorStop(1, '#e0f2fe');   // very light horizon
+      cache.lastH = H;
+    }
+    ctx.fillStyle = cache.skyGradient;
     ctx.fillRect(0, 0, W, H);
 
     // Dynamic, slow-moving fluffy clouds and sparkles
@@ -1589,12 +1648,10 @@ const Game = (() => {
   }
 
   function drawCloudBlob(x, y, r) {
-    ctx.beginPath();
-    ctx.arc(x, y, r, 0, Math.PI * 2);
-    ctx.arc(x + r * 0.6, y + r * 0.15, r * 0.75, 0, Math.PI * 2);
-    ctx.arc(x - r * 0.55, y + r * 0.12, r * 0.65, 0, Math.PI * 2);
-    ctx.arc(x + r * 0.3, y - r * 0.4, r * 0.6, 0, Math.PI * 2);
-    ctx.fill();
+    if (cache.cloudBlob) {
+      // Draw pre-rendered cloud stamp instead of multiple arcs
+      ctx.drawImage(cache.cloudBlob, x - r, y - r, r * 2.5, r * 2.5);
+    }
   }
 
   /* Draw coin or bomb */
@@ -1625,25 +1682,23 @@ const Game = (() => {
 
   function drawCoin(o, now) {
     const r = o.radius;
-    // Rare glow
+    // Rare glow - Use cached stamp instead of shadowBlur (3x faster)
     if (o.isRare) {
-      ctx.shadowBlur = 24;
-      ctx.shadowColor = '#FFD700';
+      ctx.drawImage(cache.rareGlow, -r * 1.6, -r * 1.6, r * 3.2, r * 3.2);
     }
 
-    // Outer ring
-    const ringGrad = ctx.createRadialGradient(0, 0, r * 0.6, 0, 0, r + 5);
-    ringGrad.addColorStop(0, o.isRare ? '#FFD700' : (o.coin.color || '#888'));
-    ringGrad.addColorStop(1, 'rgba(0,0,0,0)');
+    // Outer ring - Simplified for speed
     ctx.beginPath();
-    ctx.arc(0, 0, r + 3, 0, Math.PI * 2);
-    ctx.fillStyle = ringGrad;
+    ctx.arc(0, 0, r + 2, 0, Math.PI * 2);
+    ctx.fillStyle = o.isRare ? '#FFD700' : (o.coin.color || '#888');
+    ctx.globalAlpha = 0.3;
     ctx.fill();
+    ctx.globalAlpha = 1;
 
     // Coin circle clip
+    ctx.save();
     ctx.beginPath();
     ctx.arc(0, 0, r, 0, Math.PI * 2);
-    ctx.save();
     ctx.clip();
 
     // Draw image or fallback
@@ -1651,11 +1706,7 @@ const Game = (() => {
     if (img) {
       ctx.drawImage(img, -r, -r, r * 2, r * 2);
     } else {
-      // Fallback gradient circle
-      const grad = ctx.createRadialGradient(-r * 0.3, -r * 0.3, 0, 0, 0, r);
-      grad.addColorStop(0, lighten(o.coin.color, 60));
-      grad.addColorStop(1, o.coin.color);
-      ctx.fillStyle = grad;
+      ctx.fillStyle = o.coin.color || '#888';
       ctx.fillRect(-r, -r, r * 2, r * 2);
       ctx.fillStyle = '#fff';
       ctx.font = `bold ${r * 0.55}px Nunito, sans-serif`;
@@ -1665,10 +1716,9 @@ const Game = (() => {
     }
     ctx.restore(); // unclip
 
-    // Shine overlay
-    const shine = ctx.createLinearGradient(-r, -r, r, r * 0.3);
-    shine.addColorStop(0, 'rgba(255,255,255,0.28)');
-    shine.addColorStop(0.5, 'rgba(255,255,255,0.06)');
+    // Shine overlay - simpler gradient
+    const shine = ctx.createLinearGradient(-r, -r, r, r);
+    shine.addColorStop(0, 'rgba(255,255,255,0.2)');
     shine.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.beginPath();
     ctx.arc(0, 0, r, 0, Math.PI * 2);
@@ -1678,36 +1728,30 @@ const Game = (() => {
     // Border
     ctx.beginPath();
     ctx.arc(0, 0, r, 0, Math.PI * 2);
-    ctx.strokeStyle = o.isRare ? '#FFD700' : 'rgba(255,255,255,0.35)';
+    ctx.strokeStyle = o.isRare ? '#FFD700' : 'rgba(255,255,255,0.4)';
     ctx.lineWidth = o.isRare ? 3 : 1.5;
     ctx.stroke();
-
-    ctx.shadowBlur = 0;
   }
 
   function drawBomb(o) {
     const r = o.radius;
 
-    // Pulsing red glow
-    ctx.shadowBlur = 20 + 10 * Math.sin(Date.now() * 0.006);
-    ctx.shadowColor = '#FF2020';
+    // Pulsing red glow - Use cached stamp
+    const pulse = 0.8 + 0.2 * Math.sin(Date.now() * 0.008);
+    ctx.globalAlpha = pulse;
+    ctx.drawImage(cache.bombPulse, -r * 1.5, -r * 1.5, r * 3, r * 3);
+    ctx.globalAlpha = 1;
 
     // Body
-    const grad = ctx.createRadialGradient(-r * 0.25, -r * 0.25, 0, 0, 0, r);
-    grad.addColorStop(0, '#3a3a3a');
-    grad.addColorStop(1, '#111');
     ctx.beginPath();
     ctx.arc(0, 0, r, 0, Math.PI * 2);
-    ctx.fillStyle = grad;
+    ctx.fillStyle = '#111';
     ctx.fill();
 
     // Shine
-    const shine = ctx.createLinearGradient(-r, -r, 0, 0);
-    shine.addColorStop(0, 'rgba(255,255,255,0.22)');
-    shine.addColorStop(1, 'rgba(255,255,255,0)');
     ctx.beginPath();
     ctx.arc(0, 0, r, 0, Math.PI * 2);
-    ctx.fillStyle = shine;
+    ctx.fillStyle = 'rgba(255,255,255,0.1)';
     ctx.fill();
 
     // Border
@@ -1717,38 +1761,9 @@ const Game = (() => {
     ctx.lineWidth = 2.5;
     ctx.stroke();
 
-    // Fuse
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = '#888';
-    ctx.lineWidth = 3;
-    ctx.lineCap = 'round';
-    ctx.beginPath();
-    ctx.moveTo(r * 0.1, -r);
-    ctx.quadraticCurveTo(r * 0.5, -r * 1.4, r * 0.2, -r * 1.7);
-    ctx.stroke();
-
-    // Spark
-    ctx.shadowBlur = 8;
-    ctx.shadowColor = '#FF8800';
-    ctx.fillStyle = '#FFAA00';
-    ctx.beginPath();
-    ctx.arc(r * 0.2, -r * 1.7, 4, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.shadowBlur = 0;
-
-    // Skull crossbones — pure canvas, no emoji
-    const sk = r * 0.32;
-    ctx.shadowBlur = 6;
-    ctx.shadowColor = '#ff4444';
-    ctx.strokeStyle = '#ff2222';
-    ctx.lineWidth = r * 0.14;
-    ctx.lineCap = 'round';
-    // X cross
-    ctx.beginPath(); ctx.moveTo(-sk, -sk); ctx.lineTo(sk, sk); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(sk, -sk); ctx.lineTo(-sk, sk); ctx.stroke();
-    // Small circle in center
-    ctx.beginPath(); ctx.arc(0, 0, r * 0.1, 0, Math.PI * 2); ctx.fillStyle = '#ff2222'; ctx.fill();
-    ctx.shadowBlur = 0;
+    // Simplified Skull
+    ctx.fillStyle = '#ff2222';
+    ctx.fillRect(-r * 0.2, -r * 0.2, r * 0.4, r * 0.4);
   }
 
   function drawHalf(h, now) {
@@ -1773,10 +1788,8 @@ const Game = (() => {
     if (img) {
       ctx.drawImage(img, -r, -r, r * 2, r * 2);
     } else {
-      const grad = ctx.createRadialGradient(-r * 0.3, -r * 0.3, 0, 0, 0, r);
-      grad.addColorStop(0, lighten(h.coin?.color || '#888', 60));
-      grad.addColorStop(1, h.coin?.color || '#888');
-      ctx.fillStyle = grad;
+      // Use simple fill instead of radial gradient for slices
+      ctx.fillStyle = h.coin?.color || '#888';
       ctx.fillRect(-r, -r, r * 2, r * 2);
     }
     // Juice drip (vertical gradient overlay)
@@ -1799,13 +1812,9 @@ const Game = (() => {
   function drawParticle(p) {
     const alpha = p.life / 0.75;
     ctx.globalAlpha = Math.max(0, alpha);
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.size * alpha, 0, Math.PI * 2);
     ctx.fillStyle = p.color;
-    ctx.shadowBlur = 10;
-    ctx.shadowColor = p.color;
-    ctx.fill();
-    ctx.shadowBlur = 0;
+    // Square/pixel particles are much lighter on mobile GPU
+    ctx.fillRect(p.x - p.size, p.y - p.size, p.size * 2, p.size * 2);
     ctx.globalAlpha = 1;
   }
 
