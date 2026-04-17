@@ -4361,7 +4361,7 @@ body {
 
 @media (max-width: 600px) {
   .freeze-btn-wrap {
-    top: 100px; /* Slightly below top right */
+    top: 160px; /* Moved down to clear bomb strikes */
     right: 15px;
     transform: none;
     width: 50px;
@@ -4465,7 +4465,7 @@ body {
 
 @media (max-width: 600px) {
   .blast-btn-wrap {
-    top: 165px; /* Below the freeze-btn-wrap */
+    top: 225px; /* Below the freeze-btn-wrap */
     right: 15px;
     transform: none;
     width: 50px;
