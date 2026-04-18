@@ -2370,6 +2370,20 @@ const Game = (() => {
     if (checkinCountdownTimer) { clearInterval(checkinCountdownTimer); checkinCountdownTimer = null; }
   }
 
+  /* ── Games Selector Modal ── */
+  function showGamesSelector() {
+    document.getElementById('screen-games').classList.add('active');
+  }
+
+  function closeGamesSelector() {
+    document.getElementById('screen-games').classList.remove('active');
+  }
+
+  function startGameFromSelector() {
+    closeGamesSelector();
+    startGame();
+  }
+
   function startCheckinCountdown(addr) {
     if (checkinCountdownTimer) clearInterval(checkinCountdownTimer);
     checkinCountdownTimer = setInterval(() => {
@@ -3655,7 +3669,7 @@ const Game = (() => {
   function handleChatImageSelect(event) {
     const file = event.target.files[0];
     if (!file) return;
-    
+
     // Size limit check (500KB requested)
     if (file.size > 500 * 1024) {
       document.getElementById('modal-chat-error-size').classList.add('active');
@@ -3925,6 +3939,9 @@ const Game = (() => {
   return {
     init,
     startGame,
+    showGamesSelector,
+    closeGamesSelector,
+    startGameFromSelector,
     restartGame,
     showLeaderboard,
     goHome,

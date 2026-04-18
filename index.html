@@ -413,7 +413,7 @@
 
       <!-- Vertical Menu Stack -->
       <div class="home-menu-stack">
-        <button id="btn-start" class="btn btn-primary" onclick="Game.startGame()" disabled
+        <button id="btn-start" class="btn btn-primary" onclick="Game.showGamesSelector()" disabled
           style="opacity: 0.5; filter: grayscale(1); margin-bottom: 12px;">Play Now (Connect Wallet First)</button>
 
         <div class="home-grid-row">
@@ -1099,6 +1099,38 @@
       </a>
 
       <button class="btn btn-primary" onclick="document.getElementById('modal-chat-error-size').classList.remove('active')">Got it</button>
+    </div>
+  </div>
+
+  <!-- ═══ GAMES SELECTOR MODAL ═══ -->
+  <div id="screen-games" class="screen" style="z-index: 200;">
+    <div class="screen-card games-modal-card">
+      <button onclick="Game.closeGamesSelector()" class="ci-close-btn" aria-label="Close">✕</button>
+
+      <div class="ref-header" style="margin-bottom: 20px;">
+        <h2 class="ref-title">Select Game</h2>
+        <p class="ref-sub">More adventures coming soon!</p>
+      </div>
+
+      <div class="games-grid">
+        <!-- Meme Smash Card -->
+        <div class="game-card">
+          <img src="/memesmash.png" alt="Meme Smash" />
+          <h3>Meme Smash</h3>
+          <button class="btn btn-primary" onclick="Game.startGameFromSelector()" style="margin-bottom:0;">Play</button>
+        </div>
+
+        <!-- Coming Soon Card -->
+        <div class="game-card coming-soon">
+          <div class="placeholder-img">
+            <svg viewBox="0 0 24 24" width="48" height="48" fill="rgba(255,255,255,0.2)">
+              <path d="M21,16V4H3V16H21 M21,2H3C1.9,2 1,2.9 1,4V16C1,17.1 1.9,18 3,18H10V20H8V22H16V20H14V18H21C22.1,18 23,17.1 23,16V4C23,2.9 22.1,2 21,2Z"/>
+            </svg>
+          </div>
+          <h3>Coming Soon</h3>
+          <div class="btn-placeholder">More Soon 😊</div>
+        </div>
+      </div>
     </div>
   </div>
 
