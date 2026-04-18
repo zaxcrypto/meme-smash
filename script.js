@@ -41,10 +41,10 @@ const Game = (() => {
     '0x_art.jpg', 'aashir.jpg', 'abdul.jpg', 'abhay.jpg', 'abiiix.jpg', 'acolous.jpg', 'agoraz.jpg',
     'akash.jpg', 'alvin.jpg', 'amelia.jpg', 'ankit.jpg', 'anya.jpg', 'beamnxw.jpg', 'bigbella.jpg',
     'biswa.jpg', 'bitbull.jpg', 'blurryface.jpg', 'cantonboy.jpg', 'cipherr.jpg', 'cj.jpg', 'comrade.jpg',
-    'danny.jpg', 'dex.jpg', 'elora.jpg', 'finopps.jpg', 'fluxio.jpg', 'hamid.jpg', 'harry.jpg', 'hash.jpg',
+    'danny.jpg', 'dex.jpg', 'elora.jpg', 'farahnaz.jpg', 'finopps.jpg', 'fluxio.jpg', 'hamid.jpg', 'harry.jpg', 'hash.jpg',
     'hog.jpg', 'hush.jpg', 'jay.jpg', 'karakot.jpg', 'kingsman.jpg', 'krishna.jpg', 'leoo.jpg', 'leviop.jpg',
     'licht.jpg', 'lion.jpg', 'luka.jpg', 'maddy.jpg', 'malewicz.jpg', 'mayank.jpg', 'nobita.jpg', 'numaa.jpg',
-    'prakash.jpg', 'prashant.jpg', 'prateek.jpg', 'prithboy.jpg', 'prity.jpg', 'rahul.jpg', 'raj.jpg',
+    'prakash.jpg', 'prashant.jpg', 'prateek.jpg', 'prithboy.jpg', 'prity.jpg', 'pulss.jpg', 'rahul.jpg', 'raj.jpg',
     'reeb.jpg', 'rio.jpg', 'riyaz.jpg', 'rjjax.jpg', 'rosaa.jpg', 'sakuna.jpg', 'sheri.jpg', 'shux.jpg',
     'siluu.jpg', 'smooth.jpg', 'somrat.jpg', 'starfish.jpg', 'sukanto.jpg', 'suraj.jpg', 'susmita.jpg', 'timister.jpg',
     'toji.jpg', 'trung.jpg', 'tusher.jpg', 'tzo.jpg', 'virus.jpg', 'yakson.jpg', 'brian.png', 'cilin.jpg', 'jesse.jpg'
