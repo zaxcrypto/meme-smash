@@ -195,10 +195,13 @@
 
     <!-- ── ICE / FREEZE ── -->
     <symbol id="ico-ice" viewBox="0 0 48 48">
-      <path d="M24 2 v11 M24 35 v11 M2 24 h11 M35 24 h11 M10 10 l8 8 M38 38 l-8 -8 M38 10 l-8 8 M10 38 l8 -8" stroke="#E0F7FA" stroke-width="4" stroke-linecap="round" />
+      <path d="M24 2 v11 M24 35 v11 M2 24 h11 M35 24 h11 M10 10 l8 8 M38 38 l-8 -8 M38 10 l-8 8 M10 38 l8 -8"
+        stroke="#E0F7FA" stroke-width="4" stroke-linecap="round" />
       <circle cx="24" cy="24" r="5" fill="#E0F7FA" />
-      <path d="M21 7 l3 -5 l3 5 M21 41 l3 5 l3 -5 M7 21 l-5 3 l5 3 M41 21 l5 3 l-5 3" fill="none" stroke="#E0F7FA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-      <path d="M12 15 l-3 -3 l5 1 M36 15 l3 -3 l-5 1 M12 33 l-3 3 l5 -1 M36 33 l3 3 l-5 -1" fill="none" stroke="#E0F7FA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M21 7 l3 -5 l3 5 M21 41 l3 5 l3 -5 M7 21 l-5 3 l5 3 M41 21 l5 3 l-5 3" fill="none" stroke="#E0F7FA"
+        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M12 15 l-3 -3 l5 1 M36 15 l3 -3 l-5 1 M12 33 l-3 3 l5 -1 M36 33 l3 3 l-5 -1" fill="none" stroke="#E0F7FA"
+        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
     </symbol>
 
     <!-- ── COIN ── -->
@@ -397,10 +400,8 @@
         <div class="beam beam-bl"></div>
         <div class="beam beam-br"></div>
 
-        <img class="decor decor-tl" src="/friends_profiles/brian.png"
-          alt="Brian" />
-        <img class="decor decor-br" src="/friends_profiles/jesse.jpg"
-          alt="Jesse" />
+        <img class="decor decor-tl" src="/friends_profiles/brian.png" alt="Brian" />
+        <img class="decor decor-br" src="/friends_profiles/jesse.jpg" alt="Jesse" />
 
         <div class="hero-title">
           <div class="title-line title-top" data-text="MEME">MEME</div>
@@ -557,27 +558,34 @@
         <div id="bomb-strikes" class="strikes-container"></div>
       </div>
     </div>
-    
+
     <!-- FREEZE BUTTON -->
     <div id="freeze-btn-wrap" class="freeze-btn-wrap" onclick="Game.triggerFreeze()">
       <div class="freeze-ring" id="freeze-ring"></div>
       <button class="freeze-btn" id="freeze-btn" disabled>
-        <img src="iceimage.png" alt="Freeze" style="width: 55%; height: 55%; object-fit: contain; filter: drop-shadow(0 0 4px rgba(0,255,255,0.4));" />
+        <img src="iceimage.png" alt="Freeze"
+          style="width: 55%; height: 55%; object-fit: contain; filter: drop-shadow(0 0 4px rgba(0,255,255,0.4));" />
       </button>
       <div id="freeze-badge" class="freeze-badge" style="display:none;">0</div>
     </div>
-    
+
     <!-- FREEZE COUNTDOWN OVERLAY -->
-    <div id="freeze-countdown-display" style="display:none; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); text-align:center; pointer-events:none; z-index: 100;">
-      <div style="font-family:'Orbitron', sans-serif; font-weight:900; font-size:48px; color:#00F7FF; text-shadow:0 0 20px #00F7FF, 0 0 40px #0088FF; letter-spacing:4px; margin-bottom:10px;">FREEZED</div>
-      <div id="freeze-countdown-val" style="font-family:'Orbitron', sans-serif; font-weight:900; font-size:72px; color:#FFFFFF; text-shadow:0 0 20px #00F7FF; line-height:1;">5</div>
+    <div id="freeze-countdown-display"
+      style="display:none; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); text-align:center; pointer-events:none; z-index: 100;">
+      <div
+        style="font-family:'Orbitron', sans-serif; font-weight:900; font-size:48px; color:#00F7FF; text-shadow:0 0 20px #00F7FF, 0 0 40px #0088FF; letter-spacing:4px; margin-bottom:10px;">
+        FREEZED</div>
+      <div id="freeze-countdown-val"
+        style="font-family:'Orbitron', sans-serif; font-weight:900; font-size:72px; color:#FFFFFF; text-shadow:0 0 20px #00F7FF; line-height:1;">
+        5</div>
     </div>
-    
+
     <!-- BLAST BUTTON -->
     <div id="blast-btn-wrap" class="blast-btn-wrap" onclick="Game.triggerBlast()">
       <div class="blast-ring" id="blast-ring"></div>
       <button class="blast-btn" id="blast-btn" disabled>
-        <img src="bomb.png" alt="Blast" style="width: 55%; height: 55%; object-fit: contain; filter: drop-shadow(0 0 4px rgba(255,100,0,0.6));" />
+        <img src="bomb.png" alt="Blast"
+          style="width: 55%; height: 55%; object-fit: contain; filter: drop-shadow(0 0 4px rgba(255,100,0,0.6));" />
       </button>
       <div id="blast-badge" class="blast-badge" style="display:none;">0</div>
     </div>
@@ -585,7 +593,9 @@
   </div>
 
   <!-- RED ALARM OVERLAY -->
-  <div id="red-alarm-overlay" style="display:none; position:fixed; inset:0; background:rgba(255,0,0,0.4); z-index: 15; pointer-events:none;"></div>
+  <div id="red-alarm-overlay"
+    style="display:none; position:fixed; inset:0; background:rgba(255,0,0,0.4); z-index: 15; pointer-events:none;">
+  </div>
 
   <!-- ═══════════════ GAME OVER ═══════════════ -->
   <div id="screen-gameover" class="screen">
@@ -1082,23 +1092,29 @@
   </div>
 
   <!-- ═══ CHAT IMAGE ERROR MODAL ═══ -->
-  <div id="modal-chat-error-size" class="screen" style="z-index: 10000; background: rgba(10, 5, 25, 0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+  <div id="modal-chat-error-size" class="screen"
+    style="z-index: 10000; background: rgba(10, 5, 25, 0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
     <div class="screen-card" style="max-width:320px; padding:30px 20px;">
       <div style="font-size:40px; margin-bottom:15px;">⚠️</div>
-      <h3 style="color:#FFF; font-family:'Orbitron', sans-serif; font-size:18px; margin-bottom:15px;">Image Too Large</h3>
+      <h3 style="color:#FFF; font-family:'Orbitron', sans-serif; font-size:18px; margin-bottom:15px;">Image Too Large
+      </h3>
       <p style="color:var(--text-mid); font-size:14px; line-height:1.6; margin-bottom:20px;">
         Photos must be under <b>500KB</b> for quick sending.<br><br>
         Please compress your image or reach out directly on Twitter:
       </p>
-      
-      <a href="https://x.com/0x_zax" target="_blank" class="btn btn-secondary" style="display:flex; align-items:center; justify-content:center; gap:10px; padding:12px; margin-bottom:15px; text-decoration:none; background:rgba(255,255,255,0.05);">
+
+      <a href="https://x.com/0x_zax" target="_blank" class="btn btn-secondary"
+        style="display:flex; align-items:center; justify-content:center; gap:10px; padding:12px; margin-bottom:15px; text-decoration:none; background:rgba(255,255,255,0.05);">
         <svg viewBox="0 0 24 24" style="width:20px; height:20px; fill:currentColor;">
-          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path>
+          <path
+            d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z">
+          </path>
         </svg>
         <span>@0x_zax</span>
       </a>
 
-      <button class="btn btn-primary" onclick="document.getElementById('modal-chat-error-size').classList.remove('active')">Got it</button>
+      <button class="btn btn-primary"
+        onclick="document.getElementById('modal-chat-error-size').classList.remove('active')">Got it</button>
     </div>
   </div>
 
@@ -1124,11 +1140,12 @@
         <div class="game-card coming-soon">
           <div class="placeholder-img">
             <svg viewBox="0 0 24 24" width="48" height="48" fill="rgba(255,255,255,0.2)">
-              <path d="M21,16V4H3V16H21 M21,2H3C1.9,2 1,2.9 1,4V16C1,17.1 1.9,18 3,18H10V20H8V22H16V20H14V18H21C22.1,18 23,17.1 23,16V4C23,2.9 22.1,2 21,2Z"/>
+              <path
+                d="M21,16V4H3V16H21 M21,2H3C1.9,2 1,2.9 1,4V16C1,17.1 1.9,18 3,18H10V20H8V22H16V20H14V18H21C22.1,18 23,17.1 23,16V4C23,2.9 22.1,2 21,2Z" />
             </svg>
           </div>
           <h3>Coming Soon</h3>
-          <div class="btn-placeholder">More Soon 😊</div>
+          <div class="btn-placeholder">More Soon</div>
         </div>
       </div>
     </div>
