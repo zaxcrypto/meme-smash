@@ -4600,105 +4600,144 @@ body {
 }
 
 /* ══════════════════════════════════════
-   GAMES SELECTOR
+   GAMES SELECTOR (ULTRA PREMIUM iPHONE GLASS)
 ══════════════════════════════════════ */
 .games-modal-card {
-  padding: 30px 20px 25px;
+  padding: 40px 25px 35px;
   position: relative;
-  max-width: 480px;
-  width: 92%;
-  max-height: calc(100vh - 50px);
+  max-width: 520px;
+  width: 94%;
+  max-height: calc(100vh - 40px);
   overflow-y: auto;
-  border-radius: 28px;
+  border-radius: 38px;
+  /* DARK GLASS FOR ULTIMATE CONTRAST */
+  background: rgba(10, 10, 28, 0.72) !important;
+  backdrop-filter: blur(28px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 
+    0 25px 60px rgba(0, 0, 0, 0.5),
+    inset 0 1px 1px rgba(255, 255, 255, 0.15) !important;
+}
+
+.games-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 26px;
+  font-weight: 900;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 5px;
+  filter: drop-shadow(0 2px 10px rgba(0,0,0,0.5));
+}
+
+.games-subtitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 0;
+  letter-spacing: 0.5px;
 }
 
 .games-grid {
   display: flex;
-  gap: 15px;
+  gap: 20px;
   justify-content: center;
   align-items: stretch;
   flex-wrap: wrap;
+  margin-top: 10px;
 }
 
 .game-card {
-  background: rgba(255, 255, 255, 0.05);
-  border: 2px solid rgba(155, 59, 219, 0.25);
-  border-radius: 20px;
-  padding: 15px;
-  width: calc(50% - 8px);
-  min-width: 140px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1.5px solid rgba(255, 255, 255, 0.08);
+  border-radius: 28px;
+  padding: 18px;
+  width: calc(50% - 10px);
+  min-width: 155px;
   text-align: center;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+  position: relative;
+  overflow: hidden;
 }
 
 .game-card:hover {
-  transform: translateY(-4px);
-  border-color: rgba(155, 59, 219, 0.7);
-  box-shadow: 0 8px 25px rgba(155, 59, 219, 0.3);
+  transform: translateY(-6px) scale(1.02);
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 15px 35px rgba(0,0,0,0.4);
 }
 
 .game-card img {
   width: 100%;
   aspect-ratio: 1 / 1;
-  border-radius: 14px;
+  border-radius: 20px;
   object-fit: cover;
-  margin-bottom: 12px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  margin-bottom: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.4);
 }
 
 .game-card h3 {
   font-family: 'Orbitron', sans-serif;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 900;
   color: #fff;
-  margin: 0 0 12px 0;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  margin: 0 0 15px 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
 }
 
 .game-card .btn {
   margin-bottom: 0;
   width: 100%;
-  padding: 12px 0;
-  font-size: 14px;
-  border-radius: 14px;
+  padding: 12px 5px;
+  font-size: 13px !important;
+  border-radius: 18px !important;
+  height: 44px !important;
+  text-transform: uppercase;
 }
 
 .game-card.coming-soon {
-  opacity: 0.6;
-  filter: grayscale(0.7);
-  border-style: dashed;
+  opacity: 0.8;
+  border: 1.5px dashed rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.02);
   pointer-events: none;
-}
-
-.game-card.coming-soon:hover {
-  transform: none;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-  border-color: rgba(155, 59, 219, 0.25);
 }
 
 .game-card.coming-soon .placeholder-img {
   width: 100%;
   aspect-ratio: 1 / 1;
-  border-radius: 14px;
-  background: rgba(0,0,0,0.2);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.03);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 12px;
-  box-shadow: inset 0 2px 10px rgba(0,0,0,0.2);
+  margin-bottom: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.game-card.coming-soon h3 {
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .game-card.coming-soon .btn-placeholder {
   padding: 12px 0;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 14px;
-  color: rgba(255,255,255,0.5);
-  font-weight: 800;
-  font-size: 13px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.3);
+  font-weight: 900;
+  font-size: 11px;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
 }
