@@ -11,7 +11,7 @@ import { base } from 'viem/chains';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 export const RECEIVER_ADDRESS = '0x067d353042E52169a52524c578D23921CABA25A1';
-const BUILDER_CODE     = 'bc_sjkexp2o';
+const BUILDER_CODE     = '0x62635f736a6b657870326f0b0080218021802180218021802180218021';
 
 // ─── ETH Price Oracle ─────────────────────────────────────────────────────────
 let _cachedEthPrice = null;
@@ -77,8 +77,7 @@ export async function sendETH(toAddress, usdAmount) {
   const hexVal  = '0x' + weiVal.toString(16);
 
   // Builder code attribution in data field
-  const dataHex = '0x' + Array.from(new TextEncoder().encode(BUILDER_CODE))
-    .map(b => b.toString(16).padStart(2, '0')).join('');
+  const dataHex = BUILDER_CODE;
 
   return await activeProvider.request({
     method: 'eth_sendTransaction',
